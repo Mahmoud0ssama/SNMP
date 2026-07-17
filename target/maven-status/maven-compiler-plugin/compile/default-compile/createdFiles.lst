@@ -2,5 +2,6 @@ com/snmp/manager/snmp/listener/TrapListener.class
 com/snmp/manager/snmp/model/TrapEvent.class
 com/snmp/manager/snmp/receiver/TrapReceiver.class
 com/snmp/manager/snmp/parser/TrapParser.class
+com/snmp/manager/snmp/receiver/TrapReceiver$1.class
 com/snmp/manager/snmp/util/OidResolver.class
 com/snmp/manager/Main.class
