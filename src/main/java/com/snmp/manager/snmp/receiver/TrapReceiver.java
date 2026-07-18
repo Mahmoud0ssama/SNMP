@@ -8,6 +8,8 @@ import org.snmp4j.transport.DefaultUdpTransportMapping;
 import org.snmp4j.smi.UdpAddress;
 
 import com.snmp.manager.snmp.listener.TrapListener;
+import com.snmp.manager.snmp.model.TrapEvent;
+import com.snmp.manager.snmp.parser.TrapParser;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -17,14 +19,15 @@ import java.util.List;
  * Opens a UDP socket and listens for incoming SNMP traps.
  *
  * <p>Responsibilities are limited to opening the socket, receiving raw traps
- * via SNMP4J and notifying registered {@link TrapListener}s. Parsing and
- * business logic are intentionally delegated elsewhere.</p>
+ * via SNMP4J, parsing them into {@link TrapEvent}s and notifying registered
+ * {@link TrapListener}s. Business logic is intentionally delegated elsewhere.</p>
  */
 public class TrapReceiver {
 
     private static final int DEFAULT_PORT = 1162;
 
     private final int port;
+    private final TrapParser parser;
     private final List<TrapListener> listeners = new ArrayList<>();
 
     private Snmp snmp;
@@ -36,7 +39,12 @@ public class TrapReceiver {
     }
 
     public TrapReceiver(int port) {
+        this(port, new TrapParser());
+    }
+
+    public TrapReceiver(int port, TrapParser parser) {
         this.port = port;
+        this.parser = parser;
     }
 
     /**
@@ -67,7 +75,8 @@ public class TrapReceiver {
         snmp.addCommandResponder(new CommandResponder() {
             @Override
             public <A extends org.snmp4j.smi.Address> void processPdu(CommandResponderEvent<A> event) {
-                notifyListeners();
+                TrapEvent trapEvent = parser.parse(event);
+                notifyListeners(trapEvent);
             }
         });
         snmp.listen();
@@ -85,9 +94,9 @@ public class TrapReceiver {
         }
     }
 
-    private void notifyListeners() {
+    private void notifyListeners(TrapEvent event) {
         for (TrapListener listener : listeners) {
-            listener.onTrapReceived();
+            listener.onTrapReceived(event);
         }
     }
 
