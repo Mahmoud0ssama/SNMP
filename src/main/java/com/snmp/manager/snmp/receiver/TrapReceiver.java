@@ -7,20 +7,25 @@ import org.snmp4j.TransportMapping;
 import org.snmp4j.transport.DefaultUdpTransportMapping;
 import org.snmp4j.smi.UdpAddress;
 
+import com.snmp.manager.snmp.listener.TrapListener;
+
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Opens a UDP socket and listens for incoming SNMP traps.
  *
- * <p>This commit binds the UDP socket via SNMP4J on port 1162, registers a
- * responder that acknowledges received traps, and starts listening.
- * Trap handling is decoupled via listeners in a later commit.</p>
+ * <p>Responsibilities are limited to opening the socket, receiving raw traps
+ * via SNMP4J and notifying registered {@link TrapListener}s. Parsing and
+ * business logic are intentionally delegated elsewhere.</p>
  */
 public class TrapReceiver {
 
     private static final int DEFAULT_PORT = 1162;
 
     private final int port;
+    private final List<TrapListener> listeners = new ArrayList<>();
 
     private Snmp snmp;
     private final Object lock = new Object();
@@ -32,6 +37,18 @@ public class TrapReceiver {
 
     public TrapReceiver(int port) {
         this.port = port;
+    }
+
+    /**
+     * Registers a listener that will be notified when a trap is received.
+     *
+     * @param listener the listener to add, must not be {@code null}
+     */
+    public void addTrapListener(TrapListener listener) {
+        if (listener == null) {
+            throw new IllegalArgumentException("listener must not be null");
+        }
+        listeners.add(listener);
     }
 
     /**
@@ -50,7 +67,7 @@ public class TrapReceiver {
         snmp.addCommandResponder(new CommandResponder() {
             @Override
             public <A extends org.snmp4j.smi.Address> void processPdu(CommandResponderEvent<A> event) {
-                System.out.println("Trap received!");
+                notifyListeners();
             }
         });
         snmp.listen();
@@ -65,6 +82,12 @@ public class TrapReceiver {
                     break;
                 }
             }
+        }
+    }
+
+    private void notifyListeners() {
+        for (TrapListener listener : listeners) {
+            listener.onTrapReceived();
         }
     }
 

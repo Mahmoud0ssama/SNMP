@@ -1,5 +1,6 @@
 package com.snmp.manager;
 
+import com.snmp.manager.snmp.listener.TrapListener;
 import com.snmp.manager.snmp.receiver.TrapReceiver;
 
 import java.io.IOException;
@@ -12,6 +13,13 @@ public class Main {
         System.out.println("SNMP Manager Started");
 
         TrapReceiver receiver = new TrapReceiver();
+        receiver.addTrapListener(new TrapListener() {
+            @Override
+            public void onTrapReceived() {
+                System.out.println("Trap received!");
+            }
+        });
+
         try {
             receiver.start();
         } catch (IOException e) {
