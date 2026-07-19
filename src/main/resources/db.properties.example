@@ -1,0 +1,3 @@
+db.url=jdbc:postgresql://<host>:5432/snmp_manager
+db.user=snmp_user
+db.password=change_me

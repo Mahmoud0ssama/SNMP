@@ -5,13 +5,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-/**
- * Domain model representing a received SNMP trap.
- *
- * <p>This is the application's own representation of a trap and must never
- * expose any SNMP4J types. Once a trap is parsed into a {@code TrapEvent},
- * the rest of the application works exclusively with this model.</p>
- */
+// Domain model representing a received SNMP trap.
 public class TrapEvent {
 
     private final String sourceIp;
@@ -57,11 +51,7 @@ public class TrapEvent {
         return version;
     }
 
-    /**
-     * Returns an unmodifiable view of the variable bindings (OID to value).
-     *
-     * @return the variable bindings
-     */
+    // Returns an unmodifiable view of the variable bindings (OID to value).
     public Map<String, String> getVariableBindings() {
         return Collections.unmodifiableMap(variableBindings);
     }
