@@ -4,19 +4,17 @@ public class EmulatorCLI {
 
     public static void run(String[] args) {
 
-        String nodeType = args[1];
-        String message = args[2];
-        String targetIp = args[3];
-        int targetPort;
-        
-        // Validation
-        
-        if (args.length != 5) {
+           if (args.length != 5) {
             System.out.println("Invalid arguments");
             System.out.println("Expected arguments : "
                     + "<OperationMode(--cli or --gui)> <NodeType> <TargetIP> <TargetPort>");
             return;
         }
+        
+        String nodeType = args[1];
+        String message = args[2];
+        String targetIp = args[3];
+        int targetPort;  
 
         try {
             targetPort = Integer.parseInt(args[4]);

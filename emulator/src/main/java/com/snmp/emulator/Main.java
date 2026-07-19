@@ -6,18 +6,21 @@ public class Main {
     public static void main(String[] args) {
         
          if (args.length == 0) {
-             System.out.println("Error: This emulator requires arguments");
+             printHelp();
+             return;
          }
-        
-        if (args.length != 5) {
-            System.out.println("Invalid arguments");
-            System.out.println("Expected arguments : "
-                    + "<OperationMode(--cli or --gui)> <NodeType> <TargetIP> <TargetPort>");
-            return;
-        }
-        
+ 
         if ("--cli".equals(args[0]) || "cli".equals(args[0])) {
             EmulatorCLI.run(args);
+        } else {
+            System.out.println("Error: Unknown or unsupported mode '" + args[0] + "'");
+            printHelp();
         }
+    }
+    
+    private static void printHelp() {
+        System.out.println("Usage:");
+        System.out.println("  GUI Mode: java -jar emulator.jar --gui");
+        System.out.println("  CLI Mode: java -jar emulator.jar --cli <NodeType> <Message> <TargetIP> <TargetPort>");
     }
 }
