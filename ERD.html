@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SNMP Platform - ERD & Database Schema</title>
+    <style>
+        /* General Page Styling */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            direction: ltr; /* Set direction to Left-to-Right */
+        }
+        
+        /* Main Container */
+        .container {
+            max-width: 1100px;
+            margin: auto;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        /* Typography */
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+        h2 {
+            color: #2980b9;
+            margin-top: 40px;
+        }
+
+        /* Mermaid Diagram Wrapper */
+        .mermaid-wrapper {
+            background-color: #ecf0f1;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        /* Table Styling */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 25px;
+            background-color: #fff;
+        }
+        th, td {
+            padding: 15px;
+            border: 1px solid #e0e6ed;
+            text-align: left; /* Aligned left for English text */
+        }
+        th {
+            background-color: #34495e;
+            color: #ffffff;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f8fafc;
+        }
+
+        /* Highlight Classes */
+        .primary-key {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        .foreign-key {
+            color: #d35400;
+            font-weight: bold;
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            color: #fff;
+            margin-right: 8px;
+        }
+        .bg-primary { background-color: #3498db; }
+        .bg-danger { background-color: #e74c3c; }
+        .bg-warning { background-color: #f39c12; }
+    </style>
+    
+    <!-- Include Mermaid.js for rendering the ERD -->
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true, theme: 'default' });
+    </script>
+</head>
+<body>
+
+<div class="container">
+    <h1>SNMP Platform - ERD & Database Schema</h1>
+
+    <h2>1. ERD Diagram</h2>
+    <!-- Mermaid code for Entity-Relationship Diagram -->
+    <div class="mermaid-wrapper">
+        <div class="mermaid">
+            erDiagram
+                USERS ||--o{ TRAP_HISTORY : "Resolves"
+                NODES ||--o{ TRAP_HISTORY : "Generates"
+                NODES ||--o{ TRAP_ACTIONS : "Triggers"
+                
+                USERS {
+                    int user_id PK
+                    string username
+                    string password_hash
+                    string role
+                }
+                
+                NODES {
+                    int node_id PK
+                    string ip_address
+                    string name
+                    string status
+                }
+                
+                TRAP_HISTORY {
+                    int trap_id PK
+                    int node_id FK
+                    string error_description
+                    datetime received_at
+                    boolean is_resolved
+                    int resolved_by FK
+                }
+                
+                TRAP_ACTIONS {
+                    int action_id PK
+                    int node_id FK
+                    string action_type
+                    string target_value
+                }
+        </div>
+    </div>
+
+    <h2>2. Database Schema Details</h2>
+
+    <!-- Users Table -->
+    <h3><span class="badge bg-primary">Table</span> Users</h3>
+    <table>
+        <tr>
+            <th>Column</th>
+            <th>Data Type</th>
+            <th>Constraints</th>
+            <th>Description</th>
+        </tr>
+        <tr>
+            <td>user_id</td>
+            <td>INT</td>
+            <td><span class="primary-key">PK</span>, Auto Increment</td>
+            <td>Unique identifier for the user.</td>
+        </tr>
+        <tr>
+            <td>username</td>
+            <td>VARCHAR(50)</td>
+            <td>UNIQUE, NOT NULL</td>
+            <td>Username for system login.</td>
+        </tr>
+        <tr>
+            <td>password_hash</td>
+            <td>VARCHAR(255)</td>
+            <td>NOT NULL</td>
+            <td>Hashed password to ensure security.</td>
+        </tr>
+        <tr>
+            <td>role</td>
+            <td>ENUM</td>
+            <td>'Admin', 'Support'</td>
+            <td>Defines user privileges and access levels.</td>
+        </tr>
+    </table>
+
+    <!-- Nodes Table -->
+    <h3><span class="badge bg-primary">Table</span> Nodes</h3>
+    <table>
+        <tr>
+            <th>Column</th>
+            <th>Data Type</th>
+            <th>Constraints</th>
+            <th>Description</th>
+        </tr>
+        <tr>
+            <td>node_id</td>
+            <td>INT</td>
+            <td><span class="primary-key">PK</span>, Auto Increment</td>
+            <td>Unique identifier for the network node.</td>
+        </tr>
+        <tr>
+            <td>ip_address</td>
+            <td>VARCHAR(45)</td>
+            <td>UNIQUE, NOT NULL</td>
+            <td>IP address of the server or BTS element.</td>
+        </tr>
+        <tr>
+            <td>name</td>
+            <td>VARCHAR(100)</td>
+            <td>NOT NULL</td>
+            <td>Alias for the node (e.g., BTS_Dandy_Mall).</td>
+        </tr>
+        <tr>
+            <td>status</td>
+            <td>ENUM</td>
+            <td>'OK', 'Issue'</td>
+            <td>Current operational status of the node (Green/Red).</td>
+        </tr>
+    </table>
+
+    <!-- Trap History Table -->
+    <h3><span class="badge bg-danger">Table</span> Trap_History</h3>
+    <table>
+        <tr>
+            <th>Column</th>
+            <th>Data Type</th>
+            <th>Constraints</th>
+            <th>Description</th>
+        </tr>
+        <tr>
+            <td>trap_id</td>
+            <td>INT</td>
+            <td><span class="primary-key">PK</span>, Auto Increment</td>
+            <td>Unique identifier for the received SNMP trap.</td>
+        </tr>
+        <tr>
+            <td>node_id</td>
+            <td>INT</td>
+            <td><span class="foreign-key">FK</span> (Nodes.node_id)</td>
+            <td>The node that generated and sent the trap.</td>
+        </tr>
+        <tr>
+            <td>error_description</td>
+            <td>TEXT</td>
+            <td>NOT NULL</td>
+            <td>Details of the error (e.g., CPU is 100%, Storage Full).</td>
+        </tr>
+        <tr>
+            <td>received_at</td>
+            <td>DATETIME</td>
+            <td>DEFAULT CURRENT_TIMESTAMP</td>
+            <td>Timestamp marking when the trap was captured.</td>
+        </tr>
+        <tr>
+            <td>is_resolved</td>
+            <td>BOOLEAN</td>
+            <td>DEFAULT FALSE</td>
+            <td>Status flag indicating if the issue was manually fixed.</td>
+        </tr>
+        <tr>
+            <td>resolved_by</td>
+            <td>INT</td>
+            <td><span class="foreign-key">FK</span> (Users.user_id), NULL</td>
+            <td>Tracks which user marked the issue as resolved.</td>
+        </tr>
+    </table>
+
+    <!-- Trap Actions Table -->
+    <h3><span class="badge bg-warning">Table</span> Trap_Actions</h3>
+    <table>
+        <tr>
+            <th>Column</th>
+            <th>Data Type</th>
+            <th>Constraints</th>
+            <th>Description</th>
+        </tr>
+        <tr>
+            <td>action_id</td>
+            <td>INT</td>
+            <td><span class="primary-key">PK</span>, Auto Increment</td>
+            <td>Unique identifier for the configured action.</td>
+        </tr>
+        <tr>
+            <td>node_id</td>
+            <td>INT</td>
+            <td><span class="foreign-key">FK</span> (Nodes.node_id)</td>
+            <td>The node associated with this automated action.</td>
+        </tr>
+        <tr>
+            <td>action_type</td>
+            <td>ENUM</td>
+            <td>'SMS', 'Email', 'Script'</td>
+            <td>The type of automated response to execute.</td>
+        </tr>
+        <tr>
+            <td>target_value</td>
+            <td>VARCHAR(255)</td>
+            <td>NOT NULL</td>
+            <td>The target destination (Phone number, Email, or Script path).</td>
+        </tr>
+    </table>
+
+</div>
+
+</body>
+</html>
