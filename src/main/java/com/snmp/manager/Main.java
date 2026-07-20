@@ -1,11 +1,16 @@
 package com.snmp.manager;
 
+import com.snmp.manager.config.DatabaseConnection;
+import com.snmp.manager.dao.NodeDAO;
+import com.snmp.manager.dao.TrapActionDAO;
+import com.snmp.manager.dao.TrapHistoryDAO;
+import com.snmp.manager.service.NodeService;
+import com.snmp.manager.service.TrapService;
 import com.snmp.manager.snmp.listener.TrapListener;
 import com.snmp.manager.snmp.model.TrapEvent;
 import com.snmp.manager.snmp.receiver.TrapReceiver;
 
 import java.io.IOException;
-import java.util.Map;
 
 /**
  * Application entry point for the SNMP Manager.
@@ -15,7 +20,7 @@ public class Main {
         System.out.println("SNMP Manager Started");
 
         TrapReceiver receiver = new TrapReceiver();
-        receiver.addTrapListener(new ConsoleTrapListener());
+        receiver.addTrapListener(new PersistenceTrapListener());
 
         try {
             receiver.start();
@@ -26,24 +31,25 @@ public class Main {
     }
 
     /**
-     * Prints received traps to the console in a human-readable format.
+     * Bridges received traps to the business/service layer.
      */
-    private static class ConsoleTrapListener implements TrapListener {
+    private static class PersistenceTrapListener implements TrapListener {
         @Override
         public void onTrapReceived(TrapEvent event) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("====================================\n");
-            sb.append("Trap Received\n\n");
-            sb.append("Source IP : ").append(event.getSourceIp()).append('\n');
-            sb.append("Version   : ").append(event.getVersion()).append('\n');
-            sb.append("Community : ").append(event.getCommunity()).append('\n');
-            sb.append("OID        : ").append(event.getTrapOid()).append('\n');
-            sb.append("\nVariables\n");
-            for (Map.Entry<String, String> entry : event.getVariableBindings().entrySet()) {
-                sb.append(entry.getKey()).append(" = ").append(entry.getValue()).append('\n');
+            try {
+                DatabaseConnection db = DatabaseConnection.fromResource();
+                NodeDAO nodeDAO = new NodeDAO(db);
+                TrapActionDAO trapActionDAO = new TrapActionDAO(db);
+                TrapHistoryDAO trapHistoryDAO = new TrapHistoryDAO(db);
+                NodeService nodeService = new NodeService(nodeDAO);
+                TrapService trapService = new TrapService(nodeDAO, trapActionDAO, trapHistoryDAO, nodeService);
+
+                trapService.process(event);
+                System.out.println("Trap persisted: node=" + event.getSourceIp()
+                        + ", oid=" + event.getTrapOid());
+            } catch (Exception e) {
+                System.err.println("Failed to process trap: " + e.getMessage());
             }
-            sb.append("====================================");
-            System.out.println(sb);
         }
     }
 }
