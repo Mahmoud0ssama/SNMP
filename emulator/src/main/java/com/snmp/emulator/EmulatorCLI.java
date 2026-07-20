@@ -4,17 +4,18 @@ public class EmulatorCLI {
 
     public static void run(String[] args) {
 
-           if (args.length != 5) {
+        if (args.length != 6) {
             System.out.println("Invalid arguments");
             System.out.println("Expected arguments : "
-                    + "<OperationMode(--cli or --gui)> <NodeType> <TargetIP> <TargetPort>");
+                    + "<OperationMode(--cli or --gui)> <NodeName <NodeType> <TargetIP> <TargetPort>");
             return;
         }
-        
-        String nodeType = args[1];
-        String message = args[2];
-        String targetIp = args[3];
-        int targetPort;  
+
+        String nodeName = args[1];
+        String nodeType = args[2];
+        String message = args[3];
+        String targetIp = args[4];
+        int targetPort;
 
         try {
             targetPort = Integer.parseInt(args[4]);
@@ -35,6 +36,6 @@ public class EmulatorCLI {
         }
 
         SnmpService snmp = new SnmpService();
-        snmp.sendTrap(nodeType, message, targetIp, targetPort);
+        snmp.sendTrap(nodeName, nodeType, message, targetIp, targetPort);
     }
 }
