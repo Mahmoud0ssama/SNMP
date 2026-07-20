@@ -1,1 +1,17 @@
 /emulator/target/
+# Compiled class files and build output
+target/
+
+# Local database configuration (contains credentials - do NOT commit)
+src/main/resources/db.properties
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.settings/
+.classpath
+.project
+
+# OS
+.DS_Store
