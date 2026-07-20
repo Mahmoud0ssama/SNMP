@@ -1,3 +1,5 @@
+/emulator/target/
+# Compiled class files and build output
 # Build output
 target/
 snmp-server/target/
