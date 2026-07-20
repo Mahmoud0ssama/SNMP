@@ -1,9 +1,15 @@
 /emulator/target/
 # Compiled class files and build output
+# Build output
 target/
+snmp-server/target/
 
-# Local database configuration (contains credentials - do NOT commit)
-src/main/resources/db.properties
+# Local database credentials (contains secrets)
+snmp-server/src/main/resources/db.properties
+
+# Local scratch / docs (not for repo)
+snmp-server/test.txt
+snmp-server/PROJECT.md
 
 # IDE
 .idea/
