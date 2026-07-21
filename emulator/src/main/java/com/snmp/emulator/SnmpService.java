@@ -39,7 +39,7 @@ public class SnmpService {
      * @param targetPort The UDP port on which the central server is listening (typically 162).
      */
     
-    public void sendTrap(String nodeType, String message, String targetIp, int targetPort) {
+    public void sendTrap(String nodeName, String nodeType, String message, String targetIp, int targetPort) {
         try {
             TransportMapping<UdpAddress> transport = new DefaultUdpTransportMapping();
             transport.listen();
@@ -56,8 +56,9 @@ public class SnmpService {
             
             pdu.add(new VariableBinding(SnmpConstants.sysUpTime, new TimeTicks(5000)));
             pdu.add(new VariableBinding(SnmpConstants.snmpTrapOID, new OID(ENTERPRISE_OID)));
-            pdu.add(new VariableBinding(new OID(ENTERPRISE_OID + ".1"), new OctetString(nodeType)));
-            pdu.add(new VariableBinding(new OID(ENTERPRISE_OID + ".2"), new OctetString(message)));
+            pdu.add(new VariableBinding(new OID(ENTERPRISE_OID + ".1"), new OctetString(nodeName)));
+            pdu.add(new VariableBinding(new OID(ENTERPRISE_OID + ".2"), new OctetString(nodeType)));
+            pdu.add(new VariableBinding(new OID(ENTERPRISE_OID + ".3"), new OctetString(message)));
 
             Snmp snmp = new Snmp(transport);
             System.out.println("Transmitting SNMP Trap to " + targetIp + ":" + targetPort + "...");

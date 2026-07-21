@@ -1,0 +1,28 @@
+.root { -fx-background-color: #f0f2f5; -fx-font-family: "Segoe UI", sans-serif; }
+.header-label { -fx-font-size: 26px; -fx-font-weight: 800; -fx-text-fill: #1a1a1a; }
+.card {
+    -fx-background-color: white; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 25px;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.08), 15, 0, 0, 4);
+}
+.input-label { -fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #666666; }
+.text-field, .combo-box {
+    -fx-background-color: #f8f9fa; -fx-border-color: #dee2e6; -fx-border-radius: 5px;
+    -fx-background-radius: 5px; -fx-padding: 8px 12px; -fx-text-fill: #333333;
+}
+.text-field:focused, .combo-box:focused { -fx-border-color: #3b82f6; -fx-background-color: #ffffff; }
+.primary-button {
+    -fx-background-color: #3b82f6; -fx-text-fill: white; -fx-font-size: 15px;
+    -fx-font-weight: bold; -fx-background-radius: 6px; -fx-padding: 12px 20px; -fx-cursor: hand;
+}
+.primary-button:hover { -fx-background-color: #2563eb; }
+.primary-button:pressed { -fx-background-color: #1d4ed8; }
+.theme-button {
+    -fx-background-color: transparent; -fx-border-color: #dee2e6; -fx-text-fill: #333333;
+    -fx-border-radius: 6px; -fx-cursor: hand; -fx-font-weight: bold;
+}
+.theme-button:hover { -fx-background-color: #e9ecef; }
+.console-area {
+    -fx-control-inner-background: #1e1e1e; -fx-background-color: #1e1e1e;
+    -fx-text-fill: #4ade80; -fx-font-family: monospace; -fx-padding: 5px;
+}
+.console-area .content { -fx-background-color: transparent; }
