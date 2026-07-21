@@ -30,3 +30,24 @@ ADD CONSTRAINT fk_history_resolver
 ALTER TABLE trap_actions
 ADD COLUMN action_type VARCHAR(20),    -- Expected values: 'EMAIL', 'SMS', 'SCRIPT'
 ADD COLUMN target_payload VARCHAR(255); -- Example: 'admin@company.com' or '/opt/scripts/restart.sh'
+
+-- ===========================
+-- 4. ALTER NODES TABLE
+-- Add node_type to store telecom equipment type (BTS, BSC, MSC, etc.)
+-- ===========================
+ALTER TABLE nodes
+ADD COLUMN node_type VARCHAR(50);
+
+-- ===========================
+-- 5. SEED TRAP_ACTIONS
+-- Predefined alarm types mapped to unique enterprise trap OIDs
+-- OID tree: 1.3.6.1.4.1.99999.0.x (Notifications branch)
+-- ===========================
+INSERT INTO trap_actions (trap_oid, trap_name, severity, action_name, description) VALUES
+('1.3.6.1.4.1.99999.0.1', 'Disk Full',            'CRITICAL', 'NOTIFY_ADMIN',    'Storage capacity exhausted'),
+('1.3.6.1.4.1.99999.0.2', 'Power Failure',         'CRITICAL', 'NOTIFY_ADMIN',    'Power supply failure detected'),
+('1.3.6.1.4.1.99999.0.3', 'Link Down',             'MAJOR',    'CHECK_LINK',      'Network link is down'),
+('1.3.6.1.4.1.99999.0.4', 'Congestion',            'MINOR',    'LOG_ONLY',        'Traffic congestion detected'),
+('1.3.6.1.4.1.99999.0.5', 'High Temperature',      'MAJOR',    'NOTIFY_ADMIN',    'Equipment temperature above threshold'),
+('1.3.6.1.4.1.99999.0.6', 'Memory Exhaustion',     'CRITICAL', 'RESTART_SERVICE', 'System memory critically low'),
+('1.3.6.1.4.1.99999.0.7', 'Configuration Error',   'MINOR',    'LOG_ONLY',        'Configuration inconsistency detected');
