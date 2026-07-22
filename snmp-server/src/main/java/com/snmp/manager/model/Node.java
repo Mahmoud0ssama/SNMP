@@ -7,6 +7,7 @@ public class Node {
 
     private Long id;
     private String name;
+    private String nodeType;
     private String ipAddress;
     private int port;
     private String location;
@@ -31,6 +32,14 @@ public class Node {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getNodeType() {
+        return nodeType;
+    }
+
+    public void setNodeType(String nodeType) {
+        this.nodeType = nodeType;
     }
 
     public String getIpAddress() {

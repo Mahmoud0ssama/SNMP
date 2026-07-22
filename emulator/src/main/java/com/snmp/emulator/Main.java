@@ -23,6 +23,9 @@ public class Main {
     private static void printHelp() {
         System.out.println("Usage:");
         System.out.println("  GUI Mode: java -jar emulator.jar <--gui or gui>");
-        System.out.println("  CLI Mode: java -jar emulator.jar <--cli or cli> <NodeName> <NodeType> <Message> <TargetIP> <TargetPort>");
+        System.out.println("  CLI Mode: java -jar emulator.jar <--cli or cli> <NodeName> <NodeType> <NodeIP> <AlarmType> [Details] <TargetIP> <TargetPort>");
+        System.out.println();
+        System.out.println("Valid AlarmTypes: DISK_FULL, POWER_FAILURE, LINK_DOWN, CONGESTION,");
+        System.out.println("                 HIGH_TEMPERATURE, MEMORY_EXHAUSTION, CONFIG_ERROR");
     }
 }

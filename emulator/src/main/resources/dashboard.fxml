@@ -35,6 +35,10 @@
                 <Label styleClass="input-label" text="NODE TYPE" />
                 <ComboBox fx:id="nodeTypeDropdown" prefWidth="180.0" />
             </VBox>
+            <VBox spacing="8.0" HBox.hgrow="ALWAYS">
+                <Label styleClass="input-label" text="SIMULATED IP" />
+                <TextField fx:id="nodeIpField" promptText="e.g., 10.0.0.5" />
+            </VBox>
         </HBox>
 
         <HBox spacing="15.0">
@@ -48,10 +52,16 @@
             </VBox>
         </HBox>
 
-        <VBox spacing="8.0">
-            <Label styleClass="input-label" text="ALARM MESSAGE" />
-            <TextField fx:id="messageField" promptText="e.g., Critical disk failure detected" />
-        </VBox>
+        <HBox spacing="15.0">
+            <VBox spacing="8.0" HBox.hgrow="ALWAYS">
+                <Label styleClass="input-label" text="ALARM TYPE" />
+                <ComboBox fx:id="alarmTypeDropdown" prefWidth="280.0" />
+            </VBox>
+            <VBox spacing="8.0" HBox.hgrow="ALWAYS">
+                <Label styleClass="input-label" text="ADDITIONAL DETAILS (Optional)" />
+                <TextField fx:id="detailsField" promptText="e.g., /dev/sda1 at 98%" />
+            </VBox>
+        </HBox>
 
         <Button maxWidth="Infinity" mnemonicParsing="false" onAction="#onSendButtonClicked" styleClass="primary-button" text="TRANSMIT SNMP TRAP" />
     </VBox>

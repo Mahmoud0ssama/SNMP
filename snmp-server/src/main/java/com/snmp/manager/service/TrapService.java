@@ -42,7 +42,7 @@ public class TrapService {
      * Processes a received trap end to end.
      *
      * <ol>
-     *   <li>Locate the sending node by source IP.</li>
+     *   <li>Locate the sending node by source IP, or auto-register if unknown.</li>
      *   <li>Locate the trap definition by OID.</li>
      *   <li>Persist a trap history record.</li>
      *   <li>Update the node status based on severity.</li>
@@ -56,12 +56,20 @@ public class TrapService {
             throw new IllegalArgumentException("event must not be null");
         }
 
-        String sourceIp = extractIp(event.getSourceIp());
-        Optional<Node> nodeOpt = nodeDAO.findByIp(sourceIp);
-        if (nodeOpt.isEmpty()) {
-            throw new IllegalStateException("No node registered for IP: " + sourceIp);
+        String networkIp = extractIp(event.getSourceIp());
+        String nodeIp = event.getNodeIp() != null && !event.getNodeIp().isEmpty() ? event.getNodeIp() : networkIp;
+        
+        Optional<Node> nodeOpt = nodeDAO.findByIp(nodeIp);
+
+        Node node;
+        if (nodeOpt.isPresent()) {
+            node = nodeOpt.get();
+        } else {
+            // Auto-register unknown nodes using data from the trap payload
+            node = nodeService.registerNode(event.getNodeName(), nodeIp, event.getNodeType());
+            System.out.println("Auto-registered new node: " + node.getName()
+                    + " (" + node.getNodeType() + ") at " + nodeIp);
         }
-        Node node = nodeOpt.get();
 
         Optional<TrapAction> actionOpt = trapActionDAO.findByOid(event.getTrapOid());
         TrapAction action = actionOpt.orElse(null);
@@ -77,13 +85,24 @@ public class TrapService {
         TrapHistory history = new TrapHistory();
         history.setNodeId(node.getId());
         history.setTrapOid(event.getTrapOid());
-        history.setSourceIp(event.getSourceIp());
+        // Store the simulated IP (from the node we resolved) instead of the physical network IP
+        history.setSourceIp(node.getIpAddress());
         history.setStatus(TrapStatus.OPEN);
+
         if (action != null) {
             history.setTrapActionId(action.getId());
-            history.setMessage(action.getTrapName());
+            // Combine the trap action name with optional details from the emulator
+            String message = action.getTrapName();
+            if (event.getDetails() != null && !event.getDetails().isEmpty()) {
+                message += " - " + event.getDetails();
+            }
+            history.setMessage(message);
         } else {
-            history.setMessage("Unrecognized trap: " + event.getTrapOid());
+            String message = "Unrecognized trap: " + event.getTrapOid();
+            if (event.getDetails() != null && !event.getDetails().isEmpty()) {
+                message += " - " + event.getDetails();
+            }
+            history.setMessage(message);
         }
         return history;
     }

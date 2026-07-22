@@ -13,13 +13,17 @@ public class EmulatorController {
     @FXML
     private TextField nodeNameField;
     @FXML
+    private TextField nodeIpField;
+    @FXML
     private ComboBox<String> nodeTypeDropdown;
+    @FXML
+    private ComboBox<String> alarmTypeDropdown;
     @FXML
     private TextField ipField;
     @FXML
     private TextField portField;
     @FXML
-    private TextField messageField;
+    private TextField detailsField;
     @FXML
     private TextArea consoleOutput;
     @FXML
@@ -34,9 +38,15 @@ public class EmulatorController {
     public void initialize() {
         ipField.setText("127.0.0.1");
         portField.setText("162");
+        nodeIpField.setText("10.0.0.5");
 
         nodeTypeDropdown.getItems().addAll("BTS", "BSC", "MSC", "HLR", "VLR", "SGSN", "GGSN");
         nodeTypeDropdown.setValue("BTS");
+
+        for (AlarmType type : AlarmType.values()) {
+            alarmTypeDropdown.getItems().add(type.getDisplayName());
+        }
+        alarmTypeDropdown.setValue(AlarmType.DISK_FULL.getDisplayName());
 
         logToConsole("System Initialized. Ready to send traps.");
     }
@@ -45,12 +55,25 @@ public class EmulatorController {
     public void onSendButtonClicked() {
         String nodeName = nodeNameField.getText();
         String nodeType = nodeTypeDropdown.getValue();
-        String message = messageField.getText();
+        String nodeIp = nodeIpField.getText();
+        String alarmTypeDisplay = alarmTypeDropdown.getValue();
+        String details = detailsField.getText();
         String targetIp = ipField.getText();
         int targetPort;
 
-        if (message == null || message.trim().isEmpty()) {
-            logToConsole("Error: Alarm Message cannot be empty.");
+        if (nodeName == null || nodeName.trim().isEmpty()) {
+            logToConsole("Error: Node Name cannot be empty.");
+            return;
+        }
+
+        String ipRegex = "^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$";
+        if (nodeIp == null || !nodeIp.matches(ipRegex)) {
+            logToConsole("Error: Simulated IP must be a valid IPv4 address.");
+            return;
+        }
+
+        if (alarmTypeDisplay == null || alarmTypeDisplay.trim().isEmpty()) {
+            logToConsole("Error: Alarm Type must be selected.");
             return;
         }
 
@@ -65,23 +88,24 @@ public class EmulatorController {
             return;
         }
 
-        String ipRegex = "^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$";
         if (!targetIp.matches(ipRegex)) {
             logToConsole("Error: Target IP must be a valid IPv4 address.");
             return;
         }
 
         try {
+            AlarmType alarmType = AlarmType.fromDisplayName(alarmTypeDisplay);
+
             logToConsole("Transmitting " + nodeName 
-                    + " (" + nodeType + ") trap to " + targetIp 
+                    + " (" + nodeType + " at " + nodeIp + ") [" + alarmType.getDisplayName() + "] trap to " + targetIp 
                     + ":" + targetPort + "...");
             
             SnmpService snmp = new SnmpService();
-            snmp.sendTrap(nodeName, nodeType, message, targetIp, targetPort);
+            snmp.sendTrap(nodeName, nodeType, nodeIp, alarmType, details, targetIp, targetPort);
 
             logToConsole("SUCCESS: Trap sent to network interface.");
 
-            messageField.clear();
+            detailsField.clear();
 
         } catch (Exception e) {
             logToConsole("FATAL: Failed to send trap. " + e.getMessage());
