@@ -52,6 +52,27 @@ public class NodeDAO {
             }
         }
     }
+    
+    /**
+     * Retrieves all nodes from the database for the dashboard overview.
+     * @return List of all nodes
+     * @throws SQLException on database access error
+     */
+    public java.util.List<Node> findAll() throws SQLException {
+        String sql = "SELECT id, name, node_type, ip_address, port, location, description, status, created_at "
+                   + "FROM nodes ORDER BY name";
+        java.util.List<Node> nodes = new java.util.ArrayList<>();
+        
+        try (Connection conn = databaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            
+            while (rs.next()) {
+                nodes.add(mapRow(rs));
+            }
+        }
+        return nodes;
+    }
 
     // Inserts a new node and populates its generated id.
     public long save(Node node) throws SQLException {

@@ -43,6 +43,44 @@ public class TrapHistoryDAO {
             }
         }
     }
+    /**
+     * Retrieves all trap history records from the database, ordered by newest first.
+     * @return List of traps
+     * @throws SQLException on database access error
+     */
+    public java.util.List<TrapHistory> findAll() throws SQLException {
+        String sql = "SELECT id, node_id, trap_action_id, trap_oid, source_ip, message, status, received_at, resolved_at "
+                   + "FROM trap_history ORDER BY received_at DESC";
+        java.util.List<TrapHistory> traps = new java.util.ArrayList<>();
+        
+        try (Connection conn = databaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            
+            while (rs.next()) {
+                TrapHistory history = new TrapHistory();
+                history.setId(rs.getLong("id"));
+                history.setNodeId(rs.getLong("node_id"));
+                
+                long actionId = rs.getLong("trap_action_id");
+                if (!rs.wasNull()) history.setTrapActionId(actionId);
+                
+                history.setTrapOid(rs.getString("trap_oid"));
+                history.setSourceIp(rs.getString("source_ip"));
+                history.setMessage(rs.getString("message"));
+                history.setStatus(com.snmp.manager.model.TrapStatus.valueOf(rs.getString("status")));
+                history.setReceivedAt(rs.getTimestamp("received_at").toInstant());
+                
+                java.sql.Timestamp resolvedAt = rs.getTimestamp("resolved_at");
+                if (resolvedAt != null) {
+                    history.setResolvedAt(resolvedAt.toInstant());
+                }
+                
+                traps.add(history);
+            }
+        }
+        return traps;
+    }
 
     private void setNullableLong(PreparedStatement ps, int index, Long value) throws SQLException {
         if (value == null) {
