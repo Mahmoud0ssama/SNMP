@@ -23,7 +23,7 @@ public class NodeDAO {
 
     // Finds a node by its primary key
     public Optional<Node> findById(Long id) throws SQLException {
-        String sql = "SELECT id, name, ip_address, port, location, description, status, created_at "
+        String sql = "SELECT id, name, node_type, ip_address, port, location, description, status, created_at "
                 + "FROM nodes WHERE id = ?";
         try (Connection conn = databaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -39,7 +39,7 @@ public class NodeDAO {
 
     // Finds a node by its IP address.
     public Optional<Node> findByIp(String ipAddress) throws SQLException {
-        String sql = "SELECT id, name, ip_address, port, location, description, status, created_at "
+        String sql = "SELECT id, name, node_type, ip_address, port, location, description, status, created_at "
                 + "FROM nodes WHERE ip_address = ?";
         try (Connection conn = databaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -76,16 +76,17 @@ public class NodeDAO {
 
     // Inserts a new node and populates its generated id.
     public long save(Node node) throws SQLException {
-        String sql = "INSERT INTO nodes (name, ip_address, port, location, description, status) "
-                + "VALUES (?, ?, ?, ?, ?, ?::node_status)";
+        String sql = "INSERT INTO nodes (name, node_type, ip_address, port, location, description, status) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?::node_status)";
         try (Connection conn = databaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, node.getName());
-            ps.setString(2, node.getIpAddress());
-            ps.setInt(3, node.getPort());
-            setNullableString(ps, 4, node.getLocation());
-            setNullableString(ps, 5, node.getDescription());
-            ps.setString(6, node.getStatus().name());
+            setNullableString(ps, 2, node.getNodeType());
+            ps.setString(3, node.getIpAddress());
+            ps.setInt(4, node.getPort());
+            setNullableString(ps, 5, node.getLocation());
+            setNullableString(ps, 6, node.getDescription());
+            ps.setString(7, node.getStatus().name());
             ps.executeUpdate();
             try (ResultSet keys = ps.getGeneratedKeys()) {
                 if (keys.next()) {
@@ -101,17 +102,18 @@ public class NodeDAO {
     //Updates an existing node's mutable columns.
 
     public int update(Node node) throws SQLException {
-        String sql = "UPDATE nodes SET name = ?, ip_address = ?, port = ?, location = ?, "
+        String sql = "UPDATE nodes SET name = ?, node_type = ?, ip_address = ?, port = ?, location = ?, "
                 + "description = ?, status = ?::node_status WHERE id = ?";
         try (Connection conn = databaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, node.getName());
-            ps.setString(2, node.getIpAddress());
-            ps.setInt(3, node.getPort());
-            setNullableString(ps, 4, node.getLocation());
-            setNullableString(ps, 5, node.getDescription());
-            ps.setString(6, node.getStatus().name());
-            ps.setLong(7, node.getId());
+            setNullableString(ps, 2, node.getNodeType());
+            ps.setString(3, node.getIpAddress());
+            ps.setInt(4, node.getPort());
+            setNullableString(ps, 5, node.getLocation());
+            setNullableString(ps, 6, node.getDescription());
+            ps.setString(7, node.getStatus().name());
+            ps.setLong(8, node.getId());
             return ps.executeUpdate();
         }
     }
@@ -120,6 +122,7 @@ public class NodeDAO {
         Node node = new Node();
         node.setId(rs.getLong("id"));
         node.setName(rs.getString("name"));
+        node.setNodeType(rs.getString("node_type"));
         node.setIpAddress(rs.getString("ip_address"));
         node.setPort(rs.getInt("port"));
         node.setLocation(rs.getString("location"));

@@ -1,26 +1,31 @@
 package com.snmp.emulator;
 
-
 public class Main {
 
     public static void main(String[] args) {
-        
-         if (args.length == 0) {
-             printHelp();
-             return;
-         }
- 
+
+        if (args.length == 0) {
+            printHelp();
+            return;
+        }
+
         if ("--cli".equals(args[0]) || "cli".equals(args[0])) {
             EmulatorCLI.run(args);
+        } else if ("--gui".equals(args[0]) || "gui".equals(args[0])) {
+            System.out.println("Launching JavaFX GUI Engine...");
+            javafx.application.Application.launch(EmulatorGUI.class, args);
         } else {
             System.out.println("Error: Unknown or unsupported mode '" + args[0] + "'");
             printHelp();
         }
     }
-    
+
     private static void printHelp() {
         System.out.println("Usage:");
-        System.out.println("  GUI Mode: java -jar emulator.jar --gui");
-        System.out.println("  CLI Mode: java -jar emulator.jar --cli <NodeType> <Message> <TargetIP> <TargetPort>");
+        System.out.println("  GUI Mode: java -jar emulator.jar <--gui or gui>");
+        System.out.println("  CLI Mode: java -jar emulator.jar <--cli or cli> <NodeName> <NodeType> <NodeIP> <AlarmType> [Details] <TargetIP> <TargetPort>");
+        System.out.println();
+        System.out.println("Valid AlarmTypes: DISK_FULL, POWER_FAILURE, LINK_DOWN, CONGESTION,");
+        System.out.println("                 HIGH_TEMPERATURE, MEMORY_EXHAUSTION, CONFIG_ERROR");
     }
 }

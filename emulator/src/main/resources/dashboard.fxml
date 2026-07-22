@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<!-- Notice the fx:id="rootPane" and the default dark-theme.css -->
+<VBox fx:id="rootPane" prefHeight="600.0" prefWidth="650.0" spacing="20.0" stylesheets="@dark-theme.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.snmp.emulator.EmulatorController">
+    
+    <padding>
+        <Insets bottom="30.0" left="30.0" right="30.0" top="30.0" />
+    </padding>
+
+    <!-- Header Section with Theme Toggle -->
+    <HBox alignment="CENTER_LEFT">
+        <VBox spacing="5.0" HBox.hgrow="ALWAYS">
+            <Label styleClass="header-label" text="Telecom Node Emulator" />
+            <Label styleClass="input-label" text="SNMP Trap Generation Dashboard" />
+        </VBox>
+        <Button fx:id="themeButton" mnemonicParsing="false" onAction="#onThemeToggleClicked" styleClass="theme-button" text="☀️ Light Mode" />
+    </HBox>
+
+    <VBox spacing="20.0" styleClass="card">
+        <HBox spacing="15.0">
+            <VBox spacing="8.0" HBox.hgrow="ALWAYS">
+                <Label styleClass="input-label" text="NODE NAME" />
+                <TextField fx:id="nodeNameField" promptText="e.g., Cairo_BTS_01" />
+            </VBox>
+            <VBox spacing="8.0" HBox.hgrow="ALWAYS">
+                <Label styleClass="input-label" text="NODE TYPE" />
+                <ComboBox fx:id="nodeTypeDropdown" prefWidth="180.0" />
+            </VBox>
+            <VBox spacing="8.0" HBox.hgrow="ALWAYS">
+                <Label styleClass="input-label" text="SIMULATED IP" />
+                <TextField fx:id="nodeIpField" promptText="e.g., 10.0.0.5" />
+            </VBox>
+        </HBox>
+
+        <HBox spacing="15.0">
+            <VBox spacing="8.0" HBox.hgrow="ALWAYS">
+                <Label styleClass="input-label" text="TARGET IP ADDRESS" />
+                <TextField fx:id="ipField" promptText="127.0.0.1" />
+            </VBox>
+            <VBox spacing="8.0">
+                <Label styleClass="input-label" text="PORT" />
+                <TextField fx:id="portField" prefWidth="100.0" promptText="162" />
+            </VBox>
+        </HBox>
+
+        <HBox spacing="15.0">
+            <VBox spacing="8.0" HBox.hgrow="ALWAYS">
+                <Label styleClass="input-label" text="ALARM TYPE" />
+                <ComboBox fx:id="alarmTypeDropdown" prefWidth="280.0" />
+            </VBox>
+            <VBox spacing="8.0" HBox.hgrow="ALWAYS">
+                <Label styleClass="input-label" text="ADDITIONAL DETAILS (Optional)" />
+                <TextField fx:id="detailsField" promptText="e.g., /dev/sda1 at 98%" />
+            </VBox>
+        </HBox>
+
+        <Button maxWidth="Infinity" mnemonicParsing="false" onAction="#onSendButtonClicked" styleClass="primary-button" text="TRANSMIT SNMP TRAP" />
+    </VBox>
+
+    <VBox spacing="8.0" VBox.vgrow="ALWAYS">
+        <Label styleClass="input-label" text="SYSTEM CONSOLE" />
+        <TextArea fx:id="consoleOutput" editable="false" promptText="System ready..." styleClass="console-area" VBox.vgrow="ALWAYS" />
+    </VBox>
+
+</VBox>

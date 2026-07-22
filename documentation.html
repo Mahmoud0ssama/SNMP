@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SNMP Platform — Technical Documentation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0f1117;
+            --surface: #1a1d27;
+            --surface-2: #232734;
+            --border: #2e3345;
+            --text: #e4e6f0;
+            --text-muted: #8b8fa3;
+            --accent: #6c8cff;
+            --accent-glow: rgba(108, 140, 255, 0.15);
+            --green: #4ade80;
+            --green-dim: rgba(74, 222, 128, 0.12);
+            --red: #f87171;
+            --red-dim: rgba(248, 113, 113, 0.12);
+            --orange: #fb923c;
+            --orange-dim: rgba(251, 146, 60, 0.12);
+            --yellow: #facc15;
+            --yellow-dim: rgba(250, 204, 21, 0.12);
+            --purple: #c084fc;
+            --purple-dim: rgba(192, 132, 252, 0.12);
+            --cyan: #22d3ee;
+            --cyan-dim: rgba(34, 211, 238, 0.12);
+            --radius: 12px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        /* ── Header ── */
+        .hero {
+            text-align: center;
+            padding: 60px 40px;
+            background: linear-gradient(135deg, var(--surface) 0%, var(--surface-2) 100%);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            margin-bottom: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 30% 30%, var(--accent-glow) 0%, transparent 50%);
+            pointer-events: none;
+        }
+        .hero h1 {
+            font-size: 2.4rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 8px;
+            position: relative;
+        }
+        .hero h1 span { color: var(--accent); }
+        .hero p {
+            color: var(--text-muted);
+            font-size: 1.05rem;
+            position: relative;
+        }
+        .hero .badge-row {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            position: relative;
+        }
+
+        /* ── Badges ── */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 14px;
+            border-radius: 100px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+        .badge-accent { background: var(--accent-glow); color: var(--accent); border: 1px solid rgba(108,140,255,0.25); }
+        .badge-green  { background: var(--green-dim);  color: var(--green);  border: 1px solid rgba(74,222,128,0.25); }
+        .badge-orange { background: var(--orange-dim); color: var(--orange); border: 1px solid rgba(251,146,60,0.25); }
+        .badge-purple { background: var(--purple-dim); color: var(--purple); border: 1px solid rgba(192,132,252,0.25); }
+        .badge-cyan   { background: var(--cyan-dim);   color: var(--cyan);   border: 1px solid rgba(34,211,238,0.25); }
+        .badge-red    { background: var(--red-dim);    color: var(--red);    border: 1px solid rgba(248,113,113,0.25); }
+        .badge-yellow { background: var(--yellow-dim); color: var(--yellow); border: 1px solid rgba(250,204,21,0.25); }
+
+        /* ── Section ── */
+        .section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 36px;
+            margin-bottom: 28px;
+        }
+        .section h2 {
+            font-size: 1.45rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .section h2 .icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+        .section .subtitle {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 24px;
+        }
+        .section h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--accent);
+            margin: 28px 0 12px 0;
+        }
+        .section h3:first-of-type { margin-top: 0; }
+
+        /* ── Tables ── */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+            font-size: 0.88rem;
+        }
+        th, td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        th {
+            background: var(--surface-2);
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+        }
+        tr:hover td { background: rgba(108,140,255,0.04); }
+        td code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.82rem;
+            background: var(--surface-2);
+            padding: 2px 8px;
+            border-radius: 4px;
+            color: var(--cyan);
+        }
+
+        /* ── Code blocks ── */
+        .code-block {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px 24px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.82rem;
+            line-height: 1.8;
+            overflow-x: auto;
+            margin: 16px 0;
+            color: var(--text-muted);
+            white-space: pre;
+        }
+        .code-block .comment { color: #555b70; }
+        .code-block .oid     { color: var(--cyan); }
+        .code-block .label   { color: var(--green); }
+        .code-block .tree    { color: var(--text-muted); }
+
+        /* ── Flow diagram ── */
+        .flow {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        .flow-step {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 16px 20px;
+            text-align: center;
+            min-width: 150px;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .flow-step:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent);
+        }
+        .flow-step .step-num {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+        .flow-step .step-title {
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 2px;
+        }
+        .flow-step .step-detail {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+        }
+        .flow-arrow {
+            font-size: 1.4rem;
+            color: var(--accent);
+            padding: 0 6px;
+            flex-shrink: 0;
+        }
+
+        /* ── Cards grid ── */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            margin: 16px 0;
+        }
+        .card {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 22px;
+            transition: border-color 0.2s;
+        }
+        .card:hover { border-color: var(--accent); }
+        .card .card-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .card .card-desc {
+            font-size: 0.84rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+        .card .card-files {
+            margin-top: 10px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
+            color: var(--accent);
+        }
+
+        /* ── Severity colors ── */
+        .sev-critical { color: var(--red); font-weight: 600; }
+        .sev-major    { color: var(--orange); font-weight: 600; }
+        .sev-minor    { color: var(--yellow); font-weight: 600; }
+        .sev-info     { color: var(--green); font-weight: 600; }
+
+        /* ── Divider ── */
+        .divider {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 28px 0;
+        }
+
+        /* ── Lists ── */
+        ul { padding-left: 20px; margin: 8px 0; }
+        li { margin: 4px 0; font-size: 0.9rem; }
+        li code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.82rem;
+            background: var(--surface-2);
+            padding: 1px 6px;
+            border-radius: 4px;
+            color: var(--cyan);
+        }
+
+        p { margin: 8px 0; font-size: 0.9rem; }
+
+        /* ── Mermaid ── */
+        .mermaid-wrapper {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            margin: 16px 0;
+            overflow-x: auto;
+        }
+
+        /* ── Footer ── */
+        .footer {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            padding: 30px 0 10px 0;
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 700px) {
+            .hero { padding: 40px 20px; }
+            .hero h1 { font-size: 1.6rem; }
+            .section { padding: 24px 18px; }
+            .flow { flex-direction: column; }
+            .flow-arrow { transform: rotate(90deg); }
+        }
+    </style>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true, theme: 'dark' });
+    </script>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- ═══════════════ HERO ═══════════════ -->
+    <div class="hero">
+        <h1><span>SNMP</span> Network Management Platform</h1>
+        <p>Technical Documentation — Architecture, Components &amp; Data Flow</p>
+        <div class="badge-row">
+            <span class="badge badge-accent">Java 25</span>
+            <span class="badge badge-green">SNMPv2c</span>
+            <span class="badge badge-orange">SNMP4J 3.x</span>
+            <span class="badge badge-purple">PostgreSQL</span>
+            <span class="badge badge-cyan">JavaFX</span>
+        </div>
+    </div>
+
+    <!-- ═══════════════ 1. OVERVIEW ═══════════════ -->
+    <div class="section">
+        <h2><span class="icon" style="background:var(--accent-glow);color:var(--accent)">📡</span> 1. Project Overview</h2>
+        <p class="subtitle">A telecom-grade SNMP trap monitoring platform for simulated network elements.</p>
+
+        <p>The platform consists of two independent Java applications that communicate over the SNMP protocol:</p>
+
+        <div class="card-grid">
+            <div class="card">
+                <div class="card-title">
+                    <span class="badge badge-cyan" style="padding:3px 10px">Emulator</span>
+                    Telecom Node Emulator
+                </div>
+                <div class="card-desc">
+                    Simulates telecom network elements (BTS, BSC, MSC, etc.) and generates SNMPv2c trap messages 
+                    for predefined alarm types. Offers both a <strong>JavaFX GUI</strong> and a <strong>CLI</strong> interface.
+                </div>
+                <div class="card-files">com.snmp.emulator</div>
+            </div>
+            <div class="card">
+                <div class="card-title">
+                    <span class="badge badge-purple" style="padding:3px 10px">Server</span>
+                    SNMP Manager Server
+                </div>
+                <div class="card-desc">
+                    Listens for incoming SNMP traps on UDP port 162, parses the structured payload, 
+                    identifies or auto-registers the source node, and persists alarm history into <strong>PostgreSQL</strong>.
+                </div>
+                <div class="card-files">com.snmp.manager</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════ 2. ARCHITECTURE ═══════════════ -->
+    <div class="section">
+        <h2><span class="icon" style="background:var(--green-dim);color:var(--green)">🏗️</span> 2. System Architecture</h2>
+        <p class="subtitle">High-level component diagram showing how the emulator and server interact.</p>
+
+        <div class="mermaid-wrapper">
+            <pre class="mermaid">
+flowchart LR
+    subgraph Emulator["🖥️ Emulator"]
+        GUI["JavaFX GUI"]
+        CLI["CLI Mode"]
+        SS["SnmpService"]
+        AT["AlarmType Enum"]
+    end
+
+    subgraph Server["🖧 SNMP Manager Server"]
+        TR["TrapReceiver\n(UDP :162)"]
+        TP["TrapParser"]
+        TS["TrapService"]
+        NS["NodeService"]
+        ND["NodeDAO"]
+        TAD["TrapActionDAO"]
+        THD["TrapHistoryDAO"]
+    end
+
+    subgraph DB["🗄️ PostgreSQL"]
+        NT["nodes"]
+        TAT["trap_actions"]
+        THT["trap_history"]
+        UT["users"]
+    end
+
+    GUI --> SS
+    CLI --> SS
+    AT -.-> SS
+    SS -- "SNMPv2c Trap\n(UDP)" --> TR
+    TR --> TP
+    TP --> TS
+    TS --> NS
+    NS --> ND
+    TS --> TAD
+    TS --> THD
+    ND --> NT
+    TAD --> TAT
+    THD --> THT
+
+    style Emulator fill:#1a2332,stroke:#6c8cff,color:#e4e6f0
+    style Server fill:#1a2332,stroke:#c084fc,color:#e4e6f0
+    style DB fill:#1a2332,stroke:#4ade80,color:#e4e6f0
+            </pre>
+        </div>
+    </div>
+
+    <!-- ═══════════════ 3. OID TREE ═══════════════ -->
+    <div class="section">
+        <h2><span class="icon" style="background:var(--cyan-dim);color:var(--cyan)">🌲</span> 3. Enterprise OID Tree</h2>
+        <p class="subtitle">Custom MIB structure under Private Enterprise <code>1.3.6.1.4.1.99999</code>. Follows industry convention: <code>.0.x</code> for notifications, <code>.1.x</code> for data objects.</p>
+
+        <div class="code-block"><span class="comment">── iso.org.dod.internet.private.enterprises.99999 ──</span>
+
+<span class="oid">1.3.6.1.4.1.99999</span>                    <span class="comment">← Enterprise Root</span>
+<span class="tree">│</span>
+<span class="tree">├──</span> <span class="oid">.0.x</span>  <span class="label">Notifications</span>          <span class="comment">(Trap OIDs — "what happened")</span>
+<span class="tree">│   ├──</span> <span class="oid">.0.1</span>  <span class="label">Disk Full</span>
+<span class="tree">│   ├──</span> <span class="oid">.0.2</span>  <span class="label">Power Failure</span>
+<span class="tree">│   ├──</span> <span class="oid">.0.3</span>  <span class="label">Link Down</span>
+<span class="tree">│   ├──</span> <span class="oid">.0.4</span>  <span class="label">Congestion</span>
+<span class="tree">│   ├──</span> <span class="oid">.0.5</span>  <span class="label">High Temperature</span>
+<span class="tree">│   ├──</span> <span class="oid">.0.6</span>  <span class="label">Memory Exhaustion</span>
+<span class="tree">│   └──</span> <span class="oid">.0.7</span>  <span class="label">Configuration Error</span>
+<span class="tree">│</span>
+<span class="tree">└──</span> <span class="oid">.1.x</span>  <span class="label">Objects</span>                 <span class="comment">(Variable Bindings — "context/payload")</span>
+<span class="tree">    ├──</span> <span class="oid">.1.1</span>  <span class="label">nodeName</span>            <span class="comment">e.g., "Cairo_BTS_01"</span>
+<span class="tree">    ├──</span> <span class="oid">.1.2</span>  <span class="label">nodeType</span>            <span class="comment">e.g., "BTS"</span>
+<span class="tree">    ├──</span> <span class="oid">.1.3</span>  <span class="label">details</span>             <span class="comment">e.g., "/dev/sda1 at 98%" (optional)</span>
+<span class="tree">    └──</span> <span class="oid">.1.4</span>  <span class="label">nodeIp</span>              <span class="comment">e.g., "10.0.0.5" (simulated source IP)</span></div>
+
+        <h3>Alarm Types &amp; Severity Mapping</h3>
+        <table>
+            <tr>
+                <th>Trap OID</th>
+                <th>Alarm Name</th>
+                <th>Severity</th>
+                <th>Action</th>
+                <th>Node Status →</th>
+            </tr>
+            <tr>
+                <td><code>...99999.0.1</code></td>
+                <td>Disk Full</td>
+                <td><span class="sev-critical">CRITICAL</span></td>
+                <td>NOTIFY_ADMIN</td>
+                <td><span class="sev-critical">DOWN</span></td>
+            </tr>
+            <tr>
+                <td><code>...99999.0.2</code></td>
+                <td>Power Failure</td>
+                <td><span class="sev-critical">CRITICAL</span></td>
+                <td>NOTIFY_ADMIN</td>
+                <td><span class="sev-critical">DOWN</span></td>
+            </tr>
+            <tr>
+                <td><code>...99999.0.3</code></td>
+                <td>Link Down</td>
+                <td><span class="sev-major">MAJOR</span></td>
+                <td>CHECK_LINK</td>
+                <td><span class="sev-major">WARNING</span></td>
+            </tr>
+            <tr>
+                <td><code>...99999.0.4</code></td>
+                <td>Congestion</td>
+                <td><span class="sev-minor">MINOR</span></td>
+                <td>LOG_ONLY</td>
+                <td><span class="sev-minor">WARNING</span></td>
+            </tr>
+            <tr>
+                <td><code>...99999.0.5</code></td>
+                <td>High Temperature</td>
+                <td><span class="sev-major">MAJOR</span></td>
+                <td>NOTIFY_ADMIN</td>
+                <td><span class="sev-major">WARNING</span></td>
+            </tr>
+            <tr>
+                <td><code>...99999.0.6</code></td>
+                <td>Memory Exhaustion</td>
+                <td><span class="sev-critical">CRITICAL</span></td>
+                <td>RESTART_SERVICE</td>
+                <td><span class="sev-critical">DOWN</span></td>
+            </tr>
+            <tr>
+                <td><code>...99999.0.7</code></td>
+                <td>Configuration Error</td>
+                <td><span class="sev-minor">MINOR</span></td>
+                <td>LOG_ONLY</td>
+                <td><span class="sev-minor">WARNING</span></td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- ═══════════════ 4. END-TO-END FLOW ═══════════════ -->
+    <div class="section">
+        <h2><span class="icon" style="background:var(--orange-dim);color:var(--orange)">⚡</span> 4. End-to-End Trap Flow</h2>
+        <p class="subtitle">What happens when the user sends a trap from the emulator.</p>
+
+        <div class="flow">
+            <div class="flow-step">
+                <div class="step-num">Step 1</div>
+                <div class="step-title">User Input</div>
+                <div class="step-detail">Select node, alarm type, and optional details</div>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step">
+                <div class="step-num">Step 2</div>
+                <div class="step-title">Build PDU</div>
+                <div class="step-detail">SnmpService constructs SNMPv2c trap with OID bindings</div>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step">
+                <div class="step-num">Step 3</div>
+                <div class="step-title">UDP Send</div>
+                <div class="step-detail">Trap sent to target IP on port 162</div>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step">
+                <div class="step-num">Step 4</div>
+                <div class="step-title">Receive &amp; Parse</div>
+                <div class="step-detail">TrapReceiver ➜ TrapParser extracts structured fields</div>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step">
+                <div class="step-num">Step 5</div>
+                <div class="step-title">Process &amp; Persist</div>
+                <div class="step-detail">Node lookup/register, severity resolve, save to DB</div>
+            </div>
+        </div>
+
+        <h3>PDU Structure (on the wire)</h3>
+        <table>
+            <tr>
+                <th>Binding</th>
+                <th>OID</th>
+                <th>Example Value</th>
+            </tr>
+            <tr>
+                <td>sysUpTime</td>
+                <td><code>1.3.6.1.2.1.1.3.0</code></td>
+                <td>5000 (timeticks)</td>
+            </tr>
+            <tr>
+                <td>snmpTrapOID</td>
+                <td><code>1.3.6.1.6.3.1.1.4.1.0</code></td>
+                <td><code>1.3.6.1.4.1.99999.0.1</code> (Disk Full)</td>
+            </tr>
+            <tr>
+                <td>nodeName</td>
+                <td><code>1.3.6.1.4.1.99999.1.1</code></td>
+                <td>Cairo_BTS_01</td>
+            </tr>
+            <tr>
+                <td>nodeType</td>
+                <td><code>1.3.6.1.4.1.99999.1.2</code></td>
+                <td>BTS</td>
+            </tr>
+            <tr>
+                <td>details</td>
+                <td><code>1.3.6.1.4.1.99999.1.3</code></td>
+                <td>/dev/sda1 at 98% (optional)</td>
+            </tr>
+            <tr>
+                <td>nodeIp</td>
+                <td><code>1.3.6.1.4.1.99999.1.4</code></td>
+                <td>10.0.0.5</td>
+            </tr>
+        </table>
+
+        <h3>Server Processing Logic (TrapService)</h3>
+        <ol style="padding-left:20px; font-size:0.9rem;">
+            <li><strong>Extract IP</strong> — Strip port from peer address (e.g., <code>127.0.0.1/54321</code> → <code>127.0.0.1</code>)</li>
+            <li><strong>Node Lookup</strong> — Query <code>nodes</code> table by IP address using <code>nodeIp</code> from the trap (or network source IP if missing)</li>
+            <li><strong>Auto-Register</strong> — If node not found, create it using <code>nodeName</code>, <code>nodeIp</code>, and <code>nodeType</code> from the trap</li>
+            <li><strong>Action Lookup</strong> — Match <code>snmpTrapOID</code> against <code>trap_actions.trap_oid</code> to find severity &amp; action</li>
+            <li><strong>Persist History</strong> — INSERT into <code>trap_history</code> with OID, message (action name + details), status OPEN</li>
+            <li><strong>Update Node Status</strong> — CRITICAL → DOWN, MAJOR/MINOR → WARNING, INFO → UP</li>
+        </ol>
+    </div>
+
+    <!-- ═══════════════ 5. EMULATOR ═══════════════ -->
+    <div class="section">
+        <h2><span class="icon" style="background:var(--cyan-dim);color:var(--cyan)">🖥️</span> 5. Emulator Component</h2>
+        <p class="subtitle">Package <code>com.snmp.emulator</code> — simulates telecom network elements.</p>
+
+        <h3>Class Diagram</h3>
+        <div class="mermaid-wrapper">
+            <pre class="mermaid">
+classDiagram
+    class Main {
+        +main(String[] args)
+        -printHelp()
+    }
+    class EmulatorGUI {
+        +start(Stage primaryStage)
+    }
+    class EmulatorController {
+        -nodeNameField : TextField
+        -nodeTypeDropdown : ComboBox
+        -alarmTypeDropdown : ComboBox
+        -detailsField : TextField
+        -ipField : TextField
+        -portField : TextField
+        +initialize()
+        +onSendButtonClicked()
+        +onThemeToggleClicked()
+    }
+    class EmulatorCLI {
+        +run(String[] args)$
+    }
+    class SnmpService {
+        -ENTERPRISE_OID : String
+        +sendTrap(nodeName, nodeType, alarmType, details, targetIp, targetPort)
+    }
+    class AlarmType {
+        <<enumeration>>
+        DISK_FULL
+        POWER_FAILURE
+        LINK_DOWN
+        CONGESTION
+        HIGH_TEMPERATURE
+        MEMORY_EXHAUSTION
+        CONFIG_ERROR
+        +getDisplayName() String
+        +getOid() String
+        +fromDisplayName(name)$ AlarmType
+    }
+
+    Main --> EmulatorGUI : "--gui"
+    Main --> EmulatorCLI : "--cli"
+    EmulatorGUI --> EmulatorController : loads FXML
+    EmulatorController --> SnmpService : sendTrap()
+    EmulatorCLI --> SnmpService : sendTrap()
+    SnmpService --> AlarmType : getOid()
+            </pre>
+        </div>
+
+        <h3>Usage</h3>
+        <div class="code-block"><span class="comment"># GUI Mode</span>
+<span class="label">java -jar emulator.jar --gui</span>
+
+<span class="comment"># CLI Mode (without details)</span>
+<span class="label">java -jar emulator.jar --cli Cairo_BTS_01 BTS 10.0.0.5 DISK_FULL 127.0.0.1 162</span>
+
+<span class="comment"># CLI Mode (with details)</span>
+<span class="label">java -jar emulator.jar --cli Cairo_BTS_01 BTS 10.0.0.5 DISK_FULL "/dev/sda1 at 98%" 127.0.0.1 162</span>
+
+<span class="comment"># Valid AlarmTypes:</span>
+<span class="oid">DISK_FULL  POWER_FAILURE  LINK_DOWN  CONGESTION  HIGH_TEMPERATURE  MEMORY_EXHAUSTION  CONFIG_ERROR</span></div>
+
+        <h3>Supported Node Types</h3>
+        <table>
+            <tr><th>Type</th><th>Full Name</th></tr>
+            <tr><td><code>BTS</code></td><td>Base Transceiver Station</td></tr>
+            <tr><td><code>BSC</code></td><td>Base Station Controller</td></tr>
+            <tr><td><code>MSC</code></td><td>Mobile Switching Center</td></tr>
+            <tr><td><code>HLR</code></td><td>Home Location Register</td></tr>
+            <tr><td><code>VLR</code></td><td>Visitor Location Register</td></tr>
+            <tr><td><code>SGSN</code></td><td>Serving GPRS Support Node</td></tr>
+            <tr><td><code>GGSN</code></td><td>Gateway GPRS Support Node</td></tr>
+        </table>
+    </div>
+
+    <!-- ═══════════════ 6. SERVER ═══════════════ -->
+    <div class="section">
+        <h2><span class="icon" style="background:var(--purple-dim);color:var(--purple)">🖧</span> 6. Server Component</h2>
+        <p class="subtitle">Package <code>com.snmp.manager</code> — receives, parses, and persists SNMP traps.</p>
+
+        <h3>Layered Architecture</h3>
+        <div class="mermaid-wrapper">
+            <pre class="mermaid">
+classDiagram
+    direction TB
+
+    class TrapReceiver {
+        -DEFAULT_PORT : 162
+        +start()
+        +stop()
+        +addTrapListener(TrapListener)
+    }
+    class TrapParser {
+        -ENTERPRISE_OID
+        -OID_NODE_NAME
+        -OID_NODE_TYPE
+        -OID_DETAILS
+        +parse(event) TrapEvent
+    }
+    class TrapEvent {
+        +sourceIp : String
+        +trapOid : String
+        +nodeName : String
+        +nodeType : String
+        +details : String
+        +community : String
+        +version : String
+        +variableBindings : Map
+    }
+    class TrapService {
+        +process(TrapEvent)
+        -buildHistory()
+        -resolveStatus()
+        -extractIp()
+    }
+    class NodeService {
+        +findById(Long)
+        +findByIp(String)
+        +updateStatus(Node, NodeStatus)
+        +registerNode(name, ip, nodeType)
+    }
+    class NodeDAO {
+        +findById(Long)
+        +findByIp(String)
+        +save(Node)
+        +update(Node)
+    }
+    class TrapActionDAO {
+        +findById(Long)
+        +findByOid(String)
+    }
+    class TrapHistoryDAO {
+        +save(TrapHistory)
+    }
+
+    TrapReceiver --> TrapParser : parse raw PDU
+    TrapParser --> TrapEvent : creates
+    TrapReceiver --> TrapService : via TrapListener
+    TrapService --> NodeService
+    TrapService --> TrapActionDAO
+    TrapService --> TrapHistoryDAO
+    NodeService --> NodeDAO
+            </pre>
+        </div>
+
+        <h3>Key Features</h3>
+        <ul>
+            <li><strong>Structured Parsing</strong> — Extracts <code>nodeName</code>, <code>nodeType</code>, <code>details</code> from known enterprise sub-OIDs</li>
+            <li><strong>Auto-Registration</strong> — Unknown nodes are automatically registered using trap payload data</li>
+            <li><strong>Severity Resolution</strong> — Maps trap OID → trap_actions → severity → node status</li>
+            <li><strong>Trap History</strong> — Every received trap is persisted with full audit trail</li>
+        </ul>
+    </div>
+
+    <!-- ═══════════════ 7. DATABASE ═══════════════ -->
+    <div class="section">
+        <h2><span class="icon" style="background:var(--green-dim);color:var(--green)">🗄️</span> 7. Database Schema</h2>
+        <p class="subtitle">PostgreSQL — 4 tables, 3 custom ENUM types.</p>
+
+        <h3>ERD</h3>
+        <div class="mermaid-wrapper">
+            <pre class="mermaid">
+erDiagram
+    USERS ||--o{ TRAP_HISTORY : "resolves"
+    NODES ||--o{ TRAP_HISTORY : "generates"
+    TRAP_ACTIONS ||--o{ TRAP_HISTORY : "defines"
+
+    USERS {
+        bigserial id PK
+        varchar username
+        varchar password_hash
+        varchar role
+        timestamp created_at
+    }
+
+    NODES {
+        bigserial id PK
+        varchar name
+        varchar node_type
+        varchar ip_address
+        integer port
+        varchar location
+        text description
+        node_status status
+        timestamp created_at
+    }
+
+    TRAP_ACTIONS {
+        bigserial id PK
+        varchar trap_oid
+        varchar trap_name
+        trap_severity severity
+        varchar action_name
+        text description
+        boolean auto_resolve
+        varchar action_type
+        varchar target_payload
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    TRAP_HISTORY {
+        bigserial id PK
+        bigint node_id FK
+        bigint trap_action_id FK
+        varchar trap_oid
+        varchar source_ip
+        text message
+        trap_status status
+        timestamp received_at
+        timestamp resolved_at
+        bigint resolved_by FK
+    }
+            </pre>
+        </div>
+
+        <h3>ENUM Types</h3>
+        <div class="card-grid">
+            <div class="card">
+                <div class="card-title"><span class="badge badge-green" style="padding:3px 10px">ENUM</span> node_status</div>
+                <div class="card-desc">
+                    <span class="sev-info">UP</span> · <span class="sev-critical">DOWN</span> · <span class="sev-major">WARNING</span> · UNKNOWN
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title"><span class="badge badge-orange" style="padding:3px 10px">ENUM</span> trap_severity</div>
+                <div class="card-desc">
+                    <span class="sev-info">INFO</span> · <span class="sev-minor">MINOR</span> · <span class="sev-major">MAJOR</span> · <span class="sev-critical">CRITICAL</span>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title"><span class="badge badge-red" style="padding:3px 10px">ENUM</span> trap_status</div>
+                <div class="card-desc">
+                    OPEN · ACKNOWLEDGED · RESOLVED
+                </div>
+            </div>
+        </div>
+
+        <h3>Table: nodes</h3>
+        <table>
+            <tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr>
+            <tr><td>id</td><td>BIGSERIAL</td><td>PK</td><td>Unique identifier</td></tr>
+            <tr><td>name</td><td>VARCHAR(100)</td><td>NOT NULL</td><td>Node alias (e.g., Cairo_BTS_01)</td></tr>
+            <tr><td>node_type</td><td>VARCHAR(50)</td><td>NULLABLE</td><td>Equipment type (BTS, MSC, etc.)</td></tr>
+            <tr><td>ip_address</td><td>VARCHAR(45)</td><td>UNIQUE, NOT NULL</td><td>IPv4/IPv6 address</td></tr>
+            <tr><td>port</td><td>INTEGER</td><td>DEFAULT 162</td><td>SNMP port</td></tr>
+            <tr><td>location</td><td>VARCHAR(255)</td><td>NULLABLE</td><td>Physical location</td></tr>
+            <tr><td>description</td><td>TEXT</td><td>NULLABLE</td><td>Free-text description</td></tr>
+            <tr><td>status</td><td>node_status</td><td>DEFAULT 'UP'</td><td>Current operational status</td></tr>
+            <tr><td>created_at</td><td>TIMESTAMP</td><td>DEFAULT NOW</td><td>Registration timestamp</td></tr>
+        </table>
+
+        <h3>Table: trap_actions</h3>
+        <table>
+            <tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr>
+            <tr><td>id</td><td>BIGSERIAL</td><td>PK</td><td>Unique identifier</td></tr>
+            <tr><td>trap_oid</td><td>VARCHAR(150)</td><td>UNIQUE, NOT NULL</td><td>SNMP Trap OID (e.g., 1.3.6.1.4.1.99999.0.1)</td></tr>
+            <tr><td>trap_name</td><td>VARCHAR(100)</td><td>NOT NULL</td><td>Human-readable alarm name</td></tr>
+            <tr><td>severity</td><td>trap_severity</td><td>NOT NULL</td><td>Alarm severity level</td></tr>
+            <tr><td>action_name</td><td>VARCHAR(100)</td><td>NOT NULL</td><td>Action identifier (NOTIFY_ADMIN, etc.)</td></tr>
+            <tr><td>description</td><td>TEXT</td><td>NULLABLE</td><td>Action description</td></tr>
+            <tr><td>auto_resolve</td><td>BOOLEAN</td><td>DEFAULT FALSE</td><td>Auto-resolve flag</td></tr>
+            <tr><td>action_type</td><td>VARCHAR(20)</td><td>NULLABLE</td><td>EMAIL, SMS, or SCRIPT</td></tr>
+            <tr><td>target_payload</td><td>VARCHAR(255)</td><td>NULLABLE</td><td>Target (email, phone, script path)</td></tr>
+            <tr><td>created_at</td><td>TIMESTAMP</td><td>DEFAULT NOW</td><td>Creation timestamp</td></tr>
+            <tr><td>updated_at</td><td>TIMESTAMP</td><td>DEFAULT NOW</td><td>Last update timestamp</td></tr>
+        </table>
+
+        <h3>Table: trap_history</h3>
+        <table>
+            <tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr>
+            <tr><td>id</td><td>BIGSERIAL</td><td>PK</td><td>Unique identifier</td></tr>
+            <tr><td>node_id</td><td>BIGINT</td><td>FK → nodes.id, NOT NULL</td><td>Source node</td></tr>
+            <tr><td>trap_action_id</td><td>BIGINT</td><td>FK → trap_actions.id, NULLABLE</td><td>Matched action definition</td></tr>
+            <tr><td>trap_oid</td><td>VARCHAR(150)</td><td>NOT NULL</td><td>Received trap OID</td></tr>
+            <tr><td>source_ip</td><td>VARCHAR(45)</td><td>NOT NULL</td><td>Source IP address</td></tr>
+            <tr><td>message</td><td>TEXT</td><td>NULLABLE</td><td>Alarm name + optional details</td></tr>
+            <tr><td>status</td><td>trap_status</td><td>DEFAULT 'OPEN'</td><td>Lifecycle status</td></tr>
+            <tr><td>received_at</td><td>TIMESTAMP</td><td>DEFAULT NOW</td><td>When the trap was received</td></tr>
+            <tr><td>resolved_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>When the issue was resolved</td></tr>
+            <tr><td>resolved_by</td><td>BIGINT</td><td>FK → users.id, NULLABLE</td><td>Who resolved it</td></tr>
+        </table>
+
+        <h3>Table: users</h3>
+        <table>
+            <tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr>
+            <tr><td>id</td><td>BIGSERIAL</td><td>PK</td><td>Unique identifier</td></tr>
+            <tr><td>username</td><td>VARCHAR(50)</td><td>UNIQUE, NOT NULL</td><td>Login username</td></tr>
+            <tr><td>password_hash</td><td>VARCHAR(255)</td><td>NOT NULL</td><td>Hashed password</td></tr>
+            <tr><td>role</td><td>VARCHAR(20)</td><td>DEFAULT 'SUPPORT'</td><td>ADMIN or SUPPORT</td></tr>
+            <tr><td>created_at</td><td>TIMESTAMP</td><td>DEFAULT NOW</td><td>Registration timestamp</td></tr>
+        </table>
+    </div>
+
+    <!-- ═══════════════ 8. PROJECT STRUCTURE ═══════════════ -->
+    <div class="section">
+        <h2><span class="icon" style="background:var(--yellow-dim);color:var(--yellow)">📁</span> 8. Project Structure</h2>
+        <p class="subtitle">File layout for both Maven modules.</p>
+
+        <div class="card-grid">
+            <div class="card">
+                <div class="card-title"><span class="badge badge-cyan" style="padding:3px 10px">Emulator</span></div>
+                <div class="code-block" style="margin:8px 0 0 0;border:none;padding:12px;font-size:0.78rem;"><span class="tree">emulator/
+├── pom.xml
+└── src/main/
+    ├── java/com/snmp/emulator/
+    │   ├── Main.java
+    │   ├── EmulatorGUI.java
+    │   ├── EmulatorController.java
+    │   ├── EmulatorCLI.java
+    │   ├── SnmpService.java
+    │   └── AlarmType.java
+    └── resources/
+        ├── dashboard.fxml
+        ├── dark-theme.css
+        └── light-theme.css</span></div>
+            </div>
+            <div class="card">
+                <div class="card-title"><span class="badge badge-purple" style="padding:3px 10px">Server</span></div>
+                <div class="code-block" style="margin:8px 0 0 0;border:none;padding:12px;font-size:0.78rem;"><span class="tree">snmp-server/
+├── pom.xml
+└── src/main/java/com/snmp/manager/
+    ├── Main.java
+    ├── config/
+    │   └── DatabaseConnection.java
+    ├── model/
+    │   ├── Node.java
+    │   ├── NodeStatus.java
+    │   ├── TrapAction.java
+    │   ├── TrapHistory.java
+    │   ├── TrapSeverity.java
+    │   └── TrapStatus.java
+    ├── dao/
+    │   ├── NodeDAO.java
+    │   ├── TrapActionDAO.java
+    │   └── TrapHistoryDAO.java
+    ├── service/
+    │   ├── NodeService.java
+    │   └── TrapService.java
+    └── snmp/
+        ├── listener/TrapListener.java
+        ├── model/TrapEvent.java
+        ├── parser/TrapParser.java
+        ├── receiver/TrapReceiver.java
+        └── util/OidResolver.java</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════ 9. TECH STACK ═══════════════ -->
+    <div class="section">
+        <h2><span class="icon" style="background:var(--accent-glow);color:var(--accent)">🔧</span> 9. Technology Stack</h2>
+        <p class="subtitle">Dependencies and tools used across the project.</p>
+
+        <table>
+            <tr><th>Technology</th><th>Version</th><th>Purpose</th></tr>
+            <tr><td>Java (JDK)</td><td>25</td><td>Core runtime &amp; language</td></tr>
+            <tr><td>SNMP4J</td><td>3.12.2 / 3.9.3</td><td>SNMP protocol library (emulator / server)</td></tr>
+            <tr><td>JavaFX</td><td>25.0.3</td><td>GUI framework for emulator</td></tr>
+            <tr><td>PostgreSQL</td><td>—</td><td>Relational database</td></tr>
+            <tr><td>PostgreSQL JDBC</td><td>42.7.7</td><td>Database connectivity driver</td></tr>
+            <tr><td>Maven</td><td>—</td><td>Build &amp; dependency management</td></tr>
+        </table>
+    </div>
+
+    <!-- ═══════════════ FOOTER ═══════════════ -->
+    <div class="footer">
+        SNMP Network Management Platform · ITI Graduation Project · 2026
+    </div>
+
+</div>
+
+</body>
+</html>

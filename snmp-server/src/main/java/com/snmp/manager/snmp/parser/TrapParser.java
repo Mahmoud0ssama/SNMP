@@ -19,10 +19,25 @@ import java.util.Map;
  *
  * <p>This class only performs mapping. It performs no database access and no
  * business logic.</p>
+ *
+ * <p>Knows the enterprise OID structure:
+ * <ul>
+ *   <li>{@code .0.x} — Trap OIDs (notification identifiers)</li>
+ *   <li>{@code .1.1} — nodeName</li>
+ *   <li>{@code .1.2} — nodeType</li>
+ *   <li>{@code .1.3} — details (optional)</li>
+ *   <li>{@code .1.4} — nodeIp (simulated source IP)</li>
+ * </ul>
  */
 public class TrapParser {
 
     private static final OID SNMP_TRAP_OID = new OID("1.3.6.1.6.3.1.1.4.1.0");
+
+    private static final String ENTERPRISE_OID = "1.3.6.1.4.1.99999";
+    private static final OID OID_NODE_NAME = new OID(ENTERPRISE_OID + ".1.1");
+    private static final OID OID_NODE_TYPE = new OID(ENTERPRISE_OID + ".1.2");
+    private static final OID OID_DETAILS   = new OID(ENTERPRISE_OID + ".1.3");
+    private static final OID OID_NODE_IP   = new OID(ENTERPRISE_OID + ".1.4");
 
     /**
      * Parses a raw SNMP4J event into a {@link TrapEvent}.
@@ -42,7 +57,32 @@ public class TrapParser {
         String trapOid = resolveTrapOid(pdu);
         Map<String, String> variableBindings = extractVariableBindings(pdu);
 
-        return new TrapEvent(sourceIp, trapOid, Instant.now(), community, version, variableBindings);
+        String nodeName = extractBindingValue(pdu, OID_NODE_NAME);
+        String nodeType = extractBindingValue(pdu, OID_NODE_TYPE);
+        String nodeIp = extractBindingValue(pdu, OID_NODE_IP);
+        String details = extractBindingValue(pdu, OID_DETAILS);
+
+        return new TrapEvent(sourceIp, trapOid, Instant.now(), community, version,
+                variableBindings, nodeName, nodeType, nodeIp, details);
+    }
+
+    /**
+     * Extracts the value of a specific variable binding by OID.
+     *
+     * @param pdu the PDU to search
+     * @param oid the OID to look for
+     * @return the value as a string, or empty string if not found
+     */
+    private String extractBindingValue(PDU pdu, OID oid) {
+        if (pdu == null) {
+            return "";
+        }
+        for (VariableBinding vb : pdu.getVariableBindings()) {
+            if (oid.equals(vb.getOid())) {
+                return String.valueOf(vb.getVariable());
+            }
+        }
+        return "";
     }
 
     private String decodeCommunity(byte[] securityName) {

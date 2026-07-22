@@ -54,4 +54,24 @@ public class NodeService {
         node.setStatus(status);
         return nodeDAO.update(node);
     }
+
+    /**
+     * Registers a new node using data extracted from a received trap.
+     *
+     * @param name      the node name (e.g., "Cairo_BTS_01")
+     * @param ipAddress the node IP address
+     * @param nodeType  the telecom equipment type (e.g., "BTS", "MSC")
+     * @return the newly created and persisted node
+     * @throws SQLException on database access error
+     */
+    public Node registerNode(String name, String ipAddress, String nodeType) throws SQLException {
+        Node node = new Node();
+        node.setName(name != null && !name.isEmpty() ? name : "auto-" + ipAddress);
+        node.setIpAddress(ipAddress);
+        node.setNodeType(nodeType);
+        node.setPort(161);
+        node.setStatus(NodeStatus.UP);
+        nodeDAO.save(node);
+        return node;
+    }
 }
