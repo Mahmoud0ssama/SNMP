@@ -32,6 +32,7 @@
             border-radius: 12px;
             overflow: hidden;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
         }
 
         .table { margin-bottom: 0; }
@@ -69,6 +70,7 @@
             border-radius: 6px; 
             border: 1px solid #30363d;
         }
+        .trap-msg { color: #e6edf3; font-weight: 500; }
 
         .status-badge {
             padding: 6px 14px;
@@ -79,9 +81,14 @@
             display: inline-block;
         }
         
+        /* Node Status Colors */
         .bg-up { background-color: rgba(46, 160, 67, 0.15); color: #3fb950; border: 1px solid rgba(46, 160, 67, 0.4); }
         .bg-down { background-color: rgba(248, 81, 73, 0.15); color: #ff7b72; border: 1px solid rgba(248, 81, 73, 0.4); }
         .bg-warning-custom { background-color: rgba(210, 153, 34, 0.15); color: #d29922; border: 1px solid rgba(210, 153, 34, 0.4); }
+
+        /* Trap Status Colors */
+        .bg-trap-open { background-color: rgba(248, 81, 73, 0.15); color: #ff7b72; border: 1px solid rgba(248, 81, 73, 0.4); }
+        .bg-trap-resolved { background-color: rgba(46, 160, 67, 0.15); color: #3fb950; border: 1px solid rgba(46, 160, 67, 0.4); }
 
         .btn-sync {
             background-color: #238636;
@@ -96,13 +103,16 @@
 <body>
 
     <div class="dashboard-container">
+        <!-- Header -->
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h3 class="page-title">SNMP Network Dashboard</h3>
-            <button class="btn btn-sync btn-sm px-3 py-2" onclick="fetchNodes()">
+            <button class="btn btn-sync btn-sm px-3 py-2" onclick="syncAll()">
                 ↻ Sync Data
             </button>
         </div>
 
+        <!-- Nodes Table -->
+        <h5 class="page-title mb-3" style="font-size: 1.2rem; color: #8b949e;">Network Elements (Nodes)</h5>
         <div class="card-custom">
             <div class="table-responsive">
                 <table class="table table-borderless">
@@ -117,7 +127,28 @@
                         </tr>
                     </thead>
                     <tbody id="nodesTableBody">
-                        <!-- Data injected via JS -->
+                        <tr><td colspan="6" class="text-center py-4 text-muted">Loading nodes...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Traps Table -->
+        <h5 class="page-title mt-5 mb-3" style="font-size: 1.2rem; color: #8b949e;">Recent Alarms (Traps History)</h5>
+        <div class="card-custom">
+            <div class="table-responsive">
+                <table class="table table-borderless">
+                    <thead>
+                        <tr>
+                            <th>Trap ID</th>
+                            <th>Source IP</th>
+                            <th>Message / Description</th>
+                            <th>Status</th>
+                            <th>Time Received</th>
+                        </tr>
+                    </thead>
+                    <tbody id="trapsTableBody">
+                        <tr><td colspan="5" class="text-center py-4 text-muted">Loading traps...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -129,7 +160,6 @@
             try {
                 let response = await fetch('/api/nodes');
                 let nodes = await response.json();
-                
                 let tbody = document.getElementById('nodesTableBody');
                 tbody.innerHTML = '';
 
@@ -162,13 +192,57 @@
                     tbody.innerHTML += row;
                 });
             } catch (error) {
-                console.error('Error fetching data:', error);
+                console.error('Error fetching nodes:', error);
             }
         }
 
-        fetchNodes();
+        async function fetchTraps() {
+            try {
+                let response = await fetch('/api/traps');
+                let traps = await response.json();
+                let tbody = document.getElementById('trapsTableBody');
+                tbody.innerHTML = '';
+
+                if (traps.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">No traps received yet.</td></tr>';
+                    return;
+                }
+
+                traps.forEach(trap => {
+                    let statusBadge = '';
+                    if (trap.status === 'OPEN') {
+                        statusBadge = '<span class="status-badge bg-trap-open">OPEN</span>';
+                    } else {
+                        statusBadge = `<span class="status-badge bg-trap-resolved">${trap.status}</span>`;
+                    }
+
+                    let dateObj = new Date(trap.receivedAt);
+                    let formattedDate = dateObj.toLocaleDateString() + ' ' + dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
+
+                    let row = `<tr>
+                        <td class="node-id">#${trap.id.toString().padStart(4, '0')}</td>
+                        <td><span class="node-ip">${trap.sourceIp}</span></td>
+                        <td class="trap-msg">${trap.message ? trap.message : trap.trapOid}</td>
+                        <td>${statusBadge}</td>
+                        <td style="color: #8b949e; font-size: 0.85rem;">${formattedDate}</td>
+                    </tr>`;
+                    tbody.innerHTML += row;
+                });
+            } catch (error) {
+                console.error('Error fetching traps:', error);
+            }
+        }
+
+        function syncAll() {
+            fetchNodes();
+            fetchTraps();
+        }
+
+        // Initial fetch
+        syncAll();
         
-        setInterval(fetchNodes, 3000);
+        // Auto-refresh every 3 seconds
+        setInterval(syncAll, 3000);
     </script>
 </body>
 </html>

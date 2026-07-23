@@ -37,7 +37,7 @@ public class EmulatorController {
     @FXML
     public void initialize() {
         ipField.setText("127.0.0.1");
-        portField.setText("162");
+        portField.setText("1162");
         nodeIpField.setText("10.0.0.5");
 
         nodeTypeDropdown.getItems().addAll("BTS", "BSC", "MSC", "HLR", "VLR", "SGSN", "GGSN");

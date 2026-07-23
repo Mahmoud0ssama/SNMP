@@ -12,7 +12,8 @@ import com.snmp.manager.service.TrapService;
 import com.snmp.manager.snmp.listener.TrapListener;
 import com.snmp.manager.snmp.model.TrapEvent;
 import com.snmp.manager.snmp.receiver.TrapReceiver;
-
+import com.snmp.manager.security.JwtUtil;
+import io.javalin.http.UnauthorizedResponse;
 import io.javalin.Javalin;
 import io.javalin.http.staticfiles.Location;
 
@@ -38,6 +39,38 @@ public class Main {
             config.jsonMapper(new JavalinJackson(mapper, true));
         });
 
+
+
+        // 1. JWT Security Middleware for all /api/* routes
+        app.before("/api/*", ctx -> {
+            String path = ctx.path();
+            
+            // Exclude specific paths from JWT validation (e.g., login)
+            if (path.equals("/api/login") || path.equals("/api/test")) {
+                return;
+            }
+
+            // Extract Token from Authorization header (Bearer <token>)
+            String authHeader = ctx.header("Authorization");
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                throw new UnauthorizedResponse("Unauthorized: Missing or invalid token");
+            }
+
+            String token = authHeader.substring(7); // Remove "Bearer " prefix
+            try {
+                JwtUtil.verifyToken(token); // Verify token; throws exception if invalid or expired
+            } catch (Exception e) {
+                throw new UnauthorizedResponse("Unauthorized: Invalid or expired token");
+            }
+        });
+
+        // 2. Login Endpoint
+        app.post("/api/login", ctx -> {
+            // Temporary for testing: Generate a default admin token
+            // (Later, this will check credentials against the users table)
+            String token = JwtUtil.generateToken("admin", "ADMIN");
+            ctx.json("{ \"token\": \"" + token + "\" }");
+        });
         // Test API endpoint to verify the web server is running
         app.get("/api/test", ctx -> {
             ctx.result("Web Server is working successfully!");
