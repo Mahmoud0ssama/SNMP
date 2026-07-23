@@ -1,189 +1,448 @@
 <!DOCTYPE html>
-<html lang="en" data-bs-theme="dark">
+<html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SNMP Network Monitor</title>
-    <!-- Bootstrap 5.3 -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
+    <title>SNMP - Premium Dashboard</title>
     <style>
-        body {
-            background-color: #0d1117;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            color: #c9d1d9;
+        /* --- Premium Theme Variables from Old Project --- */
+        :root {
+            --bg-body: #f4f7fb;
+            --card-bg: #ffffff;
+            --primary-blue: #0056b3;
+            --primary-hover: #004494;
+            --light-blue: #e0f0ff;
+            --success-green: #28a745;
+            --danger-red: #dc3545;
+            --warning-orange: #d97706;
+            --text-dark: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --shadow-soft: 0 10px 30px -10px rgba(0, 86, 179, 0.1);
         }
-        
-        .dashboard-container {
-            max-width: 1200px;
-            margin: 40px auto;
-            padding: 0 20px;
-            display: none; /* Hidden by default until login */
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, sans-serif;
+            background-color: var(--bg-body);
+            margin: 0;
+            color: var(--text-dark);
+            min-height: 100vh;
+            padding: 25px 35px; /* Added body padding like the old project */
+            box-sizing: border-box;
         }
 
         /* --- Login Screen Styles --- */
-        .login-container {
-            max-width: 400px;
-            margin: 100px auto;
-            padding: 30px;
-            background-color: #161b22;
-            border: 1px solid #30363d;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        .login-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 80vh;
         }
-        .login-input {
-            background-color: #0d1117;
-            border: 1px solid #30363d;
-            color: #c9d1d9;
-        }
-        .login-input:focus {
-            background-color: #0d1117;
-            border-color: #58a6ff;
-            color: #c9d1d9;
-            box-shadow: none;
-        }
-        /* -------------------------- */
 
-        .page-title {
-            color: #e6edf3;
+        .login-card {
+            background-color: var(--card-bg);
+            padding: 45px 40px;
+            border-radius: 20px;
+            box-shadow: var(--shadow-soft);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            width: 340px;
+            text-align: center;
+        }
+
+        .logo-container { margin-bottom: 35px; }
+        .logo-container h2 {
+            color: var(--primary-blue);
+            margin: 15px 0 5px 0;
+            font-size: 26px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+        .logo-container p {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-top: 0;
+            font-weight: 500;
+        }
+
+        .input-group {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .input-group input {
+            width: 85%;
+            padding: 15px 15px 15px 45px;
+            background-color: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            font-size: 15px;
+            color: var(--text-dark);
+            outline: none;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .input-group input:focus {
+            background-color: var(--card-bg);
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 4px var(--light-blue);
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 18px;
+            color: var(--text-muted);
+        }
+
+        button.login-btn {
+            background-color: var(--primary-blue);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
             font-weight: 600;
+            margin-top: 15px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 86, 179, 0.2);
+        }
+
+        button.login-btn:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 86, 179, 0.3);
+        }
+
+        .flash-msg {
+            color: #dc2626;
+            background-color: #fef2f2;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-top: 20px;
+            font-weight: 600;
+            border: 1px solid #fca5a5;
+            display: none;
+        }
+
+        /* --- Dashboard Styles --- */
+        .dashboard-container {
+            display: none;
+            max-width: 95%; 
+            margin: 0 auto;
+        }
+
+        .card-panel {
+            background-color: var(--card-bg);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 16px;
+            box-shadow: var(--shadow-soft);
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 35px;
+            margin-bottom: 25px;
+        }
+
+        .header h2 {
+            margin: 0;
+            color: var(--primary-blue);
+            font-weight: 800;
             letter-spacing: -0.5px;
         }
 
-        .card-custom {
-            background-color: #161b22;
-            border: 1px solid #30363d;
+        .header-action-btn {
+            background-color: #f8fafc;
+            color: var(--text-dark);
+            border: 1px solid #cbd5e1;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .header-action-btn:hover { background-color: var(--light-blue); color: var(--primary-blue); border-color: #93c5fd; }
+
+        .logout-btn {
+            background-color: #fff1f2;
+            color: #e11d48;
+            border: 1px solid #ffe4e6;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        .logout-btn:hover { background-color: #e11d48; color: white; }
+
+        /* KPI Grid */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+        .kpi-card {
+            padding: 25px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .kpi-icon {
+            font-size: 28px;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            margin-bottom: 30px;
+        }
+        .icon-blue { background-color: var(--light-blue); color: var(--primary-blue); }
+        .icon-red { background-color: #fee2e2; color: var(--danger-red); }
+        .icon-orange { background-color: #fef3c7; color: var(--warning-orange); }
+        
+        .kpi-info h4 { margin: 0; color: var(--text-muted); font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .kpi-info h2 { margin: 5px 0 0 0; color: var(--text-dark); font-size: 28px; font-weight: 800; }
+
+        /* Layout Grid */
+        .grid-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
         }
 
-        .table { margin-bottom: 0; }
+        .card { padding: 25px; }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 15px;
+            margin-bottom: 10px;
+        }
+        .card-header h3 { margin: 0; font-size: 18px; color: var(--text-dark); font-weight: 700;}
+
+        /* Scrollable Table Area */
+        .scrollable-list {
+            max-height: 380px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
         
-        .table th {
-            background-color: #21262d !important;
-            color: #8b949e;
+        /* Custom Scrollbar */
+        .scrollable-list::-webkit-scrollbar { width: 6px; }
+        .scrollable-list::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        th {
+            color: var(--text-muted);
             font-weight: 600;
-            font-size: 0.85rem;
+            font-size: 12px;
+            padding: 15px;
+            text-align: left;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            border-bottom: 1px solid #30363d;
-            padding: 16px;
+            border-bottom: 2px solid var(--light-blue);
+            position: sticky;
+            top: 0;
+            background: var(--card-bg);
+            z-index: 10;
         }
 
-        .table td {
-            border-bottom: 1px solid #30363d;
-            vertical-align: middle;
-            color: #c9d1d9;
-            font-size: 0.95rem;
-            padding: 16px;
-        }
-
-        .table tbody tr:hover td {
-            background-color: #1c2128;
-        }
-
-        .node-id { color: #8b949e; font-family: 'Courier New', Courier, monospace; }
-        .node-name { color: #58a6ff; font-weight: 600; font-size: 1.05rem; }
-        .node-ip { 
-            font-family: 'Courier New', Courier, monospace; 
-            color: #e6edf3; 
-            background: #21262d; 
-            padding: 4px 8px; 
-            border-radius: 6px; 
-            border: 1px solid #30363d;
-        }
-        .trap-msg { color: #e6edf3; font-weight: 500; }
-
-        .status-badge {
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            display: inline-block;
-        }
-        
-        .bg-up { background-color: rgba(46, 160, 67, 0.15); color: #3fb950; border: 1px solid rgba(46, 160, 67, 0.4); }
-        .bg-down { background-color: rgba(248, 81, 73, 0.15); color: #ff7b72; border: 1px solid rgba(248, 81, 73, 0.4); }
-        .bg-warning-custom { background-color: rgba(210, 153, 34, 0.15); color: #d29922; border: 1px solid rgba(210, 153, 34, 0.4); }
-
-        .bg-trap-open { background-color: rgba(248, 81, 73, 0.15); color: #ff7b72; border: 1px solid rgba(248, 81, 73, 0.4); }
-        .bg-trap-resolved { background-color: rgba(46, 160, 67, 0.15); color: #3fb950; border: 1px solid rgba(46, 160, 67, 0.4); }
-
-        .btn-sync {
-            background-color: #238636;
-            color: white;
+        td {
+            padding: 16px 15px;
+            font-size: 13px;
+            border-bottom: 1px solid var(--border-color);
             font-weight: 600;
-            border: 1px solid rgba(240, 246, 252, 0.1);
-            transition: 0.2s;
         }
-        .btn-sync:hover { background-color: #2ea043; color: white; }
+
+        tbody tr { transition: transform 0.2s; }
+        tbody tr:hover {
+            background-color: #f8fafc;
+            transform: scale(1.005);
+        }
+
+        /* Status Styling from old project */
+        .status-in {
+            color: #047857;
+            font-weight: 700;
+            background-color: #d1fae5;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            border: 1px solid #a7f3d0;
+        }
+
+        .status-out {
+            color: #b91c1c;
+            font-weight: 700;
+            background-color: #fee2e2;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            border: 1px solid #fecaca;
+        }
+
+        .status-warn {
+            color: var(--warning-orange);
+            font-weight: 700;
+            background-color: #fef3c7;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            border: 1px solid #fde68a;
+        }
+
+        .code-font { color: var(--text-muted); font-weight: 600;}
+        .highlight-text { color: var(--primary-blue); font-weight: 700; font-size: 14px;}
+
+        /* Buttons */
+        .danger-btn {
+            background-color: white;
+            color: var(--success-green);
+            border: 1px solid #a7f3d0;
+            padding: 6px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 11px;
+            transition: all 0.3s;
+        }
+        .danger-btn:hover {
+            background-color: #d1fae5;
+        }
+
     </style>
 </head>
+
 <body>
 
     <!-- Login Screen -->
-    <div id="loginScreen" class="login-container text-center">
-        <h3 class="page-title mb-4">SNMP Login</h3>
-        <input type="text" id="username" class="form-control login-input mb-3" placeholder="Username (admin)" value="admin">
-        <input type="password" id="password" class="form-control login-input mb-4" placeholder="Password">
-        <button class="btn btn-sync w-100 py-2" onclick="performLogin()">Login</button>
-        <div id="loginError" class="text-danger mt-3" style="display: none; font-size: 0.9rem;"></div>
+    <div id="loginScreen" class="login-wrapper">
+        <div class="login-card">
+            <div class="logo-container">
+                <h2>SNMP Manager</h2>
+                <p>Premium Network Monitoring</p>
+            </div>
+            <form onsubmit="event.preventDefault(); performLogin();">
+                <div class="input-group">
+                    <span class="input-icon">👤</span>
+                    <input type="text" id="username" placeholder="Username" required>
+                </div>
+                <div class="input-group">
+                    <span class="input-icon">🔒</span>
+                    <input type="password" id="password" placeholder="Password" required>
+                </div>
+                <button type="submit" class="login-btn">Secure Login ➔</button>
+            </form>
+            <div id="loginError" class="flash-msg"></div>
+        </div>
     </div>
 
     <!-- Dashboard Screen -->
     <div id="dashboardScreen" class="dashboard-container">
+        
         <!-- Header -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h3 class="page-title">SNMP Network Dashboard</h3>
-            <div>
-                <button class="btn btn-outline-secondary btn-sm px-3 py-2 me-2" onclick="logout()">Logout</button>
-                <button class="btn btn-sync btn-sm px-3 py-2" onclick="syncAll()">↻ Sync Data</button>
+        <div class="header card-panel">
+            <div style="display: flex; align-items: center; gap: 18px;">
+                <h2>DT NOC</h2>
+            </div>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <span style="font-size: 13px; font-weight: 700; padding: 6px 12px; border-radius: 20px; background-color: #d1fae5; color: #047857; border: 1px solid #a7f3d0;">
+                    🟢 System Live
+                </span>
+                <span style="font-size: 15px; color: var(--text-muted); font-weight: 500;">Welcome, <span style="color: var(--primary-blue); font-weight: 700;" id="userDisplay">User</span></span>
+                <button class="header-action-btn" onclick="syncAll()">↻ Sync Data</button>
+                <button class="logout-btn" onclick="logout()">Logout</button>
             </div>
         </div>
 
-        <!-- Nodes Table -->
-        <h5 class="page-title mb-3" style="font-size: 1.2rem; color: #8b949e;">Network Elements (Nodes)</h5>
-        <div class="card-custom">
-            <div class="table-responsive">
-                <table class="table table-borderless">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Node Name</th>
-                            <th>IP Address</th>
-                            <th>Port</th>
-                            <th>Status</th>
-                            <th>Last Update</th>
-                        </tr>
-                    </thead>
-                    <tbody id="nodesTableBody">
-                        <tr><td colspan="6" class="text-center py-4 text-muted">Loading nodes...</td></tr>
-                    </tbody>
-                </table>
+        <!-- KPI Grid -->
+        <div class="kpi-grid">
+            <div class="card-panel kpi-card">
+                <div class="kpi-icon icon-blue">📡</div>
+                <div class="kpi-info">
+                    <h4>Total Network Nodes</h4>
+                    <h2 id="kpiTotalNodes">0</h2>
+                </div>
+            </div>
+            <div class="card-panel kpi-card">
+                <div class="kpi-icon icon-red">🔌</div>
+                <div class="kpi-info">
+                    <h4>Critical / Down Nodes</h4>
+                    <h2 id="kpiDownNodes">0</h2>
+                </div>
+            </div>
+            <div class="card-panel kpi-card">
+                <div class="kpi-icon icon-orange">🔔</div>
+                <div class="kpi-info">
+                    <h4>Active Alarms (Open)</h4>
+                    <h2 id="kpiOpenTraps">0</h2>
+                </div>
             </div>
         </div>
 
-        <!-- Traps Table -->
-        <h5 class="page-title mt-5 mb-3" style="font-size: 1.2rem; color: #8b949e;">Recent Alarms (Traps History)</h5>
-        <div class="card-custom">
-            <div class="table-responsive">
-                <table class="table table-borderless">
-                    <thead>
-                        <tr>
-                            <th>Trap ID</th>
-                            <th>Source IP</th>
-                            <th>Message / Description</th>
-                            <th>Status</th>
-                            <th>Time Received</th>
-                        </tr>
-                    </thead>
-                    <tbody id="trapsTableBody">
-                        <tr><td colspan="5" class="text-center py-4 text-muted">Loading traps...</td></tr>
-                    </tbody>
-                </table>
+        <!-- Split Grid for Tables -->
+        <div class="grid-container">
+            <!-- Nodes Table -->
+            <div class="card card-panel">
+                <div class="card-header">
+                    <h3>Network Elements (Nodes)</h3>
+                </div>
+                <div class="scrollable-list">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Node Name</th>
+                                <th>IP Address</th>
+                                <th>Status</th>
+                                <th>Last Update</th>
+                            </tr>
+                        </thead>
+                        <tbody id="nodesTableBody">
+                            <tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 40px;">Loading nodes...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Traps Table -->
+            <div class="card card-panel">
+                <div class="card-header">
+                    <h3>Recent Alarms (Traps Logs)</h3>
+                </div>
+                <div class="scrollable-list">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Source IP</th>
+                                <th>Message</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="trapsTableBody">
+                            <tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 40px;">Loading traps...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -192,30 +451,34 @@
         let jwtToken = localStorage.getItem('snmp_token');
         let refreshInterval = null;
 
-        // Check login status on page load
         if (jwtToken) {
             showDashboard();
         }
 
         async function performLogin() {
-            // For now, it calls the dummy login endpoint which ignores credentials and returns a token
+            const user = document.getElementById('username').value;
+            const pass = document.getElementById('password').value;
+            
             try {
                 let response = await fetch('/api/login', {
-                    method: 'POST'
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: user, password: pass })
                 });
                 
                 if (response.ok) {
-                    let data = await response.json();
-                    let parsedData = JSON.parse(data); // Javalin currently returns double-stringified JSON
-                    jwtToken = parsedData.token;
+                    let data = await response.json(); 
+                    jwtToken = data.token; 
                     localStorage.setItem('snmp_token', jwtToken);
+                    document.getElementById('userDisplay').innerText = user;
                     document.getElementById('loginError').style.display = 'none';
+                    document.getElementById('password').value = ''; 
                     showDashboard();
                 } else {
-                    showError("Invalid credentials");
+                    showError("Invalid username or password");
                 }
             } catch (error) {
-                showError("Connection failed");
+                showError("Connection failed. Check server.");
             }
         }
 
@@ -224,11 +487,13 @@
             jwtToken = null;
             clearInterval(refreshInterval);
             document.getElementById('dashboardScreen').style.display = 'none';
-            document.getElementById('loginScreen').style.display = 'block';
+            document.body.style.padding = "0"; // remove padding for login screen
+            document.getElementById('loginScreen').style.display = 'flex';
         }
 
         function showDashboard() {
             document.getElementById('loginScreen').style.display = 'none';
+            document.body.style.padding = "25px 35px"; // restore padding
             document.getElementById('dashboardScreen').style.display = 'block';
             syncAll();
             refreshInterval = setInterval(syncAll, 3000);
@@ -240,17 +505,15 @@
             errorDiv.style.display = 'block';
         }
 
-        // Helper function for API requests
-        async function fetchWithAuth(url) {
-            let response = await fetch(url, {
-                headers: {
-                    'Authorization': 'Bearer ' + jwtToken
-                }
-            });
+        async function fetchWithAuth(url, options = {}) {
+            let headers = options.headers || {};
+            headers['Authorization'] = 'Bearer ' + jwtToken;
+            options.headers = headers;
 
+            let response = await fetch(url, options);
             if (response.status === 401) {
-                logout(); // Token expired or invalid
-                throw new Error("Unauthorized");
+                logout(); 
+                throw new Error("Unauthorized - Token Expired");
             }
             return response;
         }
@@ -259,77 +522,89 @@
             try {
                 let response = await fetchWithAuth('/api/nodes');
                 let nodes = await response.json();
+                
                 let tbody = document.getElementById('nodesTableBody');
                 tbody.innerHTML = '';
 
+                let downCount = 0;
+                document.getElementById('kpiTotalNodes').innerText = nodes.length;
+
                 if (nodes.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">No nodes registered.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 40px;">No nodes registered yet.</td></tr>';
+                    document.getElementById('kpiDownNodes').innerText = 0;
                     return;
                 }
 
                 nodes.forEach(node => {
-                    let statusBadge = '';
-                    if (node.status === 'UP') {
-                        statusBadge = '<span class="status-badge bg-up">UP</span>';
-                    } else if (node.status === 'DOWN') {
-                        statusBadge = '<span class="status-badge bg-down">DOWN</span>';
-                    } else {
-                        statusBadge = `<span class="status-badge bg-warning-custom">${node.status}</span>`;
-                    }
+                    let statusClass = 'status-warn';
+                    if (node.status === 'UP') statusClass = 'status-in';
+                    else if (node.status === 'DOWN') { statusClass = 'status-out'; downCount++; }
 
                     let dateObj = new Date(node.createdAt);
-                    let formattedDate = dateObj.toLocaleDateString() + ' ' + dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    let formattedDate = dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
 
                     let row = `<tr>
-                        <td class="node-id">#${node.id.toString().padStart(4, '0')}</td>
-                        <td class="node-name">${node.name}</td>
-                        <td><span class="node-ip">${node.ipAddress}</span></td>
-                        <td style="color: #8b949e;">${node.port}</td>
-                        <td>${statusBadge}</td>
-                        <td style="color: #8b949e; font-size: 0.85rem;">${formattedDate}</td>
+                        <td class="highlight-text">${node.name} <br><span style="font-size:11px; color:var(--text-muted); font-weight:500;">Port: ${node.port}</span></td>
+                        <td class="code-font">${node.ipAddress}</td>
+                        <td><span class="${statusClass}">${node.status}</span></td>
+                        <td style="color: var(--text-muted); font-size: 12px;">${formattedDate}</td>
                     </tr>`;
                     tbody.innerHTML += row;
                 });
-            } catch (error) {
-                console.error(error);
-            }
+
+                document.getElementById('kpiDownNodes').innerText = downCount;
+            } catch (error) { console.error(error); }
         }
 
         async function fetchTraps() {
             try {
                 let response = await fetchWithAuth('/api/traps');
                 let traps = await response.json();
+                
                 let tbody = document.getElementById('trapsTableBody');
                 tbody.innerHTML = '';
 
+                let openCount = 0;
+
                 if (traps.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">No traps received yet.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 40px;">No alarms recorded.</td></tr>';
+                    document.getElementById('kpiOpenTraps').innerText = 0;
                     return;
                 }
 
                 traps.forEach(trap => {
-                    let statusBadge = '';
+                    let statusClass = 'status-in';
+                    let actionHtml = `<span style="color: var(--text-muted); font-size: 12px;">✓ Resolved</span>`;
+                    
                     if (trap.status === 'OPEN') {
-                        statusBadge = '<span class="status-badge bg-trap-open">OPEN</span>';
-                    } else {
-                        statusBadge = `<span class="status-badge bg-trap-resolved">${trap.status}</span>`;
+                        statusClass = 'status-out';
+                        openCount++;
+                        actionHtml = `<button class="danger-btn" onclick="resolveTrap(${trap.id})">Resolve</button>`;
                     }
 
+                    let msg = trap.message ? trap.message : trap.trapOid;
                     let dateObj = new Date(trap.receivedAt);
-                    let formattedDate = dateObj.toLocaleDateString() + ' ' + dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
+                    let formattedDate = dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
 
                     let row = `<tr>
-                        <td class="node-id">#${trap.id.toString().padStart(4, '0')}</td>
-                        <td><span class="node-ip">${trap.sourceIp}</span></td>
-                        <td class="trap-msg">${trap.message ? trap.message : trap.trapOid}</td>
-                        <td>${statusBadge}</td>
-                        <td style="color: #8b949e; font-size: 0.85rem;">${formattedDate}</td>
+                        <td class="code-font">${trap.sourceIp}</td>
+                        <td style="color: var(--text-dark); font-weight: 700;">${msg} <br><span style="font-size:11px; color:var(--text-muted); font-weight:500;">${formattedDate}</span></td>
+                        <td><span class="${statusClass}">${trap.status}</span></td>
+                        <td>${actionHtml}</td>
                     </tr>`;
                     tbody.innerHTML += row;
                 });
-            } catch (error) {
-                console.error(error);
-            }
+
+                document.getElementById('kpiOpenTraps').innerText = openCount;
+            } catch (error) { console.error(error); }
+        }
+
+        async function resolveTrap(trapId) {
+            try {
+                let response = await fetchWithAuth(`/api/traps/${trapId}/resolve`, { method: 'PUT' });
+                if (response.ok) syncAll();
+                else alert("Failed to resolve the trap.");
+            } catch (error) { console.error(error); }
         }
 
         function syncAll() {

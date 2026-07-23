@@ -1,4 +1,5 @@
 package com.snmp.manager;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -7,6 +8,8 @@ import com.snmp.manager.config.DatabaseConnection;
 import com.snmp.manager.dao.NodeDAO;
 import com.snmp.manager.dao.TrapActionDAO;
 import com.snmp.manager.dao.TrapHistoryDAO;
+import com.snmp.manager.dao.UserDAO;
+import com.snmp.manager.model.User;
 import com.snmp.manager.service.NodeService;
 import com.snmp.manager.service.TrapService;
 import com.snmp.manager.snmp.listener.TrapListener;
@@ -17,110 +20,156 @@ import io.javalin.http.UnauthorizedResponse;
 import io.javalin.Javalin;
 import io.javalin.http.staticfiles.Location;
 
+import com.auth0.jwt.interfaces.DecodedJWT;
+import org.mindrot.jbcrypt.BCrypt; // Required for password hash verification
+
 import java.io.IOException;
+import java.util.Optional;
 
 /**
  * Application entry point for the SNMP Manager.
+ * Initializes the Web API server and the background SNMP Trap Receiver.
  */
 public class Main {
+    
+    /**
+     * Data Transfer Object (DTO) for parsing incoming login requests.
+     */
+    static class LoginRequest {
+        public String username;
+        public String password;
+    }
+
     public static void main(String[] args) {
         System.out.println("SNMP Manager Started");
 
-        // --- Web Server Setup ---
         // --- Web Server Setup ---
         Javalin app = Javalin.create(config -> {
             // Serve static files (HTML, CSS, JS) from the "public" folder in resources
             config.staticFiles.add("/public", Location.CLASSPATH);
             
-            // Configure Jackson to handle Java 8 Dates (Instant)
+            // Configure Jackson to properly handle Java 8 Dates (Instant) serialization
             ObjectMapper mapper = new ObjectMapper();
             mapper.registerModule(new JavaTimeModule());
             mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS); 
             config.jsonMapper(new JavalinJackson(mapper, true));
         });
 
-
-
-        // 1. JWT Security Middleware for all /api/* routes
+        // 1. Global Security Middleware for API endpoint protection
         app.before("/api/*", ctx -> {
             String path = ctx.path();
             
-            // Exclude specific paths from JWT validation (e.g., login)
+            // Exclude public endpoints from JWT validation
             if (path.equals("/api/login") || path.equals("/api/test")) {
                 return;
             }
 
-            // Extract Token from Authorization header (Bearer <token>)
+            // Extract Token from Authorization header (Format: "Bearer <token>")
             String authHeader = ctx.header("Authorization");
             if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-                throw new UnauthorizedResponse("Unauthorized: Missing or invalid token");
+                throw new UnauthorizedResponse("Unauthorized: Missing or invalid token format");
             }
 
-            String token = authHeader.substring(7); // Remove "Bearer " prefix
             try {
-                JwtUtil.verifyToken(token); // Verify token; throws exception if invalid or expired
+                // Verify token authenticity and expiration
+                JwtUtil.verifyToken(authHeader.substring(7));
             } catch (Exception e) {
                 throw new UnauthorizedResponse("Unauthorized: Invalid or expired token");
             }
         });
 
-        // 2. Login Endpoint
+        // 2. Authentication Endpoint (Login)
         app.post("/api/login", ctx -> {
-            // Temporary for testing: Generate a default admin token
-            // (Later, this will check credentials against the users table)
-            String token = JwtUtil.generateToken("admin", "ADMIN");
-            ctx.json("{ \"token\": \"" + token + "\" }");
-        });
-        // Test API endpoint to verify the web server is running
-        app.get("/api/test", ctx -> {
-            ctx.result("Web Server is working successfully!");
+            LoginRequest req = ctx.bodyAsClass(LoginRequest.class);
+            try {
+                DatabaseConnection db = DatabaseConnection.fromResource();
+                UserDAO userDAO = new UserDAO(db);
+                
+                // Fetch user from database by username
+                Optional<User> userOpt = userDAO.findByUsername(req.username);
+                if (userOpt.isPresent()) {
+                    User user = userOpt.get();
+                    
+                    // Verify the provided plaintext password against the BCrypt hash stored in the database
+                    if (BCrypt.checkpw(req.password, user.getPasswordHash())) {
+                        // Passwords match -> Generate JWT token containing the user ID
+                        String token = JwtUtil.generateToken(user.getId(), user.getUsername(), user.getRole());
+                        
+                        // Return token safely as a JSON object
+                        ctx.json(java.util.Map.of("token", token));
+                        return;
+                    }
+                }
+                throw new UnauthorizedResponse("Invalid username or password");
+            } catch (Exception e) {
+                ctx.status(500).result("Database connection error");
+            }
         });
 
-        // --- NEW API: Get all nodes ---
+        // 3. API: Fetch all network nodes
         app.get("/api/nodes", ctx -> {
             try {
-                // Initialize database connection
                 DatabaseConnection db = DatabaseConnection.fromResource();
                 NodeDAO nodeDAO = new NodeDAO(db);
-                
-                // Fetch all nodes and return them as JSON
                 ctx.json(nodeDAO.findAll());
             } catch (Exception e) {
-                ctx.status(500).result("Error fetching nodes: " + e.getMessage());
+                ctx.status(500).result("Error fetching nodes");
             }
         });
         
-        // --- NEW API: Get all trap history ---
+        // 4. API: Fetch trap history
         app.get("/api/traps", ctx -> {
             try {
                 DatabaseConnection db = DatabaseConnection.fromResource();
                 TrapHistoryDAO trapHistoryDAO = new TrapHistoryDAO(db);
-                
-                // Fetch all traps and return as JSON
                 ctx.json(trapHistoryDAO.findAll());
             } catch (Exception e) {
-                ctx.status(500).result("Error fetching traps: " + e.getMessage());
+                ctx.status(500).result("Error fetching traps");
             }
         });
 
-        // Start the web server
-        app.start(8080);
-        // ------------------------
+        // 5. API: Resolve a specific trap action
+        app.put("/api/traps/{id}/resolve", ctx -> {
+            try {
+                // Extract user ID from the authenticated JWT token
+                String token = ctx.header("Authorization").substring(7);
+                DecodedJWT jwt = JwtUtil.verifyToken(token);
+                Long userId = jwt.getClaim("userId").asLong();
+                
+                // Extract the target Trap ID from the URL path parameter
+                Long trapId = Long.parseLong(ctx.pathParam("id"));
+                
+                DatabaseConnection db = DatabaseConnection.fromResource();
+                TrapHistoryDAO dao = new TrapHistoryDAO(db);
+                
+                // Update the trap status to RESOLVED and log the resolving user
+                boolean success = dao.resolveTrap(trapId, userId);
+                if (success) {
+                    ctx.json(java.util.Map.of("status", "success"));
+                } else {
+                    ctx.status(400).json(java.util.Map.of("status", "error", "message", "Trap not found"));
+                }
+            } catch (Exception e) {
+                ctx.status(500).result("Error resolving trap: " + e.getMessage());
+            }
+        });
 
+        // Start the Web Server on port 8080
+        app.start(8080);
+
+        // --- SNMP Receiver Setup ---
         TrapReceiver receiver = new TrapReceiver();
         receiver.addTrapListener(new PersistenceTrapListener());
-
         try {
-            // Start listening for incoming SNMP traps in the background
+            // Start listening for UDP SNMP Trap packets in the background
             receiver.start(); 
         } catch (IOException e) {
             System.err.println("Failed to start SNMP receiver: " + e.getMessage());
-            System.exit(1);
         }
     }
 
     /**
-     * Bridges received traps to the business/service layer.
+     * Internal listener class bridging the SNMP network layer with the database persistence layer.
      */
     private static class PersistenceTrapListener implements TrapListener {
         @Override
@@ -133,11 +182,10 @@ public class Main {
                 NodeService nodeService = new NodeService(nodeDAO);
                 TrapService trapService = new TrapService(nodeDAO, trapActionDAO, trapHistoryDAO, nodeService);
 
+                // Process the raw trap, identify severity, and persist history
                 trapService.process(event);
-                System.out.println("Trap persisted: node=" + event.getSourceIp()
-                        + ", oid=" + event.getTrapOid());
             } catch (Exception e) {
-                System.err.println("Failed to process trap: " + e.getMessage());
+                System.err.println("Failed to process incoming trap: " + e.getMessage());
             }
         }
     }
