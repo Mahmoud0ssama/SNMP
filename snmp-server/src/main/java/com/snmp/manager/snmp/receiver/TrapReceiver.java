@@ -24,7 +24,7 @@ import java.util.List;
  */
 public class TrapReceiver {
 
-    private static final int DEFAULT_PORT = 162;
+    private static final int DEFAULT_PORT = 1162;
 
     private final int port;
     private final TrapParser parser;
