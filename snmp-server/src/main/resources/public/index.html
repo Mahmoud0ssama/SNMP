@@ -18,7 +18,31 @@
             max-width: 1200px;
             margin: 40px auto;
             padding: 0 20px;
+            display: none; /* Hidden by default until login */
         }
+
+        /* --- Login Screen Styles --- */
+        .login-container {
+            max-width: 400px;
+            margin: 100px auto;
+            padding: 30px;
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .login-input {
+            background-color: #0d1117;
+            border: 1px solid #30363d;
+            color: #c9d1d9;
+        }
+        .login-input:focus {
+            background-color: #0d1117;
+            border-color: #58a6ff;
+            color: #c9d1d9;
+            box-shadow: none;
+        }
+        /* -------------------------- */
 
         .page-title {
             color: #e6edf3;
@@ -81,12 +105,10 @@
             display: inline-block;
         }
         
-        /* Node Status Colors */
         .bg-up { background-color: rgba(46, 160, 67, 0.15); color: #3fb950; border: 1px solid rgba(46, 160, 67, 0.4); }
         .bg-down { background-color: rgba(248, 81, 73, 0.15); color: #ff7b72; border: 1px solid rgba(248, 81, 73, 0.4); }
         .bg-warning-custom { background-color: rgba(210, 153, 34, 0.15); color: #d29922; border: 1px solid rgba(210, 153, 34, 0.4); }
 
-        /* Trap Status Colors */
         .bg-trap-open { background-color: rgba(248, 81, 73, 0.15); color: #ff7b72; border: 1px solid rgba(248, 81, 73, 0.4); }
         .bg-trap-resolved { background-color: rgba(46, 160, 67, 0.15); color: #3fb950; border: 1px solid rgba(46, 160, 67, 0.4); }
 
@@ -102,13 +124,24 @@
 </head>
 <body>
 
-    <div class="dashboard-container">
+    <!-- Login Screen -->
+    <div id="loginScreen" class="login-container text-center">
+        <h3 class="page-title mb-4">SNMP Login</h3>
+        <input type="text" id="username" class="form-control login-input mb-3" placeholder="Username (admin)" value="admin">
+        <input type="password" id="password" class="form-control login-input mb-4" placeholder="Password">
+        <button class="btn btn-sync w-100 py-2" onclick="performLogin()">Login</button>
+        <div id="loginError" class="text-danger mt-3" style="display: none; font-size: 0.9rem;"></div>
+    </div>
+
+    <!-- Dashboard Screen -->
+    <div id="dashboardScreen" class="dashboard-container">
         <!-- Header -->
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h3 class="page-title">SNMP Network Dashboard</h3>
-            <button class="btn btn-sync btn-sm px-3 py-2" onclick="syncAll()">
-                ↻ Sync Data
-            </button>
+            <div>
+                <button class="btn btn-outline-secondary btn-sm px-3 py-2 me-2" onclick="logout()">Logout</button>
+                <button class="btn btn-sync btn-sm px-3 py-2" onclick="syncAll()">↻ Sync Data</button>
+            </div>
         </div>
 
         <!-- Nodes Table -->
@@ -156,15 +189,81 @@
     </div>
 
     <script>
+        let jwtToken = localStorage.getItem('snmp_token');
+        let refreshInterval = null;
+
+        // Check login status on page load
+        if (jwtToken) {
+            showDashboard();
+        }
+
+        async function performLogin() {
+            // For now, it calls the dummy login endpoint which ignores credentials and returns a token
+            try {
+                let response = await fetch('/api/login', {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    let data = await response.json();
+                    let parsedData = JSON.parse(data); // Javalin currently returns double-stringified JSON
+                    jwtToken = parsedData.token;
+                    localStorage.setItem('snmp_token', jwtToken);
+                    document.getElementById('loginError').style.display = 'none';
+                    showDashboard();
+                } else {
+                    showError("Invalid credentials");
+                }
+            } catch (error) {
+                showError("Connection failed");
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('snmp_token');
+            jwtToken = null;
+            clearInterval(refreshInterval);
+            document.getElementById('dashboardScreen').style.display = 'none';
+            document.getElementById('loginScreen').style.display = 'block';
+        }
+
+        function showDashboard() {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('dashboardScreen').style.display = 'block';
+            syncAll();
+            refreshInterval = setInterval(syncAll, 3000);
+        }
+
+        function showError(msg) {
+            const errorDiv = document.getElementById('loginError');
+            errorDiv.innerText = msg;
+            errorDiv.style.display = 'block';
+        }
+
+        // Helper function for API requests
+        async function fetchWithAuth(url) {
+            let response = await fetch(url, {
+                headers: {
+                    'Authorization': 'Bearer ' + jwtToken
+                }
+            });
+
+            if (response.status === 401) {
+                logout(); // Token expired or invalid
+                throw new Error("Unauthorized");
+            }
+            return response;
+        }
+
         async function fetchNodes() {
             try {
-                let response = await fetch('/api/nodes');
+                let response = await fetchWithAuth('/api/nodes');
                 let nodes = await response.json();
                 let tbody = document.getElementById('nodesTableBody');
                 tbody.innerHTML = '';
 
                 if (nodes.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">No nodes registered in the system.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">No nodes registered.</td></tr>';
                     return;
                 }
 
@@ -192,13 +291,13 @@
                     tbody.innerHTML += row;
                 });
             } catch (error) {
-                console.error('Error fetching nodes:', error);
+                console.error(error);
             }
         }
 
         async function fetchTraps() {
             try {
-                let response = await fetch('/api/traps');
+                let response = await fetchWithAuth('/api/traps');
                 let traps = await response.json();
                 let tbody = document.getElementById('trapsTableBody');
                 tbody.innerHTML = '';
@@ -229,20 +328,16 @@
                     tbody.innerHTML += row;
                 });
             } catch (error) {
-                console.error('Error fetching traps:', error);
+                console.error(error);
             }
         }
 
         function syncAll() {
-            fetchNodes();
-            fetchTraps();
+            if(jwtToken) {
+                fetchNodes();
+                fetchTraps();
+            }
         }
-
-        // Initial fetch
-        syncAll();
-        
-        // Auto-refresh every 3 seconds
-        setInterval(syncAll, 3000);
     </script>
 </body>
 </html>
