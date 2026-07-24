@@ -48,9 +48,12 @@ public class TrapHistoryDAO {
      * @return List of traps
      * @throws SQLException on database access error
      */
-    public java.util.List<TrapHistory> findAll() throws SQLException {
-        String sql = "SELECT id, node_id, trap_action_id, trap_oid, source_ip, message, status, received_at, resolved_at "
-                   + "FROM trap_history ORDER BY received_at DESC";
+public java.util.List<TrapHistory> findAll() throws SQLException {
+        String sql = "SELECT t.id, t.node_id, t.trap_action_id, t.trap_oid, t.source_ip, t.message, t.status, t.received_at, t.resolved_at, u.username as resolver_name "
+                   + "FROM trap_history t "
+                   + "LEFT JOIN users u ON t.resolved_by = u.id "
+                   + "ORDER BY t.received_at DESC";
+                   
         java.util.List<TrapHistory> traps = new java.util.ArrayList<>();
         
         try (Connection conn = databaseConnection.getConnection();
@@ -74,6 +77,11 @@ public class TrapHistoryDAO {
                 java.sql.Timestamp resolvedAt = rs.getTimestamp("resolved_at");
                 if (resolvedAt != null) {
                     history.setResolvedAt(resolvedAt.toInstant());
+                }
+                
+                String resolver = rs.getString("resolver_name");
+                if (resolver != null) {
+                    history.setResolvedByUsername(resolver);
                 }
                 
                 traps.add(history);
