@@ -1,618 +1,878 @@
 <!DOCTYPE html>
 <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>SNMP - Premium NOC</title>
+        <style>
+            :root {
+                --bg-body: #f4f7fb;
+                --card-bg: #ffffff;
+                --primary-blue: #0056b3;
+                --primary-hover: #004494;
+                --light-blue: #e0f0ff;
+                --success-green: #28a745;
+                --danger-red: #dc3545;
+                --warning-orange: #d97706;
+                --text-dark: #1e293b;
+                --text-muted: #64748b;
+                --border-color: #e2e8f0;
+                --shadow-soft: 0 10px 30px -10px rgba(0, 86, 179, 0.1);
+            }
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, sans-serif;
+                background-color: var(--bg-body);
+                margin: 0;
+                padding: 25px 35px;
+                color: var(--text-dark);
+                box-sizing: border-box;
+                min-height: 100vh;
+            }
+            .login-wrapper {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 80vh;
+            }
+            .login-card {
+                background-color: var(--card-bg);
+                padding: 45px 40px;
+                border-radius: 20px;
+                box-shadow: var(--shadow-soft);
+                width: 340px;
+                text-align: center;
+            }
+            .login-card h2 {
+                color: var(--primary-blue);
+                margin-bottom: 5px;
+            }
+            .input-group {
+                position: relative;
+                margin-bottom: 20px;
+            }
+            .input-group input, .form-group select {
+                width: 100%;
+                padding: 15px 15px 15px 45px;
+                background-color: #f8fafc;
+                border: 1px solid var(--border-color);
+                border-radius: 12px;
+                outline: none;
+                box-sizing: border-box;
+            }
+            .form-group input, .form-group select {
+                padding: 12px;
+                padding-left: 15px;
+            }
+            .input-icon {
+                position: absolute;
+                left: 16px;
+                top: 50%;
+                transform: translateY(-50%);
+            }
+            .dashboard-container {
+                display: none;
+                max-width: 100%;
+                margin: 0 auto;
+            }
+            .card-panel {
+                background-color: var(--card-bg);
+                border: 1px solid rgba(255, 255, 255, 0.5);
+                border-radius: 16px;
+                box-shadow: var(--shadow-soft);
+            }
+            .grid-container {
+                display: grid;
+                grid-template-columns: 2fr 1fr;
+                gap: 30px;
+            }
+            .card {
+                padding: 30px;
+            }
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SNMP - Premium Dashboard</title>
-    <style>
-        /* --- Premium Theme Variables from Old Project --- */
-        :root {
-            --bg-body: #f4f7fb;
-            --card-bg: #ffffff;
-            --primary-blue: #0056b3;
-            --primary-hover: #004494;
-            --light-blue: #e0f0ff;
-            --success-green: #28a745;
-            --danger-red: #dc3545;
-            --warning-orange: #d97706;
-            --text-dark: #1e293b;
-            --text-muted: #64748b;
-            --border-color: #e2e8f0;
-            --shadow-soft: 0 10px 30px -10px rgba(0, 86, 179, 0.1);
-        }
+            .card-panel h3 {
+                font-size: 20px !important;
+            }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, sans-serif;
-            background-color: var(--bg-body);
-            margin: 0;
-            color: var(--text-dark);
-            min-height: 100vh;
-            padding: 25px 35px; /* Added body padding like the old project */
-            box-sizing: border-box;
-        }
+            .header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 18px 35px;
+                margin-bottom: 25px;
+            }
+            .header h2 {
+                margin: 0;
+                color: var(--primary-blue);
+                font-weight: 800;
+            }
+            .header-action-btn {
+                background-color: #f8fafc;
+                border: 1px solid #cbd5e1;
+                padding: 10px 16px;
+                border-radius: 8px;
+                cursor: pointer;
+                font-weight: 600;
+            }
+            .logout-btn {
+                background-color: #fff1f2;
+                color: #e11d48;
+                border: 1px solid #ffe4e6;
+                padding: 10px 20px;
+                border-radius: 8px;
+                font-weight: 600;
+                cursor: pointer;
+            }
+            table {
+                width: 100%;
+                border-collapse: separate;
+                border-spacing: 0;
+            }
+            th {
+                color: var(--text-muted);
+                font-weight: 600;
+                font-size: 12px;
+                padding: 15px;
+                text-align: left;
+                border-bottom: 2px solid var(--light-blue);
+                position: sticky;
+                top: 0;
+                background: var(--card-bg);
+                z-index: 10;
+            }
+            td {
+                padding: 16px 15px;
+                font-size: 13px;
+                border-bottom: 1px solid var(--border-color);
+                font-weight: 600;
+            }
+            .clickable-row {
+                cursor: pointer;
+                transition: 0.2s;
+            }
+            .clickable-row:hover {
+                background-color: #f8fafc;
+                transform: scale(1.005);
+                box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            }
+            .scrollable-list {
+                max-height: 450px;
+                overflow-y: auto;
+                padding-right: 10px;
+            }
+            .status-badge {
+                font-weight: 700;
+                padding: 6px 12px;
+                border-radius: 20px;
+                font-size: 11px;
+                border: 1px solid transparent;
+                display: inline-block;
+                text-align: center;
+                min-width: 65px;
+            }
+            .status-in {
+                color: #047857;
+                background-color: #d1fae5;
+                border-color: #a7f3d0;
+            }
+            .status-out {
+                color: #b91c1c;
+                background-color: #fee2e2;
+                border-color: #fecaca;
+            }
+            .status-warn {
+                color: var(--warning-orange);
+                background-color: #fef3c7;
+                border-color: #fde68a;
+            }
 
-        /* --- Login Screen Styles --- */
-        .login-wrapper {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 80vh;
-        }
+            .primary-btn {
+                background-color: var(--primary-blue);
+                color: white;
+                border: none;
+                padding: 14px 20px;
+                border-radius: 8px;
+                cursor: pointer;
+                font-weight: 600;
+                width: 100%;
+                transition: 0.3s;
+                font-size: 15px;
+            }
+            .success-btn {
+                background-color: var(--success-green);
+                color: white;
+                border: none;
+                padding: 14px 20px;
+                border-radius: 8px;
+                cursor: pointer;
+                font-weight: 600;
+                width: 100%;
+                font-size: 15px;
+            }
+            .danger-btn {
+                background-color: white;
+                color: var(--danger-red);
+                border: 1px solid #fecaca;
+                padding: 6px 12px;
+                border-radius: 8px;
+                cursor: pointer;
+                font-weight: 600;
+                transition: 0.2s;
+            }
+            .danger-btn:hover {
+                background-color: #fef2f2;
+                transform: scale(1.05);
+            }
+            .manage-btn {
+                background-color: #f8fafc;
+                color: var(--text-dark);
+                border: 1px solid var(--border-color);
+                padding: 14px 20px;
+                border-radius: 10px;
+                cursor: pointer;
+                font-weight: 600;
+                width: 100%;
+                text-align: left;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                transition: 0.3s;
+                box-sizing: border-box;
+                font-size: 15px;
+            }
+            .manage-btn:hover {
+                background-color: var(--light-blue);
+                color: var(--primary-blue);
+                border-color: #bfdbfe;
+                transform: translateY(-2px);
+            }
 
-        .login-card {
-            background-color: var(--card-bg);
-            padding: 45px 40px;
-            border-radius: 20px;
-            box-shadow: var(--shadow-soft);
-            border: 1px solid rgba(255, 255, 255, 0.8);
-            width: 340px;
-            text-align: center;
-        }
+            .modal {
+                display: none;
+                position: fixed;
+                z-index: 1000;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(15, 23, 42, 0.4);
+                align-items: center;
+                justify-content: center;
+                backdrop-filter: blur(5px);
+            }
+            .modal-content {
+                background-color: var(--card-bg);
+                padding: 35px;
+                border-radius: 20px;
+                width: 400px;
+                box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+                border: 1px solid rgba(255,255,255,0.8);
+            }
+            .modal-large {
+                width: 700px;
+            }
+            .modal-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 25px;
+            }
+            .modal-header h3 {
+                margin: 0;
+                color: var(--primary-blue);
+                font-size: 20px;
+                font-weight: 700;
+            }
+            .close-btn {
+                color: var(--text-muted);
+                font-size: 26px;
+                cursor: pointer;
+                transition: 0.2s;
+            }
+            .form-group {
+                margin-bottom: 20px;
+            }
+            .form-group label {
+                display: block;
+                margin-bottom: 8px;
+                font-size: 13px;
+                color: var(--text-muted);
+                font-weight: 600;
+            }
+            .search-box {
+                position: relative;
+                width: 250px;
+            }
+            .search-box input {
+                width: 100%;
+                padding: 10px 12px 10px 35px;
+                border-radius: 8px;
+                border: 1px solid var(--border-color);
+                background-color: #f8fafc;
+                box-sizing: border-box;
+                outline: none;
+            }
+            .search-box span {
+                position: absolute;
+                left: 12px;
+                top: 50%;
+                transform: translateY(-50%);
+                font-size: 14px;
+            }
+            .filter-select {
+                padding: 10px;
+                border-radius: 8px;
+                border: 1px solid var(--border-color);
+                background-color: #f8fafc;
+                font-weight: 600;
+                outline: none;
+                cursor: pointer;
+            }
+            .code-font {
+                color: var(--text-muted);
+                font-family: monospace;
+                font-size: 14px;
+            }
+            .flash-msg {
+                color: #dc2626;
+                background-color: #fef2f2;
+                padding: 12px;
+                border-radius: 8px;
+                font-size: 13px;
+                margin-top: 20px;
+                display: none;
+                text-align:center;
+            }
+            .detail-row {
+                display: flex;
+                justify-content: space-between;
+                padding: 10px 0;
+                border-bottom: 1px solid var(--border-color);
+            }
+            .detail-row span:first-child {
+                color: var(--text-muted);
+                font-weight: 600;
+            }
+            .detail-row span:last-child {
+                color: var(--text-dark);
+                font-weight: 700;
+            }
+            .icon-btn {
+                background: transparent;
+                border: none;
+                cursor: pointer;
+                font-size: 16px;
+                transition: 0.2s;
+                padding: 5px;
+            }
+            .icon-btn:hover {
+                transform: scale(1.2);
+            }
+        </style>
+    </head>
+    <body>
 
-        .logo-container { margin-bottom: 35px; }
-        .logo-container h2 {
-            color: var(--primary-blue);
-            margin: 15px 0 5px 0;
-            font-size: 26px;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-        }
-        .logo-container p {
-            color: var(--text-muted);
-            font-size: 14px;
-            margin-top: 0;
-            font-weight: 500;
-        }
-
-        .input-group {
-            position: relative;
-            margin-bottom: 20px;
-        }
-
-        .input-group input {
-            width: 85%;
-            padding: 15px 15px 15px 45px;
-            background-color: #f8fafc;
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            font-size: 15px;
-            color: var(--text-dark);
-            outline: none;
-            transition: all 0.3s ease;
-            font-weight: 500;
-        }
-
-        .input-group input:focus {
-            background-color: var(--card-bg);
-            border-color: var(--primary-blue);
-            box-shadow: 0 0 0 4px var(--light-blue);
-        }
-
-        .input-icon {
-            position: absolute;
-            left: 16px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 18px;
-            color: var(--text-muted);
-        }
-
-        button.login-btn {
-            background-color: var(--primary-blue);
-            color: white;
-            border: none;
-            padding: 16px;
-            border-radius: 12px;
-            cursor: pointer;
-            width: 100%;
-            font-size: 16px;
-            font-weight: 600;
-            margin-top: 15px;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0, 86, 179, 0.2);
-        }
-
-        button.login-btn:hover {
-            background-color: var(--primary-hover);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 86, 179, 0.3);
-        }
-
-        .flash-msg {
-            color: #dc2626;
-            background-color: #fef2f2;
-            padding: 12px;
-            border-radius: 8px;
-            font-size: 13px;
-            margin-top: 20px;
-            font-weight: 600;
-            border: 1px solid #fca5a5;
-            display: none;
-        }
-
-        /* --- Dashboard Styles --- */
-        .dashboard-container {
-            display: none;
-            max-width: 95%; 
-            margin: 0 auto;
-        }
-
-        .card-panel {
-            background-color: var(--card-bg);
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            border-radius: 16px;
-            box-shadow: var(--shadow-soft);
-        }
-
-        /* Header */
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 18px 35px;
-            margin-bottom: 25px;
-        }
-
-        .header h2 {
-            margin: 0;
-            color: var(--primary-blue);
-            font-weight: 800;
-            letter-spacing: -0.5px;
-        }
-
-        .header-action-btn {
-            background-color: #f8fafc;
-            color: var(--text-dark);
-            border: 1px solid #cbd5e1;
-            padding: 10px 16px;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 13px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        .header-action-btn:hover { background-color: var(--light-blue); color: var(--primary-blue); border-color: #93c5fd; }
-
-        .logout-btn {
-            background-color: #fff1f2;
-            color: #e11d48;
-            border: 1px solid #ffe4e6;
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 14px;
-            cursor: pointer;
-            text-decoration: none;
-            transition: all 0.3s;
-        }
-        .logout-btn:hover { background-color: #e11d48; color: white; }
-
-        /* KPI Grid */
-        .kpi-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 25px;
-            margin-bottom: 25px;
-        }
-        .kpi-card {
-            padding: 25px;
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-        .kpi-icon {
-            font-size: 28px;
-            width: 60px;
-            height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 12px;
-        }
-        .icon-blue { background-color: var(--light-blue); color: var(--primary-blue); }
-        .icon-red { background-color: #fee2e2; color: var(--danger-red); }
-        .icon-orange { background-color: #fef3c7; color: var(--warning-orange); }
-        
-        .kpi-info h4 { margin: 0; color: var(--text-muted); font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; }
-        .kpi-info h2 { margin: 5px 0 0 0; color: var(--text-dark); font-size: 28px; font-weight: 800; }
-
-        /* Layout Grid */
-        .grid-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 25px;
-        }
-
-        .card { padding: 25px; }
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 15px;
-            margin-bottom: 10px;
-        }
-        .card-header h3 { margin: 0; font-size: 18px; color: var(--text-dark); font-weight: 700;}
-
-        /* Scrollable Table Area */
-        .scrollable-list {
-            max-height: 380px;
-            overflow-y: auto;
-            padding-right: 10px;
-        }
-        
-        /* Custom Scrollbar */
-        .scrollable-list::-webkit-scrollbar { width: 6px; }
-        .scrollable-list::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
-
-        table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-        }
-
-        th {
-            color: var(--text-muted);
-            font-weight: 600;
-            font-size: 12px;
-            padding: 15px;
-            text-align: left;
-            text-transform: uppercase;
-            border-bottom: 2px solid var(--light-blue);
-            position: sticky;
-            top: 0;
-            background: var(--card-bg);
-            z-index: 10;
-        }
-
-        td {
-            padding: 16px 15px;
-            font-size: 13px;
-            border-bottom: 1px solid var(--border-color);
-            font-weight: 600;
-        }
-
-        tbody tr { transition: transform 0.2s; }
-        tbody tr:hover {
-            background-color: #f8fafc;
-            transform: scale(1.005);
-        }
-
-        /* Status Styling from old project */
-        .status-in {
-            color: #047857;
-            font-weight: 700;
-            background-color: #d1fae5;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 11px;
-            border: 1px solid #a7f3d0;
-        }
-
-        .status-out {
-            color: #b91c1c;
-            font-weight: 700;
-            background-color: #fee2e2;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 11px;
-            border: 1px solid #fecaca;
-        }
-
-        .status-warn {
-            color: var(--warning-orange);
-            font-weight: 700;
-            background-color: #fef3c7;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 11px;
-            border: 1px solid #fde68a;
-        }
-
-        .code-font { color: var(--text-muted); font-weight: 600;}
-        .highlight-text { color: var(--primary-blue); font-weight: 700; font-size: 14px;}
-
-        /* Buttons */
-        .danger-btn {
-            background-color: white;
-            color: var(--success-green);
-            border: 1px solid #a7f3d0;
-            padding: 6px 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 11px;
-            transition: all 0.3s;
-        }
-        .danger-btn:hover {
-            background-color: #d1fae5;
-        }
-
-    </style>
-</head>
-
-<body>
-
-    <!-- Login Screen -->
-    <div id="loginScreen" class="login-wrapper">
-        <div class="login-card">
-            <div class="logo-container">
-                <h2>SNMP Manager</h2>
-                <p>Premium Network Monitoring</p>
-            </div>
-            <form onsubmit="event.preventDefault(); performLogin();">
-                <div class="input-group">
-                    <span class="input-icon">👤</span>
-                    <input type="text" id="username" placeholder="Username" required>
-                </div>
-                <div class="input-group">
-                    <span class="input-icon">🔒</span>
-                    <input type="password" id="password" placeholder="Password" required>
-                </div>
-                <button type="submit" class="login-btn">Secure Login ➔</button>
-            </form>
-            <div id="loginError" class="flash-msg"></div>
-        </div>
-    </div>
-
-    <!-- Dashboard Screen -->
-    <div id="dashboardScreen" class="dashboard-container">
-        
-        <!-- Header -->
-        <div class="header card-panel">
-            <div style="display: flex; align-items: center; gap: 18px;">
+        <!-- Login Screen -->
+        <div id="loginScreen" class="login-wrapper">
+            <div class="login-card">
                 <h2>DT NOC</h2>
-            </div>
-            <div style="display: flex; align-items: center; gap: 15px;">
-                <span style="font-size: 13px; font-weight: 700; padding: 6px 12px; border-radius: 20px; background-color: #d1fae5; color: #047857; border: 1px solid #a7f3d0;">
-                    🟢 System Live
-                </span>
-                <span style="font-size: 15px; color: var(--text-muted); font-weight: 500;">Welcome, <span style="color: var(--primary-blue); font-weight: 700;" id="userDisplay">User</span></span>
-                <button class="header-action-btn" onclick="syncAll()">↻ Sync Data</button>
-                <button class="logout-btn" onclick="logout()">Logout</button>
-            </div>
-        </div>
-
-        <!-- KPI Grid -->
-        <div class="kpi-grid">
-            <div class="card-panel kpi-card">
-                <div class="kpi-icon icon-blue">📡</div>
-                <div class="kpi-info">
-                    <h4>Total Network Nodes</h4>
-                    <h2 id="kpiTotalNodes">0</h2>
-                </div>
-            </div>
-            <div class="card-panel kpi-card">
-                <div class="kpi-icon icon-red">🔌</div>
-                <div class="kpi-info">
-                    <h4>Critical / Down Nodes</h4>
-                    <h2 id="kpiDownNodes">0</h2>
-                </div>
-            </div>
-            <div class="card-panel kpi-card">
-                <div class="kpi-icon icon-orange">🔔</div>
-                <div class="kpi-info">
-                    <h4>Active Alarms (Open)</h4>
-                    <h2 id="kpiOpenTraps">0</h2>
-                </div>
+                <p style="color: var(--text-muted); margin-bottom: 30px;">Network Management Platform</p>
+                <form id="loginForm" onsubmit="performLogin(event)">
+                    <div class="input-group">
+                        <span class="input-icon">👤</span>
+                        <input type="text" id="username" placeholder="Username" required>
+                    </div>
+                    <div class="input-group">
+                        <span class="input-icon">🔒</span>
+                        <input type="password" id="password" placeholder="Password" required>
+                    </div>
+                    <button type="submit" class="primary-btn">Secure Login</button>
+                </form>
+                <div id="loginError" class="flash-msg"></div>
             </div>
         </div>
 
-        <!-- Split Grid for Tables -->
-        <div class="grid-container">
-            <!-- Nodes Table -->
-            <div class="card card-panel">
-                <div class="card-header">
-                    <h3>Network Elements (Nodes)</h3>
+        <!-- Dashboard Screen -->
+        <div id="dashboardScreen" class="dashboard-container">
+            <div class="header card-panel">
+                <h2>DT NOC Dashboard</h2>
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <span style="font-size: 13px; font-weight: 700; padding: 6px 12px; border-radius: 20px; background-color: #d1fae5; color: #047857; border: 1px solid #a7f3d0;">🟢 System Live</span>
+                    <span style="font-size: 15px; color: var(--text-muted); font-weight: 500;">Welcome, <span style="color: var(--primary-blue); font-weight: 700;" id="userDisplay">User</span></span>
+                    <button class="header-action-btn" onclick="syncAll()">↻ Refresh</button>
+                    <button class="logout-btn" onclick="logout()">Logout</button>
                 </div>
+            </div>
+
+            <div class="grid-container">
+                <!-- Left: Traps Table -->
+                <div class="card card-panel">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 15px;">
+                        <h3 style="margin: 0; color: var(--text-dark);">Recent Alarms (Traps Logs)</h3>
+                        <div style="display: flex; gap: 10px;">
+                            <select id="statusFilter" class="filter-select" onchange="filterTraps()">
+                                <option value="ALL">All Statuses</option>
+                                <option value="OPEN">Open Only</option>
+                                <option value="RESOLVED">Resolved</option>
+                            </select>
+                            <div class="search-box">
+                                <span>🔍</span>
+                                <input type="text" id="searchTraps" onkeyup="filterTraps()" placeholder="Search Name, IP or Msg...">
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px; background-color: var(--light-blue); padding: 10px 15px; border-radius: 8px; width: fit-content; margin-bottom: 15px;">
+                        <span style="font-size: 16px;">💡</span><span style="font-size: 13px; color: var(--primary-blue); font-weight: 600;">Tip: Click on any alarm row to view resolution details.</span>
+                    </div>
+                    <div class="scrollable-list">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Source (Name & IP)</th>
+                                    <th>Message</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="trapsTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Right: Panels -->
+                <div style="display: flex; flex-direction: column; gap: 25px;">
+
+                    <!-- Profile Settings -->
+                    <div class="card card-panel">
+                        <div style="margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 15px;">
+                            <h3 style="margin: 0;">Profile Settings</h3>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 15px;">
+                            <button class="manage-btn" onclick="openProfileEdit()">👤 Edit My Profile</button>
+                        </div>
+                    </div>
+
+                    <!-- System Management -->
+                    <div class="card card-panel" id="systemManagementCard">
+                        <div style="margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 15px;">
+                            <h3 style="margin: 0;">System Management</h3>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 15px;">
+                            <!-- Visible to ALL -->
+                            <button class="manage-btn" onclick="openNodesManager()" style="background-color: var(--light-blue); color: var(--primary-blue); border-color: #bfdbfe;">📡 View Network Elements</button>
+
+                            <!-- Visible to ADMIN ONLY -->
+                            <button class="success-btn admin-only-item" onclick="openModal('addNodeModal')">+ Add New Node</button>
+                            <button class="primary-btn admin-only-item" onclick="openModal('addUserModal')">🛡️ Add System User</button>
+                            <button class="manage-btn admin-only-item" onclick="openUsersManager()">👥 Manage Users</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modals -->
+        <div id="trapDetailsModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header"><h3>Alarm Details</h3><span class="close-btn" onclick="closeModal('trapDetailsModal')">&times;</span></div>
+                <div id="trapDetailsBody" style="font-size: 14px;"></div>
+            </div>
+        </div>
+
+        <!-- Nodes Manager -->
+        <div id="nodesListModal" class="modal">
+            <div class="modal-content modal-large">
+                <div class="modal-header"><h3>Network Elements</h3><span class="close-btn" onclick="closeModal('nodesListModal')">&times;</span></div>
+                <div class="search-box" style="margin-bottom: 15px; width: 100%;"><span>🔍</span><input type="text" id="searchNodesList" onkeyup="filterTable('searchNodesList', 'nodesListBody')" placeholder="Search Nodes by Name or IP..."></div>
                 <div class="scrollable-list">
                     <table>
-                        <thead>
-                            <tr>
-                                <th>Node Name</th>
-                                <th>IP Address</th>
-                                <th>Status</th>
-                                <th>Last Update</th>
-                            </tr>
+                        <thead id="nodesListHead">
+                            <tr><th>Node Name & Type</th><th>IP Address</th><th>Status</th><th>Last Update</th><th class="admin-node-col" style="display:none;">Action</th></tr>
                         </thead>
-                        <tbody id="nodesTableBody">
-                            <tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 40px;">Loading nodes...</td></tr>
-                        </tbody>
+                        <tbody id="nodesListBody"></tbody>
                     </table>
                 </div>
             </div>
+        </div>
 
-            <!-- Traps Table -->
-            <div class="card card-panel">
-                <div class="card-header">
-                    <h3>Recent Alarms (Traps Logs)</h3>
-                </div>
+        <div id="addNodeModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header"><h3>Add New Node</h3><span class="close-btn" onclick="closeModal('addNodeModal')">&times;</span></div>
+                <form onsubmit="submitAddNode(event)">
+                    <div class="form-group"><label>Node Name</label><input type="text" id="newNodeName" placeholder="e.g. Cairo_BTS" required></div>
+                    <div class="form-group"><label>IP Address</label><input type="text" id="newNodeIp" placeholder="e.g. 10.0.0.5" required></div>
+                    <div class="form-group">
+                        <label>Node Type</label>
+                        <select id="newNodeType" required>
+                            <option value="BTS">BTS</option><option value="MSC">MSC</option><option value="BSC">BSC</option><option value="SGSN">SGSN</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="success-btn">Register Node</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Edit Node Modal -->
+        <div id="editNodeModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header"><h3>Edit Node</h3><span class="close-btn" onclick="closeModal('editNodeModal')">&times;</span></div>
+                <form onsubmit="submitEditNode(event)">
+                    <input type="hidden" id="editNodeId">
+                    <div class="form-group"><label>Node Name</label><input type="text" id="editNodeName" required></div>
+                    <div class="form-group"><label>IP Address</label><input type="text" id="editNodeIp" required></div>
+                    <div class="form-group">
+                        <label>Node Type</label>
+                        <select id="editNodeType" required>
+                            <option value="BTS">BTS</option><option value="MSC">MSC</option><option value="BSC">BSC</option><option value="SGSN">SGSN</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="success-btn">Save Changes</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Users Manager -->
+        <div id="usersListModal" class="modal">
+            <div class="modal-content modal-large">
+                <div class="modal-header"><h3>Manage System Users</h3><span class="close-btn" onclick="closeModal('usersListModal')">&times;</span></div>
+                <div class="search-box" style="margin-bottom: 15px; width: 100%;"><span>🔍</span><input type="text" id="searchUsersList" onkeyup="filterTable('searchUsersList', 'usersListBody')" placeholder="Search Users..."></div>
                 <div class="scrollable-list">
                     <table>
-                        <thead>
-                            <tr>
-                                <th>Source IP</th>
-                                <th>Message</th>
-                                <th>Status</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody id="trapsTableBody">
-                            <tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 40px;">Loading traps...</td></tr>
-                        </tbody>
+                        <thead><tr><th>ID</th><th>Username</th><th>Role</th><th>Actions</th></tr></thead>
+                        <tbody id="usersListBody"></tbody>
                     </table>
                 </div>
             </div>
         </div>
-    </div>
 
-    <script>
-        let jwtToken = localStorage.getItem('snmp_token');
-        let refreshInterval = null;
+        <div id="addUserModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header"><h3>Add User</h3><span class="close-btn" onclick="closeModal('addUserModal')">&times;</span></div>
+                <form onsubmit="submitAddUser(event)">
+                    <div class="form-group"><label>Username</label><input type="text" id="newUserName" required></div>
+                    <div class="form-group"><label>Password</label><input type="password" id="newUserPass" required></div>
+                    <div class="form-group">
+                        <label>Role</label>
+                        <select id="newUserRole" required><option value="SUPPORT">Support User (View Only)</option><option value="ADMIN">System Admin</option></select>
+                    </div>
+                    <button type="submit" class="primary-btn">Create User</button>
+                </form>
+            </div>
+        </div>
 
-        if (jwtToken) {
-            showDashboard();
-        }
+        <!-- Edit User Modal (Unified) -->
+        <div id="editUserModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header"><h3>Edit User</h3><span class="close-btn" onclick="closeModal('editUserModal')">&times;</span></div>
+                <form onsubmit="submitEditUser(event)">
+                    <input type="hidden" id="editUserId">
+                    <div class="form-group">
+                        <label>Username</label>
+                        <input type="text" id="editUserName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>New Password <span style="font-size: 10px; color: var(--text-muted);">(Leave empty to keep current)</span></label>
+                        <input type="password" id="editUserPass">
+                    </div>
+                    <div class="form-group" id="editUserRoleWrapper">
+                        <label>Role</label>
+                        <select id="editUserRole" required>
+                            <option value="SUPPORT">Support User (View Only)</option>
+                            <option value="ADMIN">System Admin</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="success-btn">Save Changes</button>
+                </form>
+            </div>
+        </div>
 
-        async function performLogin() {
-            const user = document.getElementById('username').value;
-            const pass = document.getElementById('password').value;
-            
-            try {
-                let response = await fetch('/api/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username: user, password: pass })
-                });
-                
-                if (response.ok) {
-                    let data = await response.json(); 
-                    jwtToken = data.token; 
-                    localStorage.setItem('snmp_token', jwtToken);
-                    document.getElementById('userDisplay').innerText = user;
-                    document.getElementById('loginError').style.display = 'none';
-                    document.getElementById('password').value = ''; 
-                    showDashboard();
-                } else {
-                    showError("Invalid username or password");
+        <script>
+            let jwtToken = localStorage.getItem('snmp_token');
+            let refreshInterval = null;
+            let nodesMap = {};
+            let currentUser = null;
+
+            if (jwtToken)
+                showDashboard();
+
+            function parseJwt(token) {
+                try {
+                    return JSON.parse(atob(token.split('.')[1]));
+                } catch (e) {
+                    return null;
                 }
-            } catch (error) {
-                showError("Connection failed. Check server.");
             }
-        }
 
-        function logout() {
-            localStorage.removeItem('snmp_token');
-            jwtToken = null;
-            clearInterval(refreshInterval);
-            document.getElementById('dashboardScreen').style.display = 'none';
-            document.body.style.padding = "0"; // remove padding for login screen
-            document.getElementById('loginScreen').style.display = 'flex';
-        }
-
-        function showDashboard() {
-            document.getElementById('loginScreen').style.display = 'none';
-            document.body.style.padding = "25px 35px"; // restore padding
-            document.getElementById('dashboardScreen').style.display = 'block';
-            syncAll();
-            refreshInterval = setInterval(syncAll, 3000);
-        }
-
-        function showError(msg) {
-            const errorDiv = document.getElementById('loginError');
-            errorDiv.innerText = msg;
-            errorDiv.style.display = 'block';
-        }
-
-        async function fetchWithAuth(url, options = {}) {
-            let headers = options.headers || {};
-            headers['Authorization'] = 'Bearer ' + jwtToken;
-            options.headers = headers;
-
-            let response = await fetch(url, options);
-            if (response.status === 401) {
-                logout(); 
-                throw new Error("Unauthorized - Token Expired");
-            }
-            return response;
-        }
-
-        async function fetchNodes() {
-            try {
-                let response = await fetchWithAuth('/api/nodes');
-                let nodes = await response.json();
-                
-                let tbody = document.getElementById('nodesTableBody');
-                tbody.innerHTML = '';
-
-                let downCount = 0;
-                document.getElementById('kpiTotalNodes').innerText = nodes.length;
-
-                if (nodes.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 40px;">No nodes registered yet.</td></tr>';
-                    document.getElementById('kpiDownNodes').innerText = 0;
-                    return;
-                }
-
-                nodes.forEach(node => {
-                    let statusClass = 'status-warn';
-                    if (node.status === 'UP') statusClass = 'status-in';
-                    else if (node.status === 'DOWN') { statusClass = 'status-out'; downCount++; }
-
-                    let dateObj = new Date(node.createdAt);
-                    let formattedDate = dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-
-                    let row = `<tr>
-                        <td class="highlight-text">${node.name} <br><span style="font-size:11px; color:var(--text-muted); font-weight:500;">Port: ${node.port}</span></td>
-                        <td class="code-font">${node.ipAddress}</td>
-                        <td><span class="${statusClass}">${node.status}</span></td>
-                        <td style="color: var(--text-muted); font-size: 12px;">${formattedDate}</td>
-                    </tr>`;
-                    tbody.innerHTML += row;
-                });
-
-                document.getElementById('kpiDownNodes').innerText = downCount;
-            } catch (error) { console.error(error); }
-        }
-
-        async function fetchTraps() {
-            try {
-                let response = await fetchWithAuth('/api/traps');
-                let traps = await response.json();
-                
-                let tbody = document.getElementById('trapsTableBody');
-                tbody.innerHTML = '';
-
-                let openCount = 0;
-
-                if (traps.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 40px;">No alarms recorded.</td></tr>';
-                    document.getElementById('kpiOpenTraps').innerText = 0;
-                    return;
-                }
-
-                traps.forEach(trap => {
-                    let statusClass = 'status-in';
-                    let actionHtml = `<span style="color: var(--text-muted); font-size: 12px;">✓ Resolved</span>`;
-                    
-                    if (trap.status === 'OPEN') {
-                        statusClass = 'status-out';
-                        openCount++;
-                        actionHtml = `<button class="danger-btn" onclick="resolveTrap(${trap.id})">Resolve</button>`;
+            async function performLogin(e) {
+                e.preventDefault();
+                const user = document.getElementById('username').value;
+                const pass = document.getElementById('password').value;
+                try {
+                    let res = await fetch('/api/login', {
+                        method: 'POST', headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({username: user, password: pass})
+                    });
+                    if (res.ok) {
+                        let data = await res.json();
+                        jwtToken = data.token;
+                        localStorage.setItem('snmp_token', jwtToken);
+                        document.getElementById('loginError').style.display = 'none';
+                        document.getElementById('password').value = '';
+                        showDashboard();
+                    } else {
+                        document.getElementById('loginError').innerText = "Invalid username or password";
+                        document.getElementById('loginError').style.display = 'block';
                     }
-
-                    let msg = trap.message ? trap.message : trap.trapOid;
-                    let dateObj = new Date(trap.receivedAt);
-                    let formattedDate = dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
-
-                    let row = `<tr>
-                        <td class="code-font">${trap.sourceIp}</td>
-                        <td style="color: var(--text-dark); font-weight: 700;">${msg} <br><span style="font-size:11px; color:var(--text-muted); font-weight:500;">${formattedDate}</span></td>
-                        <td><span class="${statusClass}">${trap.status}</span></td>
-                        <td>${actionHtml}</td>
-                    </tr>`;
-                    tbody.innerHTML += row;
-                });
-
-                document.getElementById('kpiOpenTraps').innerText = openCount;
-            } catch (error) { console.error(error); }
-        }
-
-        async function resolveTrap(trapId) {
-            try {
-                let response = await fetchWithAuth(`/api/traps/${trapId}/resolve`, { method: 'PUT' });
-                if (response.ok) syncAll();
-                else alert("Failed to resolve the trap.");
-            } catch (error) { console.error(error); }
-        }
-
-        function syncAll() {
-            if(jwtToken) {
-                fetchNodes();
-                fetchTraps();
+                } catch (error) {
+                    console.error(error);
+                }
             }
-        }
-    </script>
-</body>
+
+            function logout() {
+                localStorage.removeItem('snmp_token');
+                jwtToken = null;
+                currentUser = null;
+                clearInterval(refreshInterval);
+                document.getElementById('dashboardScreen').style.display = 'none';
+                document.getElementById('loginScreen').style.display = 'flex';
+                document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
+            }
+
+            function showDashboard() {
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('dashboardScreen').style.display = 'block';
+                currentUser = parseJwt(jwtToken);
+                if (currentUser) {
+                    document.getElementById('userDisplay').innerText = currentUser.username;
+                    let isAdmin = currentUser.role === 'ADMIN';
+
+                    document.querySelectorAll('.admin-only-item').forEach(el => {
+                        if (el.tagName.toLowerCase() === 'button' && el.classList.contains('manage-btn')) {
+                            el.style.display = isAdmin ? 'flex' : 'none';
+                        } else {
+                            el.style.display = isAdmin ? 'block' : 'none';
+                        }
+                    });
+
+                    let adminNodeCol = document.querySelector('.admin-node-col');
+                    if (adminNodeCol)
+                        adminNodeCol.style.display = isAdmin ? 'table-cell' : 'none';
+                }
+                syncAll();
+                refreshInterval = setInterval(syncAll, 3000);
+            }
+
+            async function fetchWithAuth(url, options = {}) {
+                let headers = options.headers || {};
+                headers['Authorization'] = 'Bearer ' + jwtToken;
+                if (!headers['Content-Type'] && options.body)
+                    headers['Content-Type'] = 'application/json';
+                options.headers = headers;
+                let response = await fetch(url, options);
+                if (response.status === 401) {
+                    logout();
+                    throw new Error("Token Expired");
+                }
+                return response;
+            }
+
+            async function syncAll() {
+                if (!jwtToken)
+                    return;
+                try {
+                    // Nodes
+                    let nRes = await fetchWithAuth('/api/nodes');
+                    let nodes = await nRes.json();
+                    let nBody = document.getElementById('nodesListBody');
+                    if (nBody)
+                        nBody.innerHTML = '';
+                    nodesMap = {};
+                    nodes.forEach(n => {
+                        nodesMap[n.ipAddress] = n.name;
+                        let editBtn = (currentUser && currentUser.role === 'ADMIN') ? `<td><button class="icon-btn" style="color:var(--primary-blue);" onclick="openEditNode(${n.id}, '${n.name}', '${n.ipAddress}', '${n.nodeType}')">✏️</button></td>` : '';
+                        if (nBody)
+                            nBody.innerHTML += `<tr><td style="color:var(--primary-blue); font-weight:700;">${n.name} <br><span style="font-size:11px; color:var(--text-muted);">${n.nodeType}</span></td><td class="code-font">${n.ipAddress}</td><td><span class="status-badge ${n.status === 'UP' ? 'status-in' : 'status-out'}">${n.status}</span></td><td style="font-size:12px; color:var(--text-muted)">${new Date(n.createdAt).toLocaleTimeString()}</td>${editBtn}</tr>`;
+                    });
+
+                    // Traps
+                    let tRes = await fetchWithAuth('/api/traps');
+                    let traps = await tRes.json();
+                    let tBody = document.getElementById('trapsTableBody');
+                    tBody.innerHTML = '';
+                    if (traps.length === 0)
+                        tBody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No alarms.</td></tr>';
+                    traps.forEach(t => {
+                        let btn = t.status === 'OPEN' ? `<button class="danger-btn" onclick="resolveTrap(${t.id}, event)">Resolve</button>` : `<span style="color:var(--text-muted); font-size:12px;">✓ Resolved</span>`;
+                        let name = nodesMap[t.sourceIp] || "Unknown Node";
+                        let msg = t.message || t.trapOid;
+                        let time = new Date(t.receivedAt).toLocaleTimeString();
+                        let resName = t.resolvedByUsername || "System";
+                        let resTime = t.resolvedAt ? new Date(t.resolvedAt).toLocaleTimeString() : "";
+
+                        tBody.innerHTML += `<tr class="clickable-row" onclick="showTrapDetails('${name}', '${t.sourceIp}', '${msg}', '${t.status}', '${time}', '${resName}', '${resTime}')">
+                            <td><div style="color:var(--primary-blue); font-weight:700;">${name}</div><div class="code-font" style="font-size:11px;">${t.sourceIp}</div></td>
+                            <td style="font-weight:700;">${msg} <br><span style="font-size:11px; color:var(--text-muted);">${time}</span></td>
+                            <td><span class="status-badge ${t.status === 'OPEN' ? 'status-out' : 'status-in'} trap-status-text">${t.status}</span></td>
+                            <td>${btn}</td></tr>`;
+                    });
+                    filterTraps();
+                } catch (e) {
+                    console.error(e);
+                }
+            }
+
+            async function resolveTrap(id, e) {
+                if (e)
+                    e.stopPropagation();
+                await fetchWithAuth(`/api/traps/${id}/resolve`, {method: 'PUT'});
+                syncAll();
+            }
+
+            // --- Node APIs ---
+            async function submitAddNode(e) {
+                e.preventDefault();
+                let body = {name: document.getElementById('newNodeName').value, ipAddress: document.getElementById('newNodeIp').value, nodeType: document.getElementById('newNodeType').value};
+                await fetchWithAuth('/api/nodes', {method: 'POST', body: JSON.stringify(body)});
+                closeModal('addNodeModal');
+                openNodesManager();
+            }
+
+            function openEditNode(id, name, ip, type) {
+                document.getElementById('editNodeId').value = id;
+                document.getElementById('editNodeName').value = name;
+                document.getElementById('editNodeIp').value = ip;
+                document.getElementById('editNodeType').value = type || 'BTS';
+                closeModal('nodesListModal');
+                openModal('editNodeModal');
+            }
+
+            async function submitEditNode(e) {
+                e.preventDefault();
+                let id = document.getElementById('editNodeId').value;
+                let body = {name: document.getElementById('editNodeName').value, ipAddress: document.getElementById('editNodeIp').value, nodeType: document.getElementById('editNodeType').value};
+                await fetchWithAuth(`/api/nodes/${id}`, {method: 'PUT', body: JSON.stringify(body)});
+                closeModal('editNodeModal');
+                openNodesManager();
+            }
+
+            // --- User APIs ---
+            async function openUsersManager() {
+                let res = await fetchWithAuth('/api/users');
+                let users = await res.json();
+                let body = document.getElementById('usersListBody');
+                body.innerHTML = '';
+                users.forEach(u => {
+                    let badge = u.role === 'ADMIN' ? 'status-warn' : 'status-in';
+                    let isMe = u.id === currentUser.userId;
+
+                    let actions = `<button class="icon-btn" style="color:var(--primary-blue);" onclick="openAdminEditUser(${u.id}, '${u.username}', '${u.role}')">✏️</button>`;
+                    if (!isMe)
+                        actions += `<button class="icon-btn" style="color:var(--danger-red);" onclick="deleteUser(${u.id})">🗑️</button>`;
+
+                    body.innerHTML += `<tr><td class="code-font">#${u.id}</td><td style="font-weight:700;">${u.username} ${isMe ? '<span style="color:var(--success-green); font-size:11px;">(You)</span>' : ''}</td><td><span class="status-badge ${badge}">${u.role}</span></td><td>${actions}</td></tr>`;
+                });
+                openModal('usersListModal');
+            }
+
+            async function submitAddUser(e) {
+                e.preventDefault();
+                let body = {username: document.getElementById('newUserName').value, password: document.getElementById('newUserPass').value, role: document.getElementById('newUserRole').value};
+                await fetchWithAuth('/api/users', {method: 'POST', body: JSON.stringify(body)});
+                closeModal('addUserModal');
+                openUsersManager();
+            }
+
+            async function deleteUser(id) {
+                if (confirm('Delete this user?')) {
+                    await fetchWithAuth(`/api/users/${id}`, {method: 'DELETE'});
+                    openUsersManager();
+                }
+            }
+
+            function openAdminEditUser(id, username, role) {
+                document.getElementById('editUserId').value = id;
+                document.getElementById('editUserName').value = username;
+                document.getElementById('editUserPass').value = '';
+                document.getElementById('editUserRole').value = role;
+
+                document.getElementById('editUserRoleWrapper').style.display = 'block';
+
+                closeModal('usersListModal');
+                openModal('editUserModal');
+            }
+
+            function openProfileEdit() {
+                document.getElementById('editUserId').value = currentUser.userId;
+                document.getElementById('editUserName').value = currentUser.username;
+                document.getElementById('editUserPass').value = '';
+                document.getElementById('editUserRole').value = currentUser.role;
+
+                if (currentUser.role !== 'ADMIN') {
+                    document.getElementById('editUserRoleWrapper').style.display = 'none';
+                } else {
+                    document.getElementById('editUserRoleWrapper').style.display = 'block';
+                }
+
+                openModal('editUserModal');
+            }
+
+            async function submitEditUser(e) {
+                e.preventDefault();
+                let id = document.getElementById('editUserId').value;
+                let body = {
+                    username: document.getElementById('editUserName').value,
+                    password: document.getElementById('editUserPass').value,
+                    role: document.getElementById('editUserRole').value
+                };
+
+                await fetchWithAuth(`/api/users/${id}`, {method: 'PUT', body: JSON.stringify(body)});
+                closeModal('editUserModal');
+
+                if (id == currentUser.userId && (body.username !== currentUser.username || body.password)) {
+                    alert('Your profile was updated. Please login again.');
+                    logout();
+                } else {
+                    if (currentUser.role === 'ADMIN')
+                        openUsersManager();
+                }
+            }
+
+            // Helpers
+            function openNodesManager() {
+                syncAll().then(() => openModal('nodesListModal'));
+            }
+            function openModal(id) {
+                document.getElementById(id).style.display = 'flex';
+            }
+            function closeModal(id) {
+                document.getElementById(id).style.display = 'none';
+            }
+
+            function filterTraps() {
+                let txt = document.getElementById('searchTraps').value.toLowerCase();
+                let status = document.getElementById('statusFilter').value;
+                let trs = document.getElementById('trapsTableBody').getElementsByTagName('tr');
+                for (let i = 0; i < trs.length; i++) {
+                    if (trs[i].getElementsByTagName('td').length === 1)
+                        continue;
+                    let matchSearch = trs[i].textContent.toLowerCase().includes(txt);
+                    let matchStatus = (status === 'ALL' || trs[i].querySelector('.trap-status-text').textContent === status);
+                    trs[i].style.display = (matchSearch && matchStatus) ? "" : "none";
+                }
+            }
+            function filterTable(input, tableBody) {
+                let txt = document.getElementById(input).value.toLowerCase();
+                let trs = document.getElementById(tableBody).getElementsByTagName('tr');
+                for (let i = 0; i < trs.length; i++)
+                    trs[i].style.display = trs[i].textContent.toLowerCase().includes(txt) ? "" : "none";
+            }
+            function showTrapDetails(nName, ip, msg, status, tRec, rName, tRes) {
+                let bd = document.getElementById('trapDetailsBody');
+                let h = `<div class="detail-row"><span>Node Name:</span><span>${nName}</span></div><div class="detail-row"><span>IP Address:</span><span class="code-font">${ip}</span></div><div class="detail-row"><span>Alarm:</span><span>${msg}</span></div><div class="detail-row"><span>Status:</span><span class="status-badge ${status === 'OPEN' ? 'status-out' : 'status-in'}">${status}</span></div><div class="detail-row"><span>Time Received:</span><span>${tRec}</span></div>`;
+                if (status === 'RESOLVED')
+                    h += `<div style="margin-top:15px; padding:10px; background:#f0fdf4; border:1px dashed #34d399; border-radius:8px;"><div class="detail-row" style="border:none; padding-bottom:5px;"><span>Resolved By:</span><span style="color:var(--success-green); font-size:15px;">🧑‍💻 ${rName}</span></div><div class="detail-row" style="border:none; padding-top:0;"><span>Time Resolved:</span><span>🕒 ${tRes}</span></div></div>`;
+                bd.innerHTML = h;
+                openModal('trapDetailsModal');
+            }
+        </script>
+    </body>
 </html>
