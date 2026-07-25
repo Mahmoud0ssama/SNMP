@@ -39,6 +39,7 @@ public class Main {
     static class NodeReq { public String name; public String ipAddress; public String nodeType; }
 
     public static void main(String[] args) {
+        // ضبط التوقيت العالمي عشان يتوافق مع الداتا بيز
         java.util.TimeZone.setDefault(java.util.TimeZone.getTimeZone("UTC"));
         System.out.println("SNMP Manager Started");
 
@@ -101,7 +102,7 @@ public class Main {
             else ctx.status(400).result("Error resolving trap");
         });
 
-        // --- USER MANAGEMENT APIs (Admin + Self) ---
+        // --- USER MANAGEMENT APIs ---
         
         app.get("/api/users", ctx -> {
             DecodedJWT jwt = ctx.attribute("jwt");
@@ -128,8 +129,12 @@ public class Main {
             u.setPasswordHash(BCrypt.hashpw(req.password, BCrypt.gensalt()));
             u.setRole(req.role != null ? req.role : "SUPPORT");
             
-            new UserDAO(DatabaseConnection.fromResource()).save(u);
-            ctx.json(Map.of("status", "success"));
+            try {
+                new UserDAO(DatabaseConnection.fromResource()).save(u);
+                ctx.json(Map.of("status", "success"));
+            } catch (Exception e) {
+                ctx.status(400).json(Map.of("error", "Username already exists. Please choose another one."));
+            }
         });
 
         app.delete("/api/users/{id}", ctx -> {
@@ -145,7 +150,7 @@ public class Main {
             ctx.json(Map.of("status", "success"));
         });
 
-        // Unified User Update API (Username, Password, Role)
+        // Unified User Update API
         app.put("/api/users/{id}", ctx -> {
             DecodedJWT jwt = ctx.attribute("jwt");
             Long targetId = Long.parseLong(ctx.pathParam("id"));
@@ -157,16 +162,18 @@ public class Main {
             UserReq req = ctx.bodyAsClass(UserReq.class);
             UserDAO dao = new UserDAO(DatabaseConnection.fromResource());
             
-            // Only ADMINs can change the role. If a normal user edits their own profile, their role remains unchanged.
             String newRole = isAdmin ? req.role : jwt.getClaim("role").asString();
             
-            // If a new password is provided, hash and update it. Otherwise, update only username and role.
-            if (req.password != null && !req.password.trim().isEmpty()) {
-                dao.updateWithPassword(targetId, req.username, BCrypt.hashpw(req.password, BCrypt.gensalt()), newRole);
-            } else {
-                dao.update(targetId, req.username, newRole);
+            try {
+                if (req.password != null && !req.password.trim().isEmpty()) {
+                    dao.updateWithPassword(targetId, req.username, BCrypt.hashpw(req.password, BCrypt.gensalt()), newRole);
+                } else {
+                    dao.update(targetId, req.username, newRole);
+                }
+                ctx.json(Map.of("status", "success"));
+            } catch (Exception e) {
+                ctx.status(400).json(Map.of("error", "Username already exists. Please choose another one."));
             }
-            ctx.json(Map.of("status", "success"));
         });
 
         // --- NODE MANAGEMENT APIs ---
@@ -182,7 +189,6 @@ public class Main {
             ctx.json(Map.of("status", "success"));
         });
 
-        // API to edit an existing Node (Name, IP, Type)
         app.put("/api/nodes/{id}", ctx -> {
             DecodedJWT jwt = ctx.attribute("jwt");
             if(!"ADMIN".equals(jwt.getClaim("role").asString())) throw new UnauthorizedResponse("Admin access required");

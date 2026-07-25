@@ -667,6 +667,7 @@
                 <h3>Add User</h3><span class="close-btn" onclick="closeModal('addUserModal')">&times;</span>
             </div>
             <form onsubmit="submitAddUser(event)">
+                <div id="addUserError" class="flash-msg"></div>
                 <div class="form-group"><label>Username</label><input type="text" id="newUserName" required></div>
                 <div class="form-group"><label>Password</label><input type="password" id="newUserPass" required></div>
                 <div class="form-group">
@@ -689,6 +690,7 @@
             </div>
             <form onsubmit="submitEditUser(event)">
                 <input type="hidden" id="editUserId">
+                <div id="editUserError" class="flash-msg"></div>
                 <div class="form-group">
                     <label>Username</label>
                     <input type="text" id="editUserName" required>
@@ -903,10 +905,24 @@
 
         async function submitAddUser(e) {
             e.preventDefault();
+            let errDiv = document.getElementById('addUserError');
+            if (errDiv) errDiv.style.display = 'none';
+
             let body = { username: document.getElementById('newUserName').value, password: document.getElementById('newUserPass').value, role: document.getElementById('newUserRole').value };
-            await fetchWithAuth('/api/users', { method: 'POST', body: JSON.stringify(body) });
-            closeModal('addUserModal');
-            openUsersManager();
+            let res = await fetchWithAuth('/api/users', { method: 'POST', body: JSON.stringify(body) });
+
+            if (res.ok) {
+                document.getElementById('newUserName').value = '';
+                document.getElementById('newUserPass').value = '';
+                closeModal('addUserModal');
+                openUsersManager();
+            } else {
+                let data = await res.json().catch(() => ({ error: "Failed to create user." }));
+                if (errDiv) {
+                    errDiv.innerText = data.error;
+                    errDiv.style.display = 'block';
+                }
+            }
         }
 
         async function deleteUser(id) {
@@ -945,6 +961,9 @@
 
         async function submitEditUser(e) {
             e.preventDefault();
+            let errDiv = document.getElementById('editUserError');
+            if (errDiv) errDiv.style.display = 'none';
+
             let id = document.getElementById('editUserId').value;
             let body = {
                 username: document.getElementById('editUserName').value,
@@ -952,15 +971,23 @@
                 role: document.getElementById('editUserRole').value
             };
 
-            await fetchWithAuth(`/api/users/${id}`, { method: 'PUT', body: JSON.stringify(body) });
-            closeModal('editUserModal');
+            let res = await fetchWithAuth(`/api/users/${id}`, { method: 'PUT', body: JSON.stringify(body) });
 
-            if (id == currentUser.userId && (body.username !== currentUser.username || body.password)) {
-                alert('Your profile was updated. Please login again.');
-                logout();
+            if (res.ok) {
+                closeModal('editUserModal');
+                if (id == currentUser.userId && (body.username !== currentUser.username || body.password)) {
+                    alert('Your profile was updated. Please login again.');
+                    logout();
+                } else {
+                    if (currentUser.role === 'ADMIN')
+                        openUsersManager();
+                }
             } else {
-                if (currentUser.role === 'ADMIN')
-                    openUsersManager();
+                let data = await res.json().catch(() => ({ error: "Failed to update user." }));
+                if (errDiv) {
+                    errDiv.innerText = data.error;
+                    errDiv.style.display = 'block';
+                }
             }
         }
 
