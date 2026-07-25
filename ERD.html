@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,9 +13,10 @@
             color: #333;
             margin: 0;
             padding: 20px;
-            direction: ltr; /* Set direction to Left-to-Right */
+            direction: ltr;
+            /* Set direction to Left-to-Right */
         }
-        
+
         /* Main Container */
         .container {
             max-width: 1100px;
@@ -22,7 +24,7 @@
             background: #ffffff;
             padding: 30px;
             border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
 
         /* Typography */
@@ -33,6 +35,7 @@
             padding-bottom: 10px;
             margin-bottom: 30px;
         }
+
         h2 {
             color: #2980b9;
             margin-top: 40px;
@@ -54,16 +57,21 @@
             margin-bottom: 25px;
             background-color: #fff;
         }
-        th, td {
+
+        th,
+        td {
             padding: 15px;
             border: 1px solid #e0e6ed;
-            text-align: left; /* Aligned left for English text */
+            text-align: left;
+            /* Aligned left for English text */
         }
+
         th {
             background-color: #34495e;
             color: #ffffff;
             font-weight: bold;
         }
+
         tr:nth-child(even) {
             background-color: #f8fafc;
         }
@@ -73,10 +81,12 @@
             color: #e74c3c;
             font-weight: bold;
         }
+
         .foreign-key {
             color: #d35400;
             font-weight: bold;
         }
+
         .badge {
             display: inline-block;
             padding: 4px 8px;
@@ -86,218 +96,350 @@
             color: #fff;
             margin-right: 8px;
         }
-        .bg-primary { background-color: #3498db; }
-        .bg-danger { background-color: #e74c3c; }
-        .bg-warning { background-color: #f39c12; }
+
+        .bg-primary {
+            background-color: #3498db;
+        }
+
+        .bg-danger {
+            background-color: #e74c3c;
+        }
+
+        .bg-warning {
+            background-color: #f39c12;
+        }
     </style>
-    
+
     <!-- Include Mermaid.js for rendering the ERD -->
     <script type="module">
         import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
         mermaid.initialize({ startOnLoad: true, theme: 'default' });
     </script>
 </head>
+
 <body>
 
-<div class="container">
-    <h1>SNMP Platform - ERD & Database Schema</h1>
+    <div class="container">
+        <h1>SNMP Platform - ERD & Database Schema</h1>
 
-    <h2>1. ERD Diagram</h2>
-    <!-- Mermaid code for Entity-Relationship Diagram -->
-    <div class="mermaid-wrapper">
-        <div class="mermaid">
-            erDiagram
-                USERS ||--o{ TRAP_HISTORY : "Resolves"
+        <h2>1. ERD Diagram</h2>
+        <!-- Mermaid code for Entity-Relationship Diagram -->
+        <div class="mermaid-wrapper">
+            <div class="mermaid">
+                erDiagram
+                NODES ||--o{ TRAP_ACTIONS : "Configures"
+                TRAP_ACTIONS ||--o{ TRAP_HISTORY : "Triggers"
                 NODES ||--o{ TRAP_HISTORY : "Generates"
-                NODES ||--o{ TRAP_ACTIONS : "Triggers"
-                
+                USERS ||--o{ TRAP_HISTORY : "Resolves"
+
                 USERS {
-                    int user_id PK
-                    string username
-                    string password_hash
-                    string role
+                bigint id PK
+                string username
+                string password_hash
+                string role
+                timestamp created_at
                 }
-                
+
                 NODES {
-                    int node_id PK
-                    string ip_address
-                    string name
-                    string status
+                bigint id PK
+                string name
+                string ip_address
+                int port
+                string location
+                string description
+                string status
+                timestamp created_at
+                string node_type
                 }
-                
+
                 TRAP_HISTORY {
-                    int trap_id PK
-                    int node_id FK
-                    string error_description
-                    datetime received_at
-                    boolean is_resolved
-                    int resolved_by FK
+                bigint id PK
+                bigint node_id FK
+                bigint trap_action_id FK
+                string trap_oid
+                string source_ip
+                string message
+                string status
+                timestamp received_at
+                timestamp resolved_at
+                bigint resolved_by FK
                 }
-                
+
                 TRAP_ACTIONS {
-                    int action_id PK
-                    int node_id FK
-                    string action_type
-                    string target_value
+                bigint id PK
+                string trap_oid
+                string trap_name
+                string severity
+                string action_name
+                string description
+                boolean auto_resolve
+                timestamp created_at
+                timestamp updated_at
+                string action_type
+                string target_payload
+                bigint node_id FK
                 }
+            </div>
         </div>
+
+        <h2>2. Database Schema Details</h2>
+
+        <!-- Users Table -->
+        <h3><span class="badge bg-primary">Table</span> Users</h3>
+        <table>
+            <tr>
+                <th>Column</th>
+                <th>Data Type</th>
+                <th>Constraints</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>BIGSERIAL</td>
+                <td><span class="primary-key">PK</span>, Auto Increment</td>
+                <td>Unique identifier for the user.</td>
+            </tr>
+            <tr>
+                <td>username</td>
+                <td>VARCHAR(50)</td>
+                <td>UNIQUE, NOT NULL</td>
+                <td>Username for system login.</td>
+            </tr>
+            <tr>
+                <td>password_hash</td>
+                <td>VARCHAR(255)</td>
+                <td>NOT NULL</td>
+                <td>Hashed password to ensure security.</td>
+            </tr>
+            <tr>
+                <td>role</td>
+                <td>VARCHAR(20)</td>
+                <td>DEFAULT 'SUPPORT', NOT NULL</td>
+                <td>Defines user privileges and access levels (e.g., ADMIN, SUPPORT).</td>
+            </tr>
+            <tr>
+                <td>created_at</td>
+                <td>TIMESTAMP</td>
+                <td>DEFAULT CURRENT_TIMESTAMP, NOT NULL</td>
+                <td>Record creation timestamp.</td>
+            </tr>
+        </table>
+
+        <!-- Nodes Table -->
+        <h3><span class="badge bg-primary">Table</span> Nodes</h3>
+        <table>
+            <tr>
+                <th>Column</th>
+                <th>Data Type</th>
+                <th>Constraints</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>BIGSERIAL</td>
+                <td><span class="primary-key">PK</span>, Auto Increment</td>
+                <td>Unique identifier for the network node.</td>
+            </tr>
+            <tr>
+                <td>name</td>
+                <td>VARCHAR(100)</td>
+                <td>NOT NULL</td>
+                <td>Alias for the node (e.g., BTS_Dandy_Mall).</td>
+            </tr>
+            <tr>
+                <td>ip_address</td>
+                <td>VARCHAR(45)</td>
+                <td>UNIQUE, NOT NULL</td>
+                <td>IP address of the server or telecom element.</td>
+            </tr>
+            <tr>
+                <td>port</td>
+                <td>INTEGER</td>
+                <td>DEFAULT 162, NOT NULL</td>
+                <td>Listening port for SNMP traps.</td>
+            </tr>
+            <tr>
+                <td>location</td>
+                <td>VARCHAR(255)</td>
+                <td>NULL</td>
+                <td>Physical location of the node.</td>
+            </tr>
+            <tr>
+                <td>description</td>
+                <td>TEXT</td>
+                <td>NULL</td>
+                <td>Optional extra details about the node.</td>
+            </tr>
+            <tr>
+                <td>status</td>
+                <td>node_status (ENUM)</td>
+                <td>DEFAULT 'UP', NOT NULL</td>
+                <td>Current operational status of the node (UP, DOWN, WARNING, UNKNOWN).</td>
+            </tr>
+            <tr>
+                <td>node_type</td>
+                <td>VARCHAR(50)</td>
+                <td>NULL</td>
+                <td>The category/type of the telecom node (e.g., BTS, MSC).</td>
+            </tr>
+            <tr>
+                <td>created_at</td>
+                <td>TIMESTAMP</td>
+                <td>DEFAULT CURRENT_TIMESTAMP, NOT NULL</td>
+                <td>Record creation timestamp.</td>
+            </tr>
+        </table>
+
+        <!-- Trap Actions Table -->
+        <h3><span class="badge bg-warning">Table</span> Trap_Actions</h3>
+        <table>
+            <tr>
+                <th>Column</th>
+                <th>Data Type</th>
+                <th>Constraints</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>BIGSERIAL</td>
+                <td><span class="primary-key">PK</span>, Auto Increment</td>
+                <td>Unique identifier for the configured action.</td>
+            </tr>
+            <tr>
+                <td>node_id</td>
+                <td>BIGINT</td>
+                <td><span class="foreign-key">FK</span> (nodes.id), NOT NULL</td>
+                <td>The specific node associated with this automated action.</td>
+            </tr>
+            <tr>
+                <td>trap_oid</td>
+                <td>VARCHAR(150)</td>
+                <td>NOT NULL</td>
+                <td>The SNMP Object Identifier triggering the action.</td>
+            </tr>
+            <tr>
+                <td>trap_name</td>
+                <td>VARCHAR(100)</td>
+                <td>NOT NULL</td>
+                <td>Human-readable name for the trap.</td>
+            </tr>
+            <tr>
+                <td>severity</td>
+                <td>trap_severity (ENUM)</td>
+                <td>NOT NULL</td>
+                <td>Severity level (INFO, MINOR, MAJOR, CRITICAL).</td>
+            </tr>
+            <tr>
+                <td>action_name</td>
+                <td>VARCHAR(100)</td>
+                <td>NOT NULL</td>
+                <td>Name of the action to execute.</td>
+            </tr>
+            <tr>
+                <td>action_type</td>
+                <td>VARCHAR(20)</td>
+                <td>NULL</td>
+                <td>The type of automated response to execute ('SMS', 'EMAIL', 'SCRIPT').</td>
+            </tr>
+            <tr>
+                <td>target_payload</td>
+                <td>VARCHAR(255)</td>
+                <td>NULL</td>
+                <td>The target destination (Phone number, Email, or Script path).</td>
+            </tr>
+            <tr>
+                <td>auto_resolve</td>
+                <td>BOOLEAN</td>
+                <td>DEFAULT FALSE, NOT NULL</td>
+                <td>Flag to indicate if the trap auto-resolves.</td>
+            </tr>
+            <tr>
+                <td>description</td>
+                <td>TEXT</td>
+                <td>NULL</td>
+                <td>Details about the action.</td>
+            </tr>
+            <tr>
+                <td colspan="4" style="background-color:#fff3cd;">
+                    <strong>Composite Constraint:</strong> <code>UNIQUE(node_id, trap_oid)</code> - Prevents defining
+                    duplicate actions for the exact same trap OID on the same Node.
+                </td>
+            </tr>
+        </table>
+
+        <!-- Trap History Table -->
+        <h3><span class="badge bg-danger">Table</span> Trap_History</h3>
+        <table>
+            <tr>
+                <th>Column</th>
+                <th>Data Type</th>
+                <th>Constraints</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>BIGSERIAL</td>
+                <td><span class="primary-key">PK</span>, Auto Increment</td>
+                <td>Unique identifier for the received SNMP trap history record.</td>
+            </tr>
+            <tr>
+                <td>node_id</td>
+                <td>BIGINT</td>
+                <td><span class="foreign-key">FK</span> (nodes.id), NOT NULL</td>
+                <td>The node that generated and sent the trap.</td>
+            </tr>
+            <tr>
+                <td>trap_action_id</td>
+                <td>BIGINT</td>
+                <td><span class="foreign-key">FK</span> (trap_actions.id), NULL</td>
+                <td>Reference to the specific action triggered (if any).</td>
+            </tr>
+            <tr>
+                <td>trap_oid</td>
+                <td>VARCHAR(150)</td>
+                <td>NOT NULL</td>
+                <td>The OID payload of the received trap.</td>
+            </tr>
+            <tr>
+                <td>source_ip</td>
+                <td>VARCHAR(45)</td>
+                <td>NOT NULL</td>
+                <td>IP address from where the trap originated.</td>
+            </tr>
+            <tr>
+                <td>message</td>
+                <td>TEXT</td>
+                <td>NULL</td>
+                <td>Details of the error or the constructed log message.</td>
+            </tr>
+            <tr>
+                <td>status</td>
+                <td>trap_status (ENUM)</td>
+                <td>DEFAULT 'OPEN', NOT NULL</td>
+                <td>Lifecycle status (OPEN, ACKNOWLEDGED, RESOLVED).</td>
+            </tr>
+            <tr>
+                <td>received_at</td>
+                <td>TIMESTAMP</td>
+                <td>DEFAULT CURRENT_TIMESTAMP, NOT NULL</td>
+                <td>Timestamp marking when the trap was captured.</td>
+            </tr>
+            <tr>
+                <td>resolved_at</td>
+                <td>TIMESTAMP</td>
+                <td>NULL</td>
+                <td>Timestamp marking when the issue was resolved.</td>
+            </tr>
+            <tr>
+                <td>resolved_by</td>
+                <td>BIGINT</td>
+                <td><span class="foreign-key">FK</span> (users.id), NULL</td>
+                <td>Tracks which user marked the issue as resolved.</td>
+            </tr>
+        </table>
+
     </div>
 
-    <h2>2. Database Schema Details</h2>
-
-    <!-- Users Table -->
-    <h3><span class="badge bg-primary">Table</span> Users</h3>
-    <table>
-        <tr>
-            <th>Column</th>
-            <th>Data Type</th>
-            <th>Constraints</th>
-            <th>Description</th>
-        </tr>
-        <tr>
-            <td>user_id</td>
-            <td>INT</td>
-            <td><span class="primary-key">PK</span>, Auto Increment</td>
-            <td>Unique identifier for the user.</td>
-        </tr>
-        <tr>
-            <td>username</td>
-            <td>VARCHAR(50)</td>
-            <td>UNIQUE, NOT NULL</td>
-            <td>Username for system login.</td>
-        </tr>
-        <tr>
-            <td>password_hash</td>
-            <td>VARCHAR(255)</td>
-            <td>NOT NULL</td>
-            <td>Hashed password to ensure security.</td>
-        </tr>
-        <tr>
-            <td>role</td>
-            <td>ENUM</td>
-            <td>'Admin', 'Support'</td>
-            <td>Defines user privileges and access levels.</td>
-        </tr>
-    </table>
-
-    <!-- Nodes Table -->
-    <h3><span class="badge bg-primary">Table</span> Nodes</h3>
-    <table>
-        <tr>
-            <th>Column</th>
-            <th>Data Type</th>
-            <th>Constraints</th>
-            <th>Description</th>
-        </tr>
-        <tr>
-            <td>node_id</td>
-            <td>INT</td>
-            <td><span class="primary-key">PK</span>, Auto Increment</td>
-            <td>Unique identifier for the network node.</td>
-        </tr>
-        <tr>
-            <td>ip_address</td>
-            <td>VARCHAR(45)</td>
-            <td>UNIQUE, NOT NULL</td>
-            <td>IP address of the server or BTS element.</td>
-        </tr>
-        <tr>
-            <td>name</td>
-            <td>VARCHAR(100)</td>
-            <td>NOT NULL</td>
-            <td>Alias for the node (e.g., BTS_Dandy_Mall).</td>
-        </tr>
-        <tr>
-            <td>status</td>
-            <td>ENUM</td>
-            <td>'OK', 'Issue'</td>
-            <td>Current operational status of the node (Green/Red).</td>
-        </tr>
-    </table>
-
-    <!-- Trap History Table -->
-    <h3><span class="badge bg-danger">Table</span> Trap_History</h3>
-    <table>
-        <tr>
-            <th>Column</th>
-            <th>Data Type</th>
-            <th>Constraints</th>
-            <th>Description</th>
-        </tr>
-        <tr>
-            <td>trap_id</td>
-            <td>INT</td>
-            <td><span class="primary-key">PK</span>, Auto Increment</td>
-            <td>Unique identifier for the received SNMP trap.</td>
-        </tr>
-        <tr>
-            <td>node_id</td>
-            <td>INT</td>
-            <td><span class="foreign-key">FK</span> (Nodes.node_id)</td>
-            <td>The node that generated and sent the trap.</td>
-        </tr>
-        <tr>
-            <td>error_description</td>
-            <td>TEXT</td>
-            <td>NOT NULL</td>
-            <td>Details of the error (e.g., CPU is 100%, Storage Full).</td>
-        </tr>
-        <tr>
-            <td>received_at</td>
-            <td>DATETIME</td>
-            <td>DEFAULT CURRENT_TIMESTAMP</td>
-            <td>Timestamp marking when the trap was captured.</td>
-        </tr>
-        <tr>
-            <td>is_resolved</td>
-            <td>BOOLEAN</td>
-            <td>DEFAULT FALSE</td>
-            <td>Status flag indicating if the issue was manually fixed.</td>
-        </tr>
-        <tr>
-            <td>resolved_by</td>
-            <td>INT</td>
-            <td><span class="foreign-key">FK</span> (Users.user_id), NULL</td>
-            <td>Tracks which user marked the issue as resolved.</td>
-        </tr>
-    </table>
-
-    <!-- Trap Actions Table -->
-    <h3><span class="badge bg-warning">Table</span> Trap_Actions</h3>
-    <table>
-        <tr>
-            <th>Column</th>
-            <th>Data Type</th>
-            <th>Constraints</th>
-            <th>Description</th>
-        </tr>
-        <tr>
-            <td>action_id</td>
-            <td>INT</td>
-            <td><span class="primary-key">PK</span>, Auto Increment</td>
-            <td>Unique identifier for the configured action.</td>
-        </tr>
-        <tr>
-            <td>node_id</td>
-            <td>INT</td>
-            <td><span class="foreign-key">FK</span> (Nodes.node_id)</td>
-            <td>The node associated with this automated action.</td>
-        </tr>
-        <tr>
-            <td>action_type</td>
-            <td>ENUM</td>
-            <td>'SMS', 'Email', 'Script'</td>
-            <td>The type of automated response to execute.</td>
-        </tr>
-        <tr>
-            <td>target_value</td>
-            <td>VARCHAR(255)</td>
-            <td>NOT NULL</td>
-            <td>The target destination (Phone number, Email, or Script path).</td>
-        </tr>
-    </table>
-
-</div>
-
 </body>
+
 </html>

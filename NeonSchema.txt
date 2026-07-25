@@ -1,0 +1,66 @@
+CREATE SCHEMA "public";
+CREATE TYPE "node_status" AS ENUM('UP', 'DOWN', 'WARNING', 'UNKNOWN');
+CREATE TYPE "trap_status" AS ENUM('OPEN', 'ACKNOWLEDGED', 'RESOLVED');
+CREATE TYPE "trap_severity" AS ENUM('INFO', 'MINOR', 'MAJOR', 'CRITICAL');
+CREATE TABLE "nodes" (
+	"id" bigserial PRIMARY KEY,
+	"name" varchar(100) NOT NULL,
+	"ip_address" varchar(45) NOT NULL CONSTRAINT "nodes_ip_address_key" UNIQUE,
+	"port" integer DEFAULT 162 NOT NULL,
+	"location" varchar(255),
+	"description" text,
+	"status" node_status DEFAULT 'UP' NOT NULL,
+	"created_at" timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	"node_type" varchar(50)
+);
+CREATE TABLE "trap_actions" (
+	"id" bigserial PRIMARY KEY,
+	"trap_oid" varchar(150) NOT NULL,
+	"trap_name" varchar(100) NOT NULL,
+	"severity" trap_severity NOT NULL,
+	"action_name" varchar(100) NOT NULL,
+	"description" text,
+	"auto_resolve" boolean DEFAULT false NOT NULL,
+	"created_at" timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	"updated_at" timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	"action_type" varchar(20),
+	"target_payload" varchar(255),
+	"node_id" bigint NOT NULL,
+	CONSTRAINT "uq_node_trap" UNIQUE("node_id","trap_oid")
+);
+CREATE TABLE "trap_history" (
+	"id" bigserial PRIMARY KEY,
+	"node_id" bigint NOT NULL,
+	"trap_action_id" bigint,
+	"trap_oid" varchar(150) NOT NULL,
+	"source_ip" varchar(45) NOT NULL,
+	"message" text,
+	"status" trap_status DEFAULT 'OPEN' NOT NULL,
+	"received_at" timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	"resolved_at" timestamp,
+	"resolved_by" bigint
+);
+CREATE TABLE "users" (
+	"id" bigserial PRIMARY KEY,
+	"username" varchar(50) NOT NULL CONSTRAINT "users_username_key" UNIQUE,
+	"password_hash" varchar(255) NOT NULL,
+	"role" varchar(20) DEFAULT 'SUPPORT' NOT NULL,
+	"created_at" timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+CREATE INDEX "idx_nodes_ip" ON "nodes" ("ip_address");
+CREATE UNIQUE INDEX "nodes_ip_address_key" ON "nodes" ("ip_address");
+CREATE UNIQUE INDEX "nodes_pkey" ON "nodes" ("id");
+CREATE INDEX "idx_actions_oid" ON "trap_actions" ("trap_oid");
+CREATE UNIQUE INDEX "trap_actions_pkey" ON "trap_actions" ("id");
+CREATE UNIQUE INDEX "uq_node_trap" ON "trap_actions" ("node_id","trap_oid");
+CREATE INDEX "idx_history_node" ON "trap_history" ("node_id");
+CREATE INDEX "idx_history_oid" ON "trap_history" ("trap_oid");
+CREATE INDEX "idx_history_received" ON "trap_history" ("received_at");
+CREATE INDEX "idx_history_status" ON "trap_history" ("status");
+CREATE UNIQUE INDEX "trap_history_pkey" ON "trap_history" ("id");
+CREATE UNIQUE INDEX "users_pkey" ON "users" ("id");
+CREATE UNIQUE INDEX "users_username_key" ON "users" ("username");
+ALTER TABLE "trap_actions" ADD CONSTRAINT "fk_actions_node" FOREIGN KEY ("node_id") REFERENCES "nodes"("id") ON DELETE CASCADE;
+ALTER TABLE "trap_history" ADD CONSTRAINT "fk_history_action" FOREIGN KEY ("trap_action_id") REFERENCES "trap_actions"("id") ON DELETE SET NULL;
+ALTER TABLE "trap_history" ADD CONSTRAINT "fk_history_node" FOREIGN KEY ("node_id") REFERENCES "nodes"("id") ON DELETE RESTRICT;
+ALTER TABLE "trap_history" ADD CONSTRAINT "fk_history_resolver" FOREIGN KEY ("resolved_by") REFERENCES "users"("id") ON DELETE SET NULL;

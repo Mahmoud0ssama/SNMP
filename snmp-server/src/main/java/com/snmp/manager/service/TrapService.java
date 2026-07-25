@@ -51,7 +51,7 @@ public class TrapService {
      * @param event the parsed trap event, must not be {@code null}
      * @throws SQLException on database access error
      */
-    public void process(TrapEvent event) throws SQLException {
+  public void process(TrapEvent event) throws SQLException {
         if (event == null) {
             throw new IllegalArgumentException("event must not be null");
         }
@@ -71,7 +71,7 @@ public class TrapService {
                     + " (" + node.getNodeType() + ") at " + nodeIp);
         }
 
-        Optional<TrapAction> actionOpt = trapActionDAO.findByOid(event.getTrapOid());
+        Optional<TrapAction> actionOpt = trapActionDAO.findByNodeAndOid(node.getId(), event.getTrapOid());
         TrapAction action = actionOpt.orElse(null);
 
         TrapHistory history = buildHistory(event, node, action);
