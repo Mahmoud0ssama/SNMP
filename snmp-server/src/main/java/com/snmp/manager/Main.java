@@ -39,7 +39,6 @@ public class Main {
     static class NodeReq { public String name; public String ipAddress; public String nodeType; }
 
     public static void main(String[] args) {
-        // ضبط التوقيت العالمي عشان يتوافق مع الداتا بيز
         java.util.TimeZone.setDefault(java.util.TimeZone.getTimeZone("UTC"));
         System.out.println("SNMP Manager Started");
 
