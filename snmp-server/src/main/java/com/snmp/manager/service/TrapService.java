@@ -11,17 +11,15 @@ import com.snmp.manager.model.TrapSeverity;
 import com.snmp.manager.model.TrapStatus;
 import com.snmp.manager.snmp.model.TrapEvent;
 import com.snmp.manager.util.ScriptExecutor;
+import com.snmp.manager.util.SmsNotifier;
 
 import java.sql.SQLException;
 import java.util.Optional;
 
-/**
- * Business logic for handling received SNMP traps.
- *
- * <p>Coordinates the DAOs to locate the originating node and trap definition,
- * persist a trap history record and update the node status. Contains no SQL
- * strings.</p>
- */
+/* 
+ * Coordinates the DAOs to locate the originating node and trap definition,
+ * persist a trap history record and update the node status. 
+*/
 public class TrapService {
 
     private final NodeDAO nodeDAO;
@@ -41,17 +39,11 @@ public class TrapService {
 
     /**
      * Processes a received trap end to end.
-     *
-     * <ol>
-     *   <li>Locate the sending node by source IP, or auto-register if unknown.</li>
-     *   <li>Locate the trap definition by OID.</li>
-     *   <li>Persist a trap history record.</li>
-     *   <li>Update the node status based on severity.</li>
-     *   <li>Execute any configured action (e.g. run a script).</li>
-     * </ol>
-     *
-     * @param event the parsed trap event, must not be {@code null}
-     * @throws SQLException on database access error
+     *   Locate the sending node by source IP, or auto-register if unknown.
+     *   Locate the trap definition by OID.
+     *   Persist a trap history record
+     *   Update the node status based on severity.
+     *   Execute any configured action (e.g. run a script).
      */
     public void process(TrapEvent event) throws SQLException {
         if (event == null) {
@@ -102,10 +94,32 @@ public class TrapService {
                     System.err.println("Script execution failed: " + result.message());
                 }
             }
-            case "email", "sms" ->
+            case "sms" -> { sendSms(action, event); }
+            case "email" ->
                 System.out.println("Action type '" + action.getActionType() + "' is not implemented yet for trap OID: " + event.getTrapOid());
             default ->
                 System.out.println("Unknown action type '" + action.getActionType() + "' for trap OID: " + event.getTrapOid());
+        }
+    }
+
+    private void sendSms(TrapAction action, TrapEvent event) {
+        String recipient = action.getTargetPayload();
+        if (recipient == null || recipient.isBlank()) {
+            System.err.println("SMS action defined but target_payload (recipient) is empty for trap OID: " + event.getTrapOid());
+            return;
+        }
+        try {
+            SmsNotifier smsNotifier = SmsNotifier.fromResource();
+            String body = String.format(
+                    "[SNMP Alert] Trap: %s | Severity: %s | Node: %s",
+                    action.getTrapName(),
+                    action.getSeverity(),
+                    extractIp(event.getSourceIp())
+            );
+            smsNotifier.send(recipient, body);
+            System.out.println("SMS sent to " + recipient + ": " + body);
+        } catch (Exception e) {
+            System.err.println("Failed to send SMS: " + e.getMessage());
         }
     }
 

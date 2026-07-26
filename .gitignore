@@ -7,6 +7,9 @@ snmp-server/target/
 # Local database credentials (contains secrets)
 snmp-server/src/main/resources/db.properties
 
+# Local SMS credentials (contains secrets)
+snmp-server/src/main/resources/sms.properties
+
 # Local scratch / docs (not for repo)
 snmp-server/test.txt
 snmp-server/PROJECT.md
