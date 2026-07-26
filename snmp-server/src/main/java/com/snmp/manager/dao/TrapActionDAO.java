@@ -10,6 +10,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Optional;
+import java.util.List;
+import java.util.ArrayList;
 
 // Data access object for TrapAction definitions in table trap_actions.
 public class TrapActionDAO {
@@ -34,6 +36,102 @@ public class TrapActionDAO {
                 }
                 return Optional.empty();
             }
+        }
+    }
+
+    public List<TrapAction> findByNodeId(Long nodeId) throws SQLException {
+        String sql = "SELECT id, node_id, trap_oid, trap_name, severity, "
+                + "auto_resolve, action_type, target_payload, created_at, updated_at "
+                + "FROM trap_actions WHERE node_id = ?";
+        List<TrapAction> actions = new ArrayList<>();
+        try (Connection conn = databaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, nodeId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    actions.add(mapRow(rs));
+                }
+            }
+        }
+        return actions;
+    }
+
+    public List<TrapAction> getDistinctTrapTemplates() throws SQLException {
+        String sql = "SELECT DISTINCT ON (trap_oid) id, node_id, trap_oid, trap_name, severity, "
+                + "auto_resolve, action_type, target_payload, created_at, updated_at "
+                + "FROM trap_actions ORDER BY trap_oid, created_at DESC";
+        List<TrapAction> templates = new ArrayList<>();
+        try (Connection conn = databaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                templates.add(mapRow(rs));
+            }
+        }
+        return templates;
+    }
+
+    public List<String> getDistinctActionTypes() throws SQLException {
+        String sql = "SELECT DISTINCT action_type FROM trap_actions WHERE action_type IS NOT NULL";
+        List<String> types = new ArrayList<>();
+        try (Connection conn = databaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                types.add(rs.getString("action_type"));
+            }
+        }
+        return types;
+    }
+
+    public void upsert(TrapAction action) throws SQLException {
+        String sql = "INSERT INTO trap_actions (node_id, trap_oid, trap_name, severity, action_type, target_payload, auto_resolve) "
+                + "VALUES (?, ?, ?, ?::trap_severity, ?, ?, ?) "
+                + "ON CONFLICT (node_id, trap_oid) DO UPDATE SET "
+                + "trap_name = EXCLUDED.trap_name, "
+                + "severity = EXCLUDED.severity, "
+                + "action_type = EXCLUDED.action_type, "
+                + "target_payload = EXCLUDED.target_payload, "
+                + "auto_resolve = EXCLUDED.auto_resolve, "
+                + "updated_at = CURRENT_TIMESTAMP";
+        try (Connection conn = databaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, action.getNodeId());
+            ps.setString(2, action.getTrapOid());
+            ps.setString(3, action.getTrapName());
+            ps.setString(4, action.getSeverity() != null ? action.getSeverity().name() : TrapSeverity.INFO.name());
+            ps.setString(5, action.getActionType() != null ? action.getActionType() : "NONE");
+            ps.setString(6, action.getTargetPayload());
+            ps.setBoolean(7, action.isAutoResolve());
+            ps.executeUpdate();
+        }
+    }
+
+    public void deleteByNodeIdAndOidNotIn(Long nodeId, List<String> oidsToKeep) throws SQLException {
+        if (oidsToKeep == null || oidsToKeep.isEmpty()) {
+            String sql = "DELETE FROM trap_actions WHERE node_id = ?";
+            try (Connection conn = databaseConnection.getConnection();
+                 PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setLong(1, nodeId);
+                ps.executeUpdate();
+            }
+            return;
+        }
+
+        StringBuilder placeholders = new StringBuilder();
+        for (int i = 0; i < oidsToKeep.size(); i++) {
+            placeholders.append("?");
+            if (i < oidsToKeep.size() - 1) placeholders.append(",");
+        }
+
+        String sql = "DELETE FROM trap_actions WHERE node_id = ? AND trap_oid NOT IN (" + placeholders.toString() + ")";
+        try (Connection conn = databaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, nodeId);
+            for (int i = 0; i < oidsToKeep.size(); i++) {
+                ps.setString(i + 2, oidsToKeep.get(i));
+            }
+            ps.executeUpdate();
         }
     }
 

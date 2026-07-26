@@ -18,12 +18,11 @@ CREATE TABLE "trap_actions" (
 	"trap_oid" varchar(150) NOT NULL,
 	"trap_name" varchar(100) NOT NULL,
 	"severity" trap_severity NOT NULL,
-	"action_name" varchar(100) NOT NULL,
 	"description" text,
 	"auto_resolve" boolean DEFAULT false NOT NULL,
 	"created_at" timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	"updated_at" timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
-	"action_type" varchar(20),
+	"action_type" varchar(20) NOT NULL,
 	"target_payload" varchar(255),
 	"node_id" bigint NOT NULL,
 	CONSTRAINT "uq_node_trap" UNIQUE("node_id","trap_oid")

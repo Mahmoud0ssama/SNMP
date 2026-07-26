@@ -37,7 +37,6 @@ public class TrapAction {
 
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
-
     public boolean isAutoResolve() { return autoResolve; }
     public void setAutoResolve(boolean autoResolve) { this.autoResolve = autoResolve; }
 
