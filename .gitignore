@@ -6,12 +6,15 @@ snmp-server/target/
 
 # Local database credentials (contains secrets)
 snmp-server/src/main/resources/db.properties
+snmp-server/src/main/resources/db.properties.example
 
 # Local SMS credentials (contains secrets)
 snmp-server/src/main/resources/sms.properties
+snmp-server/src/main/resources/sms.properties.example
 
 # Local email credentials (contains secrets)
 snmp-server/src/main/resources/email.properties
+snmp-server/src/main/resources/email.properties.example
 
 # Local scratch / docs (not for repo)
 snmp-server/test.txt
