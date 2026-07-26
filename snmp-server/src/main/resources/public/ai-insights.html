@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>AI Insights - SNMP Premium NOC</title>
+        <style>
+            :root {
+                --bg-body: #f4f7fb;
+                --card-bg: #ffffff;
+                --primary-blue: #0056b3;
+                --primary-hover: #004494;
+                --light-blue: #e0f0ff;
+                --success-green: #28a745;
+                --text-dark: #1e293b;
+                --text-muted: #64748b;
+                --border-color: #e2e8f0;
+                --shadow-soft: 0 10px 30px -10px rgba(0, 86, 179, 0.1);
+            }
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, sans-serif;
+                background-color: var(--bg-body);
+                margin: 0;
+                padding: 25px 35px;
+                color: var(--text-dark);
+                box-sizing: border-box;
+                min-height: 100vh;
+            }
+            .dashboard-container {
+                max-width: 100%;
+                margin: 0 auto;
+            }
+            .card-panel {
+                background-color: var(--card-bg);
+                border: 1px solid rgba(255, 255, 255, 0.5);
+                border-radius: 16px;
+                box-shadow: var(--shadow-soft);
+            }
+            .header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 18px 35px;
+                margin-bottom: 25px;
+            }
+            .header h2 {
+                margin: 0;
+                color: var(--primary-blue);
+                font-weight: 800;
+            }
+            .header-action-btn {
+                background-color: #f8fafc;
+                border: 1px solid #cbd5e1;
+                padding: 10px 16px;
+                border-radius: 8px;
+                cursor: pointer;
+                font-weight: 600;
+                text-decoration: none;
+                color: var(--text-dark);
+            }
+            .header-action-btn:hover {
+                background-color: #e2e8f0;
+            }
+            .insights-card {
+                padding: 40px;
+                min-height: 500px;
+                line-height: 1.6;
+            }
+            .insights-header {
+                display: flex;
+                align-items: center;
+                gap: 15px;
+                margin-bottom: 30px;
+                padding-bottom: 20px;
+                border-bottom: 1px solid var(--border-color);
+            }
+            .insights-header h3 {
+                margin: 0;
+                font-size: 24px;
+                color: var(--primary-blue);
+            }
+            .ai-badge {
+                background: linear-gradient(135deg, #6366f1, #8b5cf6);
+                color: white;
+                padding: 6px 12px;
+                border-radius: 20px;
+                font-size: 13px;
+                font-weight: 700;
+            }
+            .primary-btn {
+                background-color: var(--primary-blue);
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                border-radius: 8px;
+                cursor: pointer;
+                font-weight: 600;
+                font-size: 14px;
+                margin-left: auto;
+            }
+            
+            /* Markdown Rendering Styles */
+            .ai-content h3 { color: var(--primary-blue); margin-top: 25px; margin-bottom: 10px; }
+            .ai-content p { margin-bottom: 15px; }
+            .ai-content ul, .ai-content ol { margin-bottom: 15px; padding-left: 20px; }
+            .ai-content li { margin-bottom: 8px; }
+            .ai-content code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 13px; color: #b91c1c; }
+            
+            .loading {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                height: 300px;
+                color: var(--text-muted);
+                font-weight: 600;
+            }
+            .spinner {
+                border: 4px solid var(--border-color);
+                border-top: 4px solid var(--primary-blue);
+                border-radius: 50%;
+                width: 40px;
+                height: 40px;
+                animation: spin 1s linear infinite;
+                margin-bottom: 15px;
+            }
+            @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+            
+            .error-msg {
+                color: #dc3545;
+                background-color: #f8d7da;
+                border: 1px solid #f5c6cb;
+                padding: 15px;
+                border-radius: 8px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="dashboard-container">
+            <div class="header card-panel">
+                <h2>DT NOC AI Insights</h2>
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <a href="index.html" class="header-action-btn">← Back to Dashboard</a>
+                </div>
+            </div>
+
+            <div class="card-panel insights-card">
+                <div class="insights-header">
+                    <span class="ai-badge">✨ AI Powered</span>
+                    <h3>Trap History Root Cause Analysis</h3>
+                    <button class="primary-btn" onclick="generateInsights()">Regenerate Report</button>
+                </div>
+                
+                <div id="aiContentBox" class="ai-content">
+                    <!-- Content injected here -->
+                </div>
+            </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+        <script src="ai-insights.js"></script>
+    </body>
+</html>
