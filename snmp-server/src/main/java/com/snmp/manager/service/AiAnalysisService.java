@@ -12,6 +12,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -29,13 +30,9 @@ public class AiAnalysisService {
     }
 
     private void loadApiKey() {
-        try {
-            Path keyPath = Path.of("secrets/gemini_api_key.txt");
-            if (!Files.exists(keyPath)) {
-                keyPath = Path.of("../secrets/gemini_api_key.txt"); // If running from snmp-server/ directory
-            }
-            if (Files.exists(keyPath)) {
-                this.geminiApiKey = Files.readString(keyPath).trim();
+        try (InputStream in = getClass().getClassLoader().getResourceAsStream("gemini_api_key.txt")) {
+            if (in != null) {
+                this.geminiApiKey = new String(in.readAllBytes()).trim();
             }
         } catch (Exception e) {
             System.err.println("Failed to load Gemini API key: " + e.getMessage());
