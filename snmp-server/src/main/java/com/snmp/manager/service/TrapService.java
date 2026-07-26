@@ -12,6 +12,7 @@ import com.snmp.manager.model.TrapStatus;
 import com.snmp.manager.snmp.model.TrapEvent;
 import com.snmp.manager.util.ScriptExecutor;
 import com.snmp.manager.util.SmsNotifier;
+import com.snmp.manager.util.EmailNotifier;
 
 import java.sql.SQLException;
 import java.util.Optional;
@@ -95,8 +96,7 @@ public class TrapService {
                 }
             }
             case "sms" -> { sendSms(action, event); }
-            case "email" ->
-                System.out.println("Action type '" + action.getActionType() + "' is not implemented yet for trap OID: " + event.getTrapOid());
+            case "email" -> { sendEmail(action, event); }
             default ->
                 System.out.println("Unknown action type '" + action.getActionType() + "' for trap OID: " + event.getTrapOid());
         }
@@ -120,6 +120,30 @@ public class TrapService {
             System.out.println("SMS sent to " + recipient + ": " + body);
         } catch (Exception e) {
             System.err.println("Failed to send SMS: " + e.getMessage());
+        }
+    }
+
+    private void sendEmail(TrapAction action, TrapEvent event) {
+        String recipient = action.getTargetPayload();
+        if (recipient == null || recipient.isBlank()) {
+            System.err.println("Email action defined but target_payload (recipient) is empty for trap OID: " + event.getTrapOid());
+            return;
+        }
+        try {
+            EmailNotifier emailNotifier = EmailNotifier.fromResource();
+            String subject = "[SNMP Alert] " + action.getTrapName();
+            String body = String.format(
+                    "Trap: %s\nSeverity: %s\nNode: %s\nTrap OID: %s\nSource IP: %s",
+                    action.getTrapName(),
+                    action.getSeverity(),
+                    extractIp(event.getSourceIp()),
+                    event.getTrapOid(),
+                    event.getSourceIp()
+            );
+            emailNotifier.send(recipient, subject, body);
+            System.out.println("Email sent to " + recipient + ": " + subject);
+        } catch (Exception e) {
+            System.err.println("Failed to send email: " + e.getMessage());
         }
     }
 
