@@ -20,50 +20,26 @@ public class NodeService {
         this.nodeDAO = nodeDAO;
     }
 
-    /**
-     * Looks up a node by its identifier.
-     *
-     * @param id the node id
-     * @return the node if present
-     * @throws SQLException on database access error
-     */
+    // Looks up a node by its identifier.
+
     public Optional<Node> findById(Long id) throws SQLException {
         return nodeDAO.findById(id);
     }
 
-    /**
-     * Looks up a node by its IP address.
-     *
-     * @param ipAddress the node IP address
-     * @return the node if present
-     * @throws SQLException on database access error
-     */
+    // Looks up a node by its IP address.
     public Optional<Node> findByIp(String ipAddress) throws SQLException {
         return nodeDAO.findByIp(ipAddress);
     }
 
-    /**
-     * Updates the operational status of an existing node.
-     *
-     * @param node   the node to update, must have an id
-     * @param status the new status
-     * @return the number of rows updated
-     * @throws SQLException on database access error
-     */
+    // Updates the operational status of an existing node.
+
     public int updateStatus(Node node, NodeStatus status) throws SQLException {
         node.setStatus(status);
         return nodeDAO.update(node);
     }
 
-    /**
-     * Registers a new node using data extracted from a received trap.
-     *
-     * @param name      the node name (e.g., "Cairo_BTS_01")
-     * @param ipAddress the node IP address
-     * @param nodeType  the telecom equipment type (e.g., "BTS", "MSC")
-     * @return the newly created and persisted node
-     * @throws SQLException on database access error
-     */
+    // Registers a new node using data extracted from a received trap.
+     
     public Node registerNode(String name, String ipAddress, String nodeType) throws SQLException {
         Node node = new Node();
         node.setName(name != null && !name.isEmpty() ? name : "auto-" + ipAddress);
