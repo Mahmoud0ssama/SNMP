@@ -28,8 +28,16 @@ import org.mindrot.jbcrypt.BCrypt;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.stream.Collectors;
+import com.snmp.manager.model.TrapAction;
+import com.snmp.manager.model.TrapSeverity;
+import io.javalin.http.UploadedFile;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 
 public class Main {
     
@@ -37,7 +45,8 @@ public class Main {
     static class LoginReq { public String username; public String password; }
     static class UserReq { public String username; public String password; public String role; }
     static class UpdateReq { public String value; }
-    static class NodeReq { public String name; public String ipAddress; public String nodeType; }
+    static class TrapActionReq { public String trapOid; public String trapName; public String severity; public String actionType; public String targetPayload; public boolean autoResolve; }
+    static class NodeReq { public String name; public String ipAddress; public String nodeType; public List<TrapActionReq> trapActions; }
 
     public static void main(String[] args) {
         java.util.TimeZone.setDefault(java.util.TimeZone.getTimeZone("UTC"));
@@ -182,6 +191,40 @@ public class Main {
             }
         });
 
+        // --- TRAP CONFIGURATION APIs ---
+        
+        app.get("/api/trap-templates", ctx -> {
+            ctx.json(new TrapActionDAO(DatabaseConnection.fromResource()).getDistinctTrapTemplates());
+        });
+
+        app.get("/api/action-types", ctx -> {
+            ctx.json(new TrapActionDAO(DatabaseConnection.fromResource()).getDistinctActionTypes());
+        });
+
+        app.get("/api/nodes/{id}/trapActions", ctx -> {
+            Long targetId = Long.parseLong(ctx.pathParam("id"));
+            ctx.json(new TrapActionDAO(DatabaseConnection.fromResource()).findByNodeId(targetId));
+        });
+
+        app.post("/api/upload-script", ctx -> {
+            DecodedJWT jwt = ctx.attribute("jwt"); // Requires auth
+            UploadedFile uploadedFile = ctx.uploadedFile("file");
+            if (uploadedFile == null) {
+                ctx.status(400).result("No file uploaded");
+                return;
+            }
+            
+            Path uploadDir = Paths.get("/home/eissa/gp/SNMP/scripts");
+            if (!Files.exists(uploadDir)) {
+                Files.createDirectories(uploadDir);
+            }
+            
+            Path destPath = uploadDir.resolve(uploadedFile.filename());
+            Files.copy(uploadedFile.content(), destPath, StandardCopyOption.REPLACE_EXISTING);
+            
+            ctx.json(Map.of("status", "success", "filePath", destPath.toString()));
+        });
+
         // --- NODE MANAGEMENT APIs ---
         
         app.post("/api/nodes", ctx -> {
@@ -190,8 +233,23 @@ public class Main {
             
             NodeReq req = ctx.bodyAsClass(NodeReq.class);
             DatabaseConnection db = DatabaseConnection.fromResource();
-            NodeService nodeService = new NodeService(new NodeDAO(db));
-            nodeService.registerNode(req.name, req.ipAddress, req.nodeType);
+            NodeService nodeService = new NodeService(new NodeDAO(db), new TrapActionDAO(db));
+            
+            List<TrapAction> actions = null;
+            if (req.trapActions != null) {
+                actions = new ArrayList<>();
+                for (TrapActionReq tr : req.trapActions) {
+                    TrapAction a = new TrapAction();
+                    a.setTrapOid(tr.trapOid);
+                    a.setTrapName(tr.trapName);
+                    try { a.setSeverity(TrapSeverity.valueOf(tr.severity)); } catch (Exception e) { a.setSeverity(TrapSeverity.INFO); }
+                    a.setActionType(tr.actionType);
+                    a.setTargetPayload(tr.targetPayload);
+                    a.setAutoResolve(tr.autoResolve);
+                    actions.add(a);
+                }
+            }
+            nodeService.registerNode(req.name, req.ipAddress, req.nodeType, actions);
             ctx.json(Map.of("status", "success"));
         });
 
@@ -202,19 +260,24 @@ public class Main {
             Long targetId = Long.parseLong(ctx.pathParam("id"));
             NodeReq req = ctx.bodyAsClass(NodeReq.class);
             DatabaseConnection db = DatabaseConnection.fromResource();
-            NodeDAO dao = new NodeDAO(db);
+            NodeService nodeService = new NodeService(new NodeDAO(db), new TrapActionDAO(db));
             
-            Optional<Node> nodeOpt = dao.findById(targetId);
-            if(nodeOpt.isPresent()) {
-                Node node = nodeOpt.get();
-                node.setName(req.name);
-                node.setIpAddress(req.ipAddress);
-                node.setNodeType(req.nodeType);
-                dao.update(node);
-                ctx.json(Map.of("status", "success"));
-            } else {
-                ctx.status(404).result("Node not found");
+            List<TrapAction> actions = null;
+            if (req.trapActions != null) {
+                actions = new ArrayList<>();
+                for (TrapActionReq tr : req.trapActions) {
+                    TrapAction a = new TrapAction();
+                    a.setTrapOid(tr.trapOid);
+                    a.setTrapName(tr.trapName);
+                    try { a.setSeverity(TrapSeverity.valueOf(tr.severity)); } catch (Exception e) { a.setSeverity(TrapSeverity.INFO); }
+                    a.setActionType(tr.actionType);
+                    a.setTargetPayload(tr.targetPayload);
+                    a.setAutoResolve(tr.autoResolve);
+                    actions.add(a);
+                }
             }
+            nodeService.updateNode(targetId, req.name, req.ipAddress, req.nodeType, actions);
+            ctx.json(Map.of("status", "success"));
         });
 
         app.start(8080);
