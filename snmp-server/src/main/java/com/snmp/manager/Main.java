@@ -13,6 +13,7 @@ import com.snmp.manager.model.Node;
 import com.snmp.manager.model.User;
 import com.snmp.manager.service.NodeService;
 import com.snmp.manager.service.TrapService;
+import com.snmp.manager.service.AiAnalysisService;
 import com.snmp.manager.snmp.listener.TrapListener;
 import com.snmp.manager.snmp.model.TrapEvent;
 import com.snmp.manager.snmp.receiver.TrapReceiver;
@@ -99,6 +100,12 @@ public class Main {
             boolean success = new TrapHistoryDAO(DatabaseConnection.fromResource()).resolveTrap(trapId, jwt.getClaim("userId").asLong());
             if (success) ctx.json(Map.of("status", "success"));
             else ctx.status(400).result("Error resolving trap");
+        });
+
+        app.get("/api/ai/insights", ctx -> {
+            AiAnalysisService aiService = new AiAnalysisService(DatabaseConnection.fromResource());
+            String result = aiService.generateInsights();
+            ctx.json(Map.of("markdown", result));
         });
 
         // --- USER MANAGEMENT APIs ---
