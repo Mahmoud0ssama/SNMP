@@ -1,0 +1,3 @@
+twilio.account.sid=your_account_sid
+twilio.auth.token=your_auth_token
+twilio.from.number=+1234567890
