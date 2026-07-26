@@ -31,6 +31,9 @@ public class AiAnalysisService {
     private void loadApiKey() {
         try {
             Path keyPath = Path.of("secrets/gemini_api_key.txt");
+            if (!Files.exists(keyPath)) {
+                keyPath = Path.of("../secrets/gemini_api_key.txt"); // If running from snmp-server/ directory
+            }
             if (Files.exists(keyPath)) {
                 this.geminiApiKey = Files.readString(keyPath).trim();
             }
@@ -87,7 +90,7 @@ public class AiAnalysisService {
 
     private String callGeminiAPI(String prompt) {
         try {
-            String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + geminiApiKey;
+            String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + geminiApiKey;
 
             ObjectNode rootNode = mapper.createObjectNode();
             ArrayNode contentsNode = rootNode.putArray("contents");
