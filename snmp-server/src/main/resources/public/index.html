@@ -421,17 +421,58 @@
             font-weight: 700;
         }
 
-        .icon-btn {
-            background: transparent;
-            border: none;
-            cursor: pointer;
-            font-size: 16px;
-            transition: 0.2s;
-            padding: 5px;
-        }
-
         .icon-btn:hover {
             transform: scale(1.2);
+        }
+
+        .trap-action-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr 2fr 40px;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+            background: #f8fafc;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .trap-action-row input, .trap-action-row select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 13px;
+            box-sizing: border-box;
+        }
+
+        .trap-action-header {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr 2fr 40px;
+            gap: 10px;
+            margin-bottom: 5px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            padding: 0 10px;
+        }
+
+        .add-trap-btn {
+            background-color: var(--light-blue);
+            color: var(--primary-blue);
+            border: 1px dashed var(--primary-blue);
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            width: 100%;
+            margin-bottom: 15px;
+            transition: 0.2s;
+        }
+
+        .add-trap-btn:hover {
+            background-color: #bfdbfe;
         }
     </style>
 </head>
@@ -590,24 +631,43 @@
     </div>
 
     <div id="addNodeModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content modal-large">
             <div class="modal-header">
                 <h3>Add New Node</h3><span class="close-btn" onclick="closeModal('addNodeModal')">&times;</span>
             </div>
             <form onsubmit="submitAddNode(event)">
-                <div class="form-group"><label>Node Name</label><input type="text" id="newNodeName"
-                        placeholder="e.g. Cairo_BTS" required></div>
-                <div class="form-group"><label>IP Address</label><input type="text" id="newNodeIp"
-                        placeholder="e.g. 10.0.0.5" required></div>
-                <div class="form-group">
-                    <label>Node Type</label>
-                    <select id="newNodeType" required>
-                        <option value="BTS">BTS</option>
-                        <option value="MSC">MSC</option>
-                        <option value="BSC">BSC</option>
-                        <option value="SGSN">SGSN</option>
-                    </select>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group"><label>Node Name</label><input type="text" id="newNodeName" placeholder="e.g. Cairo_BTS" required></div>
+                    <div class="form-group"><label>IP Address</label><input type="text" id="newNodeIp" placeholder="e.g. 10.0.0.5" required></div>
+                    <div class="form-group">
+                        <label>Node Type</label>
+                        <select id="newNodeType" required>
+                            <option value="BTS">BTS</option>
+                            <option value="MSC">MSC</option>
+                            <option value="BSC">BSC</option>
+                            <option value="SGSN">SGSN</option>
+                        </select>
+                    </div>
                 </div>
+
+                <div style="margin-top: 15px; border-top: 1px solid var(--border-color); padding-top: 15px;">
+                    <h4 style="margin-top: 0; color: var(--primary-blue);">Trap Actions (Solutions)</h4>
+                    <div class="form-group">
+                        <label>Load Template</label>
+                        <div style="display: flex; gap: 10px;">
+                            <select id="addNodeTemplateSelect" style="flex-grow: 1;">
+                                <option value="">Select a template...</option>
+                            </select>
+                            <button type="button" class="primary-btn" style="width: auto;" onclick="applyTrapTemplate('addNodeTrapsContainer', 'addNodeTemplateSelect')">Load</button>
+                        </div>
+                    </div>
+                    <div class="trap-action-header">
+                        <span>Trap OID</span><span>Trap Name</span><span>Severity</span><span>Action Type</span><span>Target Payload</span><span></span>
+                    </div>
+                    <div id="addNodeTrapsContainer" style="max-height: 200px; overflow-y: auto; margin-bottom: 10px;"></div>
+                    <button type="button" class="add-trap-btn" onclick="addTrapRow('addNodeTrapsContainer')">+ Add Custom Trap Action</button>
+                </div>
+
                 <button type="submit" class="success-btn">Register Node</button>
             </form>
         </div>
@@ -615,23 +675,44 @@
 
     <!-- Edit Node Modal -->
     <div id="editNodeModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content modal-large">
             <div class="modal-header">
                 <h3>Edit Node</h3><span class="close-btn" onclick="closeModal('editNodeModal')">&times;</span>
             </div>
             <form onsubmit="submitEditNode(event)">
                 <input type="hidden" id="editNodeId">
-                <div class="form-group"><label>Node Name</label><input type="text" id="editNodeName" required></div>
-                <div class="form-group"><label>IP Address</label><input type="text" id="editNodeIp" required></div>
-                <div class="form-group">
-                    <label>Node Type</label>
-                    <select id="editNodeType" required>
-                        <option value="BTS">BTS</option>
-                        <option value="MSC">MSC</option>
-                        <option value="BSC">BSC</option>
-                        <option value="SGSN">SGSN</option>
-                    </select>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group"><label>Node Name</label><input type="text" id="editNodeName" required></div>
+                    <div class="form-group"><label>IP Address</label><input type="text" id="editNodeIp" required></div>
+                    <div class="form-group">
+                        <label>Node Type</label>
+                        <select id="editNodeType" required>
+                            <option value="BTS">BTS</option>
+                            <option value="MSC">MSC</option>
+                            <option value="BSC">BSC</option>
+                            <option value="SGSN">SGSN</option>
+                        </select>
+                    </div>
                 </div>
+
+                <div style="margin-top: 15px; border-top: 1px solid var(--border-color); padding-top: 15px;">
+                    <h4 style="margin-top: 0; color: var(--primary-blue);">Trap Actions (Solutions)</h4>
+                    <div class="form-group">
+                        <label>Load Template</label>
+                        <div style="display: flex; gap: 10px;">
+                            <select id="editNodeTemplateSelect" style="flex-grow: 1;">
+                                <option value="">Select a template...</option>
+                            </select>
+                            <button type="button" class="primary-btn" style="width: auto;" onclick="applyTrapTemplate('editNodeTrapsContainer', 'editNodeTemplateSelect')">Load</button>
+                        </div>
+                    </div>
+                    <div class="trap-action-header">
+                        <span>Trap OID</span><span>Trap Name</span><span>Severity</span><span>Action Type</span><span>Target Payload</span><span></span>
+                    </div>
+                    <div id="editNodeTrapsContainer" style="max-height: 200px; overflow-y: auto; margin-bottom: 10px;"></div>
+                    <button type="button" class="add-trap-btn" onclick="addTrapRow('editNodeTrapsContainer')">+ Add Custom Trap Action</button>
+                </div>
+
                 <button type="submit" class="success-btn">Save Changes</button>
             </form>
         </div>
@@ -859,20 +940,171 @@
             syncAll();
         }
 
+        let trapTemplates = [];
+        let actionTypes = [];
+
+        async function loadTrapTemplates() {
+            try {
+                let res = await fetchWithAuth('/api/trap-templates');
+                trapTemplates = await res.json();
+                populateTemplateDropdowns();
+                
+                let res2 = await fetchWithAuth('/api/action-types');
+                actionTypes = await res2.json();
+                populateActionTypesDatalist();
+            } catch (e) { console.error("Error loading templates", e); }
+        }
+
+        function populateActionTypesDatalist() {
+            let dl = document.getElementById('actionTypesList');
+            if(!dl) {
+                dl = document.createElement('datalist');
+                dl.id = 'actionTypesList';
+                document.body.appendChild(dl);
+            }
+            dl.innerHTML = '';
+            // Add default if missing
+            if(!actionTypes.includes('SCRIPT')) dl.innerHTML += `<option value="SCRIPT">`;
+            if(!actionTypes.includes('EMAIL')) dl.innerHTML += `<option value="EMAIL">`;
+            actionTypes.forEach(t => {
+                dl.innerHTML += `<option value="${t}">`;
+            });
+        }
+
+        function populateTemplateDropdowns() {
+            let html = '<option value="">Select a template...</option>';
+            trapTemplates.forEach((t, index) => {
+                html += `<option value="${index}">${t.trapName} (${t.trapOid}) - ${t.severity}</option>`;
+            });
+            document.getElementById('addNodeTemplateSelect').innerHTML = html;
+            document.getElementById('editNodeTemplateSelect').innerHTML = html;
+        }
+
+        function applyTrapTemplate(containerId, selectId) {
+            let sel = document.getElementById(selectId);
+            if(sel.value === '') return;
+            let tmpl = trapTemplates[sel.value];
+            addTrapRow(containerId, tmpl);
+            sel.value = ''; // reset
+        }
+
+        function addTrapRow(containerId, data = null) {
+            let container = document.getElementById(containerId);
+            let row = document.createElement('div');
+            row.className = 'trap-action-row';
+            
+            let oid = data ? data.trapOid : '';
+            let name = data ? data.trapName : '';
+            let severity = data ? data.severity : 'INFO';
+            let actionType = data ? data.actionType : '';
+            let payload = data ? (data.targetPayload || '') : '';
+            let isScript = actionType.toUpperCase() === 'SCRIPT';
+
+            row.innerHTML = `
+                <input type="text" placeholder="OID (e.g. 1.3.6...)" value="${oid}" class="t-oid" required>
+                <input type="text" placeholder="Trap Name" value="${name}" class="t-name" required>
+                <select class="t-sev">
+                    <option value="INFO" ${severity==='INFO'?'selected':''}>INFO</option>
+                    <option value="MINOR" ${severity==='MINOR'?'selected':''}>MINOR</option>
+                    <option value="MAJOR" ${severity==='MAJOR'?'selected':''}>MAJOR</option>
+                    <option value="CRITICAL" ${severity==='CRITICAL'?'selected':''}>CRITICAL</option>
+                </select>
+                <input type="text" placeholder="Action Type" list="actionTypesList" value="${actionType}" class="t-atype" oninput="toggleScriptUpload(this)" required>
+                <div style="display:flex; gap:5px; width: 100%;">
+                    <input type="text" placeholder="Target Payload" value="${payload}" class="t-payload" required style="flex-grow:1;">
+                    <button type="button" class="primary-btn t-upload-btn" style="display:${isScript ? 'block' : 'none'}; padding:4px 8px; width:auto; font-size:11px;" onclick="this.nextElementSibling.click()">Upload</button>
+                    <input type="file" style="display:none;" onchange="uploadScriptFile(this)">
+                </div>
+                <button type="button" class="icon-btn" style="color:var(--danger-red);" onclick="this.parentElement.remove()">🗑️</button>
+            `;
+            container.appendChild(row);
+        }
+
+        function toggleScriptUpload(inputElem) {
+            let row = inputElem.closest('.trap-action-row');
+            let uploadBtn = row.querySelector('.t-upload-btn');
+            if (inputElem.value.toUpperCase() === 'SCRIPT') {
+                uploadBtn.style.display = 'block';
+            } else {
+                uploadBtn.style.display = 'none';
+            }
+        }
+
+        async function uploadScriptFile(fileInput) {
+            if (!fileInput.files.length) return;
+            let formData = new FormData();
+            formData.append("file", fileInput.files[0]);
+            
+            let row = fileInput.closest('.trap-action-row');
+            let payloadInput = row.querySelector('.t-payload');
+            let uploadBtn = row.querySelector('.t-upload-btn');
+            uploadBtn.innerText = 'Uploading...';
+            
+            try {
+                let res = await fetch('/api/upload-script', {
+                    method: 'POST',
+                    headers: { 'Authorization': 'Bearer ' + jwtToken },
+                    body: formData
+                });
+                if (res.ok) {
+                    let data = await res.json();
+                    payloadInput.value = data.filePath;
+                    uploadBtn.innerText = 'Uploaded ✓';
+                    setTimeout(() => uploadBtn.innerText = 'Upload', 2000);
+                } else {
+                    alert("File upload failed!");
+                    uploadBtn.innerText = 'Upload';
+                }
+            } catch (e) {
+                alert("Error uploading script.");
+                uploadBtn.innerText = 'Upload';
+            }
+        }
+
+        function getTrapActions(containerId) {
+            let container = document.getElementById(containerId);
+            let rows = container.getElementsByClassName('trap-action-row');
+            let actions = [];
+            for(let row of rows) {
+                actions.push({
+                    trapOid: row.querySelector('.t-oid').value,
+                    trapName: row.querySelector('.t-name').value,
+                    severity: row.querySelector('.t-sev').value,
+                    actionType: row.querySelector('.t-atype').value,
+                    targetPayload: row.querySelector('.t-payload').value,
+                    autoResolve: false
+                });
+            }
+            return actions;
+        }
+
         // --- Node APIs ---
         async function submitAddNode(e) {
             e.preventDefault();
-            let body = { name: document.getElementById('newNodeName').value, ipAddress: document.getElementById('newNodeIp').value, nodeType: document.getElementById('newNodeType').value };
+            let body = { 
+                name: document.getElementById('newNodeName').value, 
+                ipAddress: document.getElementById('newNodeIp').value, 
+                nodeType: document.getElementById('newNodeType').value,
+                trapActions: getTrapActions('addNodeTrapsContainer')
+            };
             await fetchWithAuth('/api/nodes', { method: 'POST', body: JSON.stringify(body) });
             closeModal('addNodeModal');
             openNodesManager();
         }
 
-        function openEditNode(id, name, ip, type) {
+        async function openEditNode(id, name, ip, type) {
             document.getElementById('editNodeId').value = id;
             document.getElementById('editNodeName').value = name;
             document.getElementById('editNodeIp').value = ip;
             document.getElementById('editNodeType').value = type || 'BTS';
+            
+            document.getElementById('editNodeTrapsContainer').innerHTML = '';
+            try {
+                let res = await fetchWithAuth(`/api/nodes/${id}/trapActions`);
+                let actions = await res.json();
+                actions.forEach(a => addTrapRow('editNodeTrapsContainer', a));
+            } catch (e) { console.error("Error fetching trap actions", e); }
+
             closeModal('nodesListModal');
             openModal('editNodeModal');
         }
@@ -880,7 +1112,12 @@
         async function submitEditNode(e) {
             e.preventDefault();
             let id = document.getElementById('editNodeId').value;
-            let body = { name: document.getElementById('editNodeName').value, ipAddress: document.getElementById('editNodeIp').value, nodeType: document.getElementById('editNodeType').value };
+            let body = { 
+                name: document.getElementById('editNodeName').value, 
+                ipAddress: document.getElementById('editNodeIp').value, 
+                nodeType: document.getElementById('editNodeType').value,
+                trapActions: getTrapActions('editNodeTrapsContainer')
+            };
             await fetchWithAuth(`/api/nodes/${id}`, { method: 'PUT', body: JSON.stringify(body) });
             closeModal('editNodeModal');
             openNodesManager();
@@ -998,6 +1235,14 @@
             syncAll().then(() => openModal('nodesListModal'));
         }
         function openModal(id) {
+            if(id === 'addNodeModal') {
+                document.getElementById('addNodeTrapsContainer').innerHTML = '';
+                document.getElementById('newNodeName').value = '';
+                document.getElementById('newNodeIp').value = '';
+                loadTrapTemplates();
+            } else if (id === 'editNodeModal') {
+                loadTrapTemplates();
+            }
             document.getElementById(id).style.display = 'flex';
         }
         function closeModal(id) {
