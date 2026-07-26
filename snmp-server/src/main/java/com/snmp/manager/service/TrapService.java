@@ -10,17 +10,17 @@ import com.snmp.manager.model.TrapHistory;
 import com.snmp.manager.model.TrapSeverity;
 import com.snmp.manager.model.TrapStatus;
 import com.snmp.manager.snmp.model.TrapEvent;
+import com.snmp.manager.util.ScriptExecutor;
+import com.snmp.manager.util.SmsNotifier;
+import com.snmp.manager.util.EmailNotifier;
 
 import java.sql.SQLException;
 import java.util.Optional;
 
-/**
- * Business logic for handling received SNMP traps.
- *
- * <p>Coordinates the DAOs to locate the originating node and trap definition,
- * persist a trap history record and update the node status. Contains no SQL
- * strings.</p>
- */
+/* 
+ * Coordinates the DAOs to locate the originating node and trap definition,
+ * persist a trap history record and update the node status. 
+*/
 public class TrapService {
 
     private final NodeDAO nodeDAO;
@@ -40,32 +40,26 @@ public class TrapService {
 
     /**
      * Processes a received trap end to end.
-     *
-     * <ol>
-     *   <li>Locate the sending node by source IP, or auto-register if unknown.</li>
-     *   <li>Locate the trap definition by OID.</li>
-     *   <li>Persist a trap history record.</li>
-     *   <li>Update the node status based on severity.</li>
-     * </ol>
-     *
-     * @param event the parsed trap event, must not be {@code null}
-     * @throws SQLException on database access error
+     *   Locate the sending node by source IP, or auto-register if unknown.
+     *   Locate the trap definition by OID.
+     *   Persist a trap history record
+     *   Update the node status based on severity.
+     *   Execute any configured action (e.g. run a script).
      */
-  public void process(TrapEvent event) throws SQLException {
+    public void process(TrapEvent event) throws SQLException {
         if (event == null) {
             throw new IllegalArgumentException("event must not be null");
         }
 
         String networkIp = extractIp(event.getSourceIp());
         String nodeIp = event.getNodeIp() != null && !event.getNodeIp().isEmpty() ? event.getNodeIp() : networkIp;
-        
+
         Optional<Node> nodeOpt = nodeDAO.findByIp(nodeIp);
 
         Node node;
         if (nodeOpt.isPresent()) {
             node = nodeOpt.get();
         } else {
-            // Auto-register unknown nodes using data from the trap payload
             node = nodeService.registerNode(event.getNodeName(), nodeIp, event.getNodeType());
             System.out.println("Auto-registered new node: " + node.getName()
                     + " (" + node.getNodeType() + ") at " + nodeIp);
@@ -79,19 +73,89 @@ public class TrapService {
 
         NodeStatus newStatus = resolveStatus(action);
         nodeService.updateStatus(node, newStatus);
+
+        executeAction(action, event);
+    }
+
+    private void executeAction(TrapAction action, TrapEvent event) {
+        if (action == null || action.getActionType() == null) {
+            return;
+        }
+        switch (action.getActionType().toLowerCase()) {
+            case "script" -> {
+                String scriptPath = action.getTargetPayload();
+                if (scriptPath == null || scriptPath.isBlank()) {
+                    System.err.println("Script action defined but target_payload is empty for trap OID: " + event.getTrapOid());
+                    return;
+                }
+                ScriptExecutor.ExecutionResult result = ScriptExecutor.execute(scriptPath);
+                if (result.success()) {
+                    System.out.println("Script executed successfully: " + scriptPath);
+                } else {
+                    System.err.println("Script execution failed: " + result.message());
+                }
+            }
+            case "sms" -> { sendSms(action, event); }
+            case "email" -> { sendEmail(action, event); }
+            default ->
+                System.out.println("Unknown action type '" + action.getActionType() + "' for trap OID: " + event.getTrapOid());
+        }
+    }
+
+    private void sendSms(TrapAction action, TrapEvent event) {
+        String recipient = action.getTargetPayload();
+        if (recipient == null || recipient.isBlank()) {
+            System.err.println("SMS action defined but target_payload (recipient) is empty for trap OID: " + event.getTrapOid());
+            return;
+        }
+        try {
+            SmsNotifier smsNotifier = SmsNotifier.fromResource();
+            String body = String.format(
+                    "[SNMP Alert] Trap: %s | Severity: %s | Node: %s",
+                    action.getTrapName(),
+                    action.getSeverity(),
+                    extractIp(event.getSourceIp())
+            );
+            smsNotifier.send(recipient, body);
+            System.out.println("SMS sent to " + recipient + ": " + body);
+        } catch (Exception e) {
+            System.err.println("Failed to send SMS: " + e.getMessage());
+        }
+    }
+
+    private void sendEmail(TrapAction action, TrapEvent event) {
+        String recipient = action.getTargetPayload();
+        if (recipient == null || recipient.isBlank()) {
+            System.err.println("Email action defined but target_payload (recipient) is empty for trap OID: " + event.getTrapOid());
+            return;
+        }
+        try {
+            EmailNotifier emailNotifier = EmailNotifier.fromResource();
+            String subject = "[SNMP Alert] " + action.getTrapName();
+            String body = String.format(
+                    "Trap: %s\nSeverity: %s\nNode: %s\nTrap OID: %s\nSource IP: %s",
+                    action.getTrapName(),
+                    action.getSeverity(),
+                    extractIp(event.getSourceIp()),
+                    event.getTrapOid(),
+                    event.getSourceIp()
+            );
+            emailNotifier.send(recipient, subject, body);
+            System.out.println("Email sent to " + recipient + ": " + subject);
+        } catch (Exception e) {
+            System.err.println("Failed to send email: " + e.getMessage());
+        }
     }
 
     private TrapHistory buildHistory(TrapEvent event, Node node, TrapAction action) {
         TrapHistory history = new TrapHistory();
         history.setNodeId(node.getId());
         history.setTrapOid(event.getTrapOid());
-        // Store the simulated IP (from the node we resolved) instead of the physical network IP
         history.setSourceIp(node.getIpAddress());
         history.setStatus(TrapStatus.OPEN);
 
         if (action != null) {
             history.setTrapActionId(action.getId());
-            // Combine the trap action name with optional details from the emulator
             String message = action.getTrapName();
             if (event.getDetails() != null && !event.getDetails().isEmpty()) {
                 message += " - " + event.getDetails();

@@ -10,7 +10,6 @@ public class TrapAction {
     private String trapOid;
     private String trapName;
     private TrapSeverity severity;
-    private String actionName;
     private String description;
     private boolean autoResolve;
     private String actionType; 
@@ -35,9 +34,6 @@ public class TrapAction {
 
     public TrapSeverity getSeverity() { return severity; }
     public void setSeverity(TrapSeverity severity) { this.severity = severity; }
-
-    public String getActionName() { return actionName; }
-    public void setActionName(String actionName) { this.actionName = actionName; }
 
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }

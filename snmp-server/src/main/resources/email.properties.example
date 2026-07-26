@@ -1,0 +1,5 @@
+mail.smtp.host=smtp.sendgrid.net
+mail.smtp.port=587
+mail.smtp.username=apikey
+mail.smtp.password=your_sendgrid_api_key
+mail.from.address=your_verified_sender@example.com

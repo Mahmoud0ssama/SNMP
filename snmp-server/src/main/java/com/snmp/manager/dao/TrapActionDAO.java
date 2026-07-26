@@ -22,7 +22,7 @@ public class TrapActionDAO {
 
     // Finds a trap action by its primary key.
     public Optional<TrapAction> findById(Long id) throws SQLException {
-        String sql = "SELECT id, node_id, trap_oid, trap_name, severity, action_name, description, "
+        String sql = "SELECT id, node_id, trap_oid, trap_name, severity, description, "
                 + "auto_resolve, action_type, target_payload, created_at, updated_at "
                 + "FROM trap_actions WHERE id = ?";
         try (Connection conn = databaseConnection.getConnection();
@@ -39,7 +39,7 @@ public class TrapActionDAO {
 
     // Finds a trap action strictly by combining the node ID and the trap OID.
     public Optional<TrapAction> findByNodeAndOid(Long nodeId, String oid) throws SQLException {
-        String sql = "SELECT id, node_id, trap_oid, trap_name, severity, action_name, description, "
+        String sql = "SELECT id, node_id, trap_oid, trap_name, severity, description, "
                 + "auto_resolve, action_type, target_payload, created_at, updated_at "
                 + "FROM trap_actions WHERE node_id = ? AND trap_oid = ?";
         try (Connection conn = databaseConnection.getConnection();
@@ -62,17 +62,20 @@ public class TrapActionDAO {
         action.setTrapOid(rs.getString("trap_oid"));
         action.setTrapName(rs.getString("trap_name"));
         action.setSeverity(TrapSeverity.valueOf(rs.getString("severity")));
-        action.setActionName(rs.getString("action_name"));
         action.setDescription(rs.getString("description"));
         action.setAutoResolve(rs.getBoolean("auto_resolve"));
         action.setActionType(rs.getString("action_type"));
         action.setTargetPayload(rs.getString("target_payload"));
         
         Timestamp created = rs.getTimestamp("created_at");
-        if (created != null) action.setCreatedAt(created.toInstant());
+        if (created != null) {
+            action.setCreatedAt(created.toInstant());
+        }
         
         Timestamp updated = rs.getTimestamp("updated_at");
-        if (updated != null) action.setUpdatedAt(updated.toInstant());
+        if (updated != null) {
+            action.setUpdatedAt(updated.toInstant());
+        }
         
         return action;
     }

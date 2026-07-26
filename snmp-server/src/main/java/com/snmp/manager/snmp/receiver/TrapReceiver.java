@@ -15,13 +15,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Opens a UDP socket and listens for incoming SNMP traps.
- *
- * <p>Responsibilities are limited to opening the socket, receiving raw traps
- * via SNMP4J, parsing them into {@link TrapEvent}s and notifying registered
- * {@link TrapListener}s. Business logic is intentionally delegated elsewhere.</p>
- */
+// Opens a UDP socket and listens for incoming SNMP traps.
 public class TrapReceiver {
 
     private static final int DEFAULT_PORT = 1162;
