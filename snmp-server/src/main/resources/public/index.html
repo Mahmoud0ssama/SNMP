@@ -315,10 +315,12 @@
             width: 400px;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
             border: 1px solid rgba(255, 255, 255, 0.8);
+            max-height: 90vh;
+            overflow-y: auto;
         }
 
         .modal-large {
-            width: 700px;
+            width: 800px;
         }
 
         .modal-header {
@@ -421,51 +423,28 @@
             font-weight: 700;
         }
 
+        .icon-btn {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            transition: 0.2s;
+            padding: 5px;
+        }
+
         .icon-btn:hover {
             transform: scale(1.2);
-        }
-
-        .trap-action-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr 1fr 2fr 40px;
-            gap: 10px;
-            margin-bottom: 10px;
-            align-items: center;
-            background: #f8fafc;
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-        }
-
-        .trap-action-row input, .trap-action-row select {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            font-size: 13px;
-            box-sizing: border-box;
-        }
-
-        .trap-action-header {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr 1fr 2fr 40px;
-            gap: 10px;
-            margin-bottom: 5px;
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--text-muted);
-            padding: 0 10px;
         }
 
         .add-trap-btn {
             background-color: var(--light-blue);
             color: var(--primary-blue);
             border: 1px dashed var(--primary-blue);
-            padding: 8px 12px;
+            padding: 10px 12px;
             border-radius: 6px;
             cursor: pointer;
             font-weight: 600;
-            font-size: 13px;
+            font-size: 14px;
             width: 100%;
             margin-bottom: 15px;
             transition: 0.2s;
@@ -513,7 +492,6 @@
                 <button class="logout-btn" onclick="logout()">Logout</button>
             </div>
         </div>
-
 
         <div class="grid-container">
             <!-- Left: Traps Table -->
@@ -580,7 +558,9 @@
                         <button class="manage-btn" onclick="openNodesManager()"
                             style="background-color: var(--light-blue); color: var(--primary-blue); border-color: #bfdbfe;">📡
                             View Network Elements</button>
-                        <button class="manage-btn" onclick="window.location.href='ai-insights.html'" style="background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(139,92,246,0.1)); color: #4338ca; border-color: #c7d2fe;">✨ View AI Insights</button>
+                        <button class="manage-btn" onclick="window.location.href = 'ai-insights.html'"
+                            style="background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(139,92,246,0.1)); color: #4338ca; border-color: #c7d2fe;">✨
+                            View AI Insights</button>
 
                         <!-- Visible to ADMIN ONLY -->
                         <button class="success-btn admin-only-item" onclick="openModal('addNodeModal')">+ Add New
@@ -630,6 +610,7 @@
         </div>
     </div>
 
+    <!-- Add Node Modal -->
     <div id="addNodeModal" class="modal">
         <div class="modal-content modal-large">
             <div class="modal-header">
@@ -637,8 +618,10 @@
             </div>
             <form onsubmit="submitAddNode(event)">
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                    <div class="form-group"><label>Node Name</label><input type="text" id="newNodeName" placeholder="e.g. Cairo_BTS" required></div>
-                    <div class="form-group"><label>IP Address</label><input type="text" id="newNodeIp" placeholder="e.g. 10.0.0.5" required></div>
+                    <div class="form-group"><label>Node Name</label><input type="text" id="newNodeName"
+                            placeholder="e.g. Cairo_BTS" required></div>
+                    <div class="form-group"><label>IP Address</label><input type="text" id="newNodeIp"
+                            placeholder="e.g. 10.0.0.5" required></div>
                     <div class="form-group">
                         <label>Node Type</label>
                         <select id="newNodeType" required>
@@ -651,21 +634,11 @@
                 </div>
 
                 <div style="margin-top: 15px; border-top: 1px solid var(--border-color); padding-top: 15px;">
-                    <h4 style="margin-top: 0; color: var(--primary-blue);">Trap Actions (Solutions)</h4>
-                    <div class="form-group">
-                        <label>Load Template</label>
-                        <div style="display: flex; gap: 10px;">
-                            <select id="addNodeTemplateSelect" style="flex-grow: 1;">
-                                <option value="">Select a template...</option>
-                            </select>
-                            <button type="button" class="primary-btn" style="width: auto;" onclick="applyTrapTemplate('addNodeTrapsContainer', 'addNodeTemplateSelect')">Load</button>
-                        </div>
-                    </div>
-                    <div class="trap-action-header">
-                        <span>Trap OID</span><span>Trap Name</span><span>Severity</span><span>Action Type</span><span>Target Payload</span><span></span>
-                    </div>
-                    <div id="addNodeTrapsContainer" style="max-height: 200px; overflow-y: auto; margin-bottom: 10px;"></div>
-                    <button type="button" class="add-trap-btn" onclick="addTrapRow('addNodeTrapsContainer')">+ Add Custom Trap Action</button>
+                    <h4 style="margin-top: 0; color: var(--primary-blue);">Trap Actions (Solutions Rules)</h4>
+                    <div id="addNodeTrapsContainer"
+                        style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 15px;"></div>
+                    <button type="button" class="add-trap-btn" onclick="addTrapRow('addNodeTrapsContainer')">➕ Add
+                        Action Rule</button>
                 </div>
 
                 <button type="submit" class="success-btn">Register Node</button>
@@ -696,21 +669,11 @@
                 </div>
 
                 <div style="margin-top: 15px; border-top: 1px solid var(--border-color); padding-top: 15px;">
-                    <h4 style="margin-top: 0; color: var(--primary-blue);">Trap Actions (Solutions)</h4>
-                    <div class="form-group">
-                        <label>Load Template</label>
-                        <div style="display: flex; gap: 10px;">
-                            <select id="editNodeTemplateSelect" style="flex-grow: 1;">
-                                <option value="">Select a template...</option>
-                            </select>
-                            <button type="button" class="primary-btn" style="width: auto;" onclick="applyTrapTemplate('editNodeTrapsContainer', 'editNodeTemplateSelect')">Load</button>
-                        </div>
-                    </div>
-                    <div class="trap-action-header">
-                        <span>Trap OID</span><span>Trap Name</span><span>Severity</span><span>Action Type</span><span>Target Payload</span><span></span>
-                    </div>
-                    <div id="editNodeTrapsContainer" style="max-height: 200px; overflow-y: auto; margin-bottom: 10px;"></div>
-                    <button type="button" class="add-trap-btn" onclick="addTrapRow('editNodeTrapsContainer')">+ Add Custom Trap Action</button>
+                    <h4 style="margin-top: 0; color: var(--primary-blue);">Trap Actions (Solutions Rules)</h4>
+                    <div id="editNodeTrapsContainer"
+                        style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 15px;"></div>
+                    <button type="button" class="add-trap-btn" onclick="addTrapRow('editNodeTrapsContainer')">➕ Add
+                        Action Rule</button>
                 </div>
 
                 <button type="submit" class="success-btn">Save Changes</button>
@@ -765,7 +728,7 @@
         </div>
     </div>
 
-    <!-- Edit User Modal (Unified) -->
+    <!-- Edit User Modal -->
     <div id="editUserModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -800,6 +763,17 @@
         let refreshInterval = null;
         let nodesMap = {};
         let currentUser = null;
+
+        // Hardcoded standard Emulator Traps so admin doesn't memorize OIDs
+        const EMULATOR_TRAPS = [
+            { oid: '1.3.6.1.4.1.99999.0.1', name: 'Disk Full' },
+            { oid: '1.3.6.1.4.1.99999.0.2', name: 'Power Failure' },
+            { oid: '1.3.6.1.4.1.99999.0.3', name: 'Link Down' },
+            { oid: '1.3.6.1.4.1.99999.0.4', name: 'Congestion' },
+            { oid: '1.3.6.1.4.1.99999.0.5', name: 'High Temperature' },
+            { oid: '1.3.6.1.4.1.99999.0.6', name: 'Memory Exhaustion' },
+            { oid: '1.3.6.1.4.1.99999.0.7', name: 'Configuration Error' }
+        ];
 
         if (jwtToken)
             showDashboard();
@@ -874,7 +848,7 @@
         async function fetchWithAuth(url, options = {}) {
             let headers = options.headers || {};
             headers['Authorization'] = 'Bearer ' + jwtToken;
-            if (!headers['Content-Type'] && options.body)
+            if (!headers['Content-Type'] && options.body && !(options.body instanceof FormData))
                 headers['Content-Type'] = 'application/json';
             options.headers = headers;
             let response = await fetch(url, options);
@@ -886,50 +860,63 @@
         }
 
         async function syncAll() {
-            if (!jwtToken)
-                return;
+            if (!jwtToken) return;
             try {
-                // Nodes
+                // 1. Fetch and render Nodes
                 let nRes = await fetchWithAuth('/api/nodes');
                 let nodes = await nRes.json();
                 let nBody = document.getElementById('nodesListBody');
-                if (nBody)
-                    nBody.innerHTML = '';
+                if (nBody) nBody.innerHTML = '';
                 nodesMap = {};
+
                 nodes.forEach(n => {
                     nodesMap[n.ipAddress] = n.name;
                     let editBtn = (currentUser && currentUser.role === 'ADMIN') ? `<td><button class="icon-btn" style="color:var(--primary-blue);" onclick="openEditNode(${n.id}, '${n.name}', '${n.ipAddress}', '${n.nodeType}')">✏️</button></td>` : '';
-
                     let formattedDate = new Date(n.createdAt).toLocaleString();
 
-                    if (nBody) nBody.innerHTML += `<tr><td style="color:var(--primary-blue); font-weight:700;">${n.name} <br><span style="font-size:13px; color:var(--text-muted);">${n.nodeType}</span></td><td class="code-font" style="font-size: 15px;">${n.ipAddress}</td><td><span class="status-badge ${n.status === 'UP' ? 'status-in' : 'status-out'}">${n.status}</span></td><td style="font-size:13px; color:var(--text-muted)">${formattedDate}</td>${editBtn}</tr>`;
+                    // حل مشكلة ألوان الحالات (Dynamic Badges)
+                    let badgeClass = 'status-in'; // Default Green (UP)
+                    if (n.status === 'DOWN') {
+                        badgeClass = 'status-out'; // Red
+                    } else if (n.status === 'WARNING' || n.status === 'UNKNOWN') {
+                        badgeClass = 'status-warn'; // Yellow/Orange
+                    }
+
+                    if (nBody) nBody.innerHTML += `<tr><td style="color:var(--primary-blue); font-weight:700;">${n.name} <br><span style="font-size:13px; color:var(--text-muted);">${n.nodeType}</span></td><td class="code-font" style="font-size: 15px;">${n.ipAddress}</td><td><span class="status-badge ${badgeClass}">${n.status}</span></td><td style="font-size:13px; color:var(--text-muted)">${formattedDate}</td>${editBtn}</tr>`;
                 });
 
-                // Traps
+                if (document.getElementById('searchNodesList')) {
+                    filterTable('searchNodesList', 'nodesListBody');
+                }
+
+                // 2. Fetch and render Traps
                 let tRes = await fetchWithAuth('/api/traps');
                 let traps = await tRes.json();
                 let tBody = document.getElementById('trapsTableBody');
                 tBody.innerHTML = '';
-                if (traps.length === 0)
-                    tBody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No alarms.</td></tr>';
+
+                if (traps.length === 0) tBody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No alarms.</td></tr>';
+
                 traps.forEach(t => {
                     let btn = t.status === 'OPEN' ? `<button class="danger-btn" onclick="resolveTrap(${t.id}, event)">Resolve</button>` : `<span style="color:var(--text-muted); font-size:12px;">✓ Resolved</span>`;
                     let name = nodesMap[t.sourceIp] || "Unknown Node";
                     let msg = t.message || t.trapOid;
-
                     let time = new Date(t.receivedAt).toLocaleString();
                     let resName = t.resolvedByUsername || "System";
                     let resTime = t.resolvedAt ? new Date(t.resolvedAt).toLocaleString() : "";
 
                     tBody.innerHTML += `<tr class="clickable-row" onclick="showTrapDetails('${name}', '${t.sourceIp}', '${msg}', '${t.status}', '${time}', '${resName}', '${resTime}')">
-    <td><div style="color:var(--primary-blue); font-weight:700;">${name}</div><div class="code-font" style="font-size:13px;">${t.sourceIp}</div></td>
-    <td style="font-weight:700;">${msg} <br><span style="font-size:13px; color:var(--text-muted);">${time}</span></td>
-    <td><span class="status-badge ${t.status === 'OPEN' ? 'status-out' : 'status-in'} trap-status-text">${t.status}</span></td>
-    <td>${btn}</td></tr>`;
+                        <td><div style="color:var(--primary-blue); font-weight:700;">${name}</div><div class="code-font" style="font-size:13px;">${t.sourceIp}</div></td>
+                        <td style="font-weight:700;">${msg} <br><span style="font-size:13px; color:var(--text-muted);">${time}</span></td>
+                        <td><span class="status-badge ${t.status === 'OPEN' ? 'status-out' : 'status-in'} trap-status-text">${t.status}</span></td>
+                        <td>${btn}</td></tr>`;
                 });
+
+                // Re-apply Traps search filter
                 filterTraps();
+
             } catch (e) {
-                console.error(e);
+                console.error("Sync Error:", e);
             }
         }
 
@@ -940,93 +927,158 @@
             syncAll();
         }
 
-        let trapTemplates = [];
-        let actionTypes = [];
-
-        async function loadTrapTemplates() {
-            try {
-                let res = await fetchWithAuth('/api/trap-templates');
-                trapTemplates = await res.json();
-                populateTemplateDropdowns();
-                
-                let res2 = await fetchWithAuth('/api/action-types');
-                actionTypes = await res2.json();
-                populateActionTypesDatalist();
-            } catch (e) { console.error("Error loading templates", e); }
-        }
-
-        function populateActionTypesDatalist() {
-            let dl = document.getElementById('actionTypesList');
-            if(!dl) {
-                dl = document.createElement('datalist');
-                dl.id = 'actionTypesList';
-                document.body.appendChild(dl);
-            }
-            dl.innerHTML = '';
-            // Add default if missing
-            if(!actionTypes.includes('SCRIPT')) dl.innerHTML += `<option value="SCRIPT">`;
-            if(!actionTypes.includes('EMAIL')) dl.innerHTML += `<option value="EMAIL">`;
-            actionTypes.forEach(t => {
-                dl.innerHTML += `<option value="${t}">`;
-            });
-        }
-
-        function populateTemplateDropdowns() {
-            let html = '<option value="">Select a template...</option>';
-            trapTemplates.forEach((t, index) => {
-                html += `<option value="${index}">${t.trapName} (${t.trapOid}) - ${t.severity}</option>`;
-            });
-            document.getElementById('addNodeTemplateSelect').innerHTML = html;
-            document.getElementById('editNodeTemplateSelect').innerHTML = html;
-        }
-
-        function applyTrapTemplate(containerId, selectId) {
-            let sel = document.getElementById(selectId);
-            if(sel.value === '') return;
-            let tmpl = trapTemplates[sel.value];
-            addTrapRow(containerId, tmpl);
-            sel.value = ''; // reset
-        }
-
+        // --- Dynamic Trap Row Construction ---
         function addTrapRow(containerId, data = null) {
             let container = document.getElementById(containerId);
             let row = document.createElement('div');
             row.className = 'trap-action-row';
-            
-            let oid = data ? data.trapOid : '';
+            row.style.cssText = 'display: flex; flex-direction: column; gap: 15px; border: 1px solid var(--border-color); padding: 15px; background: #f8fafc; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);'; let oid = data ? data.trapOid : '';
             let name = data ? data.trapName : '';
             let severity = data ? data.severity : 'INFO';
-            let actionType = data ? data.actionType : '';
-            let payload = data ? (data.targetPayload || '') : '';
-            let isScript = actionType.toUpperCase() === 'SCRIPT';
+            let actionType = data ? data.actionType : ''; let payload = data ? (data.targetPayload || '') : '';
+            let autoResolve = data ? data.autoResolve : false;
+            // Determine if it's a known Emulator Trap or Custom
+            let isCustom = true;
+            let trapSelectValue = 'CUSTOM';
+            if (oid) {
+                let found = EMULATOR_TRAPS.find(t => t.oid === oid);
+                if (found) {
+                    isCustom = false;
+                    trapSelectValue = oid + '|' + name;
+                }
+            }
 
+            // Build Options
+            let trapOptions = `<option value="">-- Select Hardware Alarm --</option>`;
+            EMULATOR_TRAPS.forEach(t => {
+                let val = t.oid + '|' + t.name;
+                let selected = (trapSelectValue === val) ? 'selected' : '';
+                trapOptions += `<option value="${val}" ${selected}>${t.name}</option>`;
+            });
+            trapOptions += `<option value="CUSTOM" ${trapSelectValue === 'CUSTOM' ? 'selected' : ''}>➕ Add Custom Hardware Trap</option>`;
             row.innerHTML = `
-                <input type="text" placeholder="OID (e.g. 1.3.6...)" value="${oid}" class="t-oid" required>
-                <input type="text" placeholder="Trap Name" value="${name}" class="t-name" required>
-                <select class="t-sev">
-                    <option value="INFO" ${severity==='INFO'?'selected':''}>INFO</option>
-                    <option value="MINOR" ${severity==='MINOR'?'selected':''}>MINOR</option>
-                    <option value="MAJOR" ${severity==='MAJOR'?'selected':''}>MAJOR</option>
-                    <option value="CRITICAL" ${severity==='CRITICAL'?'selected':''}>CRITICAL</option>
-                </select>
-                <input type="text" placeholder="Action Type" list="actionTypesList" value="${actionType}" class="t-atype" oninput="toggleScriptUpload(this)" required>
-                <div style="display:flex; gap:5px; width: 100%;">
-                    <input type="text" placeholder="Target Payload" value="${payload}" class="t-payload" required style="flex-grow:1;">
-                    <button type="button" class="primary-btn t-upload-btn" style="display:${isScript ? 'block' : 'none'}; padding:4px 8px; width:auto; font-size:11px;" onclick="this.nextElementSibling.click()">Upload</button>
-                    <input type="file" style="display:none;" onchange="uploadScriptFile(this)">
-                </div>
-                <button type="button" class="icon-btn" style="color:var(--danger-red);" onclick="this.parentElement.remove()">🗑️</button>
-            `;
+                    <div style="display: flex; justify-content: space-between; font-weight: bold; color: var(--primary-blue); font-size: 14px;">
+                        <span>⚙️ Alarm Rule Definition</span>
+                        <button type="button" class="danger-btn" style="padding: 4px 10px; font-size: 12px; height: 26px;" onclick="this.closest('.trap-action-row').remove()">🗑️ Remove</button>
+                    </div>
+
+                    <!-- 1. Trap Selection -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div>
+                            <label>Hardware Alarm (Trap)</label>
+                            <select class="t-trap-select" onchange="toggleCustomTrap(this)" required style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border-color);">
+                                ${trapOptions}
+                            </select>
+                        </div>
+                        <div>
+                            <label>Severity</label>
+                            <select class="t-sev" required style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border-color);">
+                                <option value="INFO" ${severity === 'INFO' ? 'sel ect ed' : ''}>INFO</option>
+                                <option value="MINOR" ${severity === 'MINOR' ? ' sel ected' : ''}>MINOR</option>
+                                <option value="MAJOR" ${severity === 'MAJOR' ? 's elected' : ''}>MAJOR</option>
+                                <option value="CRITICAL" ${severity === 'CRIT ICA L' ? 'selected' : ''}>CRITICAL</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Custom Trap Inputs -->
+                    <div class="custom-trap-inputs" style="display: ${isCustom && data ? 'grid' : 'none'}; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div>
+                            <label>Custom OID (From Vendor Manual)</label>
+                            <input type="text" class="t-oid" placeholder="e.g. 1.3.6.1.4.1..." value="${isCustom ? oid : ''}" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border-color); box-sizing: border-box;">
+                        </div>
+                        <div>
+                            <label>Custom Alarm Name</label>
+                            <input type="text" class="t-name" placeholder="e.g. Fiber Cut" value="${isCustom ? name : ''}" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border-color); box-sizing: border-box;">
+                        </div>
+                    </div>
+
+                    <!-- 2. Action Selection -->
+                    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 15px; align-items: start;">
+                        <div>
+                            <label>Automated Action</label>
+                            <select class="t-atype" onchange="toggleActionInputs(this)" required style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border-color);">
+                                <option value="">-- Select Action --</option>
+                                <option value="SMS" ${actionType === 'SM S' ? 'selected' : ''}>📱 Send SMS</option>
+                                <option value="EMAIL" ${actionType === ' EMA IL' ? 'selected' : ''}>✉️ Send Email</option>
+                                <option value="SCRIPT" ${actionType === 'S CRIPT' ? 'selected' : ''}>🛠️ Run Server Script</option>
+                            </select>
+                        </div>
+
+                        <!-- Dynamic Input Area -->
+                        <div class="action-dynamic-area">
+                            <!-- Shown for SMS / EMAIL -->
+                            <div class="target-input-wrapper" style="display: ${['SMS', ' EMAIL'].includes(actionType) ? 'block' : 'none'};">
+                                <label class="target-label">${actionType === 'EMAIL' ? 'Target Email Address' : 'Target Phone Number'}</label>
+                                <input type="text" class="t-payload-text" placeholder="Enter recipient..." value="${['SMS', 'EMAIL'].includes(actionType) ? payload : ''}" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border-color); box-sizing: border-box;">
+                            </div>
+
+                            <!-- Shown for SCRIPT -->
+                            <div class="script-upload-wrapper" style="display: ${actionType === 'SCRIPT' ? 'block' : 'none'};">
+                                <label>Script File (.sh, .py, etc.)</label>
+                                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                                    <input type="text" class="t-payload-script" placeholder="No file selected..." value="${actionType === 'SCRIPT' ? payload : ''}" readonly style="background: #e2e8f0; width:100%; padding:10px; border-radius:8px; border:1px solid var(--border-color); box-sizing: border-box;">
+                                    <button type="button" class="primary-btn t-upload-btn" style="width: auto; padding: 10px 15px;" onclick="this.nextElementSibling.click()">Browse</button>
+                                    <input type="file" style="display: none;" onchange="uploadScriptFile(this)">
+                                </div>
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--primary-blue); font-weight: 700; font-size: 13px;">
+                                    <input type="checkbox" class="t-autoresolve" style="width: 16px; height: 16px;" ${autoResolve ? 'checked' : ''}>
+                                    Auto-Resolve Alarm on Success
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                `;
             container.appendChild(row);
         }
 
-        function toggleScriptUpload(inputElem) {
-            let row = inputElem.closest('.trap-action-row');
-            let uploadBtn = row.querySelector('.t-upload-btn');
-            if (inputElem.value.toUpperCase() === 'SCRIPT') {
-                uploadBtn.style.display = 'block';
+        function toggleCustomTrap(selectElem) {
+            let row = selectElem.closest('.trap-action-row');
+            let customInputs = row.querySelector('.custom-trap-inputs');
+            let oidInput = row.querySelector('.t-oid');
+            let nameInput = row.querySelector('.t-name');
+            if (selectElem.value === 'CUSTOM') {
+                customInputs.style.display = 'grid';
+                oidInput.required = true;
+                nameInput.required = true;
             } else {
-                uploadBtn.style.display = 'none';
+                customInputs.style.display = 'none';
+                oidInput.required = false;
+                nameInput.required = false;
+            }
+        }
+
+        function toggleActionInputs(selectElem) {
+            let row = selectElem.closest('.trap-action-row');
+            let actionType = selectElem.value;
+            let textWrapper = row.querySelector('.target-input-wrapper');
+            let scriptWrapper = row.querySelector('.script-upload-wrapper');
+            let targetLabel = row.querySelector('.target-label');
+            let textInput = row.querySelector('.t-payload-text');
+            let scriptInput = row.querySelector('.t-payload-script');
+
+            if (actionType === 'SMS') {
+                textWrapper.style.display = 'block';
+                scriptWrapper.style.display = 'none';
+                targetLabel.innerText = 'Target Phone Number';
+                textInput.required = true;
+                scriptInput.required = false;
+            } else if (actionType === 'EMAIL') {
+                textWrapper.style.display = 'block';
+                scriptWrapper.style.display = 'none';
+                targetLabel.innerText = 'Target Email Address';
+                textInput.required = true;
+                scriptInput.required = false;
+            } else if (actionType === 'SCRIPT') {
+                textWrapper.style.display = 'none';
+                scriptWrapper.style.display = 'block';
+                textInput.required = false;
+                scriptInput.required = true;
+            } else {
+                textWrapper.style.display = 'none';
+                scriptWrapper.style.display = 'none';
+                textInput.required = false;
+                scriptInput.required = false;
             }
         }
 
@@ -1034,30 +1086,30 @@
             if (!fileInput.files.length) return;
             let formData = new FormData();
             formData.append("file", fileInput.files[0]);
-            
+
             let row = fileInput.closest('.trap-action-row');
-            let payloadInput = row.querySelector('.t-payload');
+            let payloadInput = row.querySelector('.t-payload-script');
             let uploadBtn = row.querySelector('.t-upload-btn');
             uploadBtn.innerText = 'Uploading...';
-            
+
             try {
-                let res = await fetch('/api/upload-script', {
+                let res = await fetchWithAuth('/api/upload-script', {
                     method: 'POST',
-                    headers: { 'Authorization': 'Bearer ' + jwtToken },
-                    body: formData
+                    body: formData // Let browser set multipart/form-data content type
                 });
                 if (res.ok) {
                     let data = await res.json();
-                    payloadInput.value = data.filePath;
+                    // Server returns just the filename now
+                    payloadInput.value = data.fileName;
                     uploadBtn.innerText = 'Uploaded ✓';
-                    setTimeout(() => uploadBtn.innerText = 'Upload', 2000);
+                    setTimeout(() => uploadBtn.innerText = 'Browse', 2000);
                 } else {
                     alert("File upload failed!");
-                    uploadBtn.innerText = 'Upload';
+                    uploadBtn.innerText = 'Browse';
                 }
             } catch (e) {
                 alert("Error uploading script.");
-                uploadBtn.innerText = 'Upload';
+                uploadBtn.innerText = 'Browse';
             }
         }
 
@@ -1065,14 +1117,43 @@
             let container = document.getElementById(containerId);
             let rows = container.getElementsByClassName('trap-action-row');
             let actions = [];
-            for(let row of rows) {
+            for (let row of rows) {
+                let trapSelect = row.querySelector('.t-trap-select').value;
+                let oid, name;
+
+                if (trapSelect === 'CUSTOM') {
+                    oid = row.querySelector('.t-oid').value;
+                    name = row.querySelector('.t-name').value;
+                } else if (trapSelect !== '') {
+                    let parts = trapSelect.split('|');
+                    oid = parts[0];
+                    name = parts[1];
+                } else {
+                    continue; // Skip invalid row
+                }
+
+                let severity = row.querySelector('.t-sev').value;
+                let actionType = row.querySelector('.t-atype').value;
+
+                let targetPayload = '';
+                if (actionType === 'SCRIPT') {
+                    targetPayload = row.querySelector('.t-payload-script').value;
+                } else {
+                    targetPayload = row.querySelector('.t-payload-text').value;
+                }
+
+                let autoResolve = false;
+                if (actionType === 'SCRIPT') {
+                    autoResolve = row.querySelector('.t-autoresolve').checked;
+                }
+
                 actions.push({
-                    trapOid: row.querySelector('.t-oid').value,
-                    trapName: row.querySelector('.t-name').value,
-                    severity: row.querySelector('.t-sev').value,
-                    actionType: row.querySelector('.t-atype').value,
-                    targetPayload: row.querySelector('.t-payload').value,
-                    autoResolve: false
+                    trapOid: oid,
+                    trapName: name,
+                    severity: severity,
+                    actionType: actionType,
+                    targetPayload: targetPayload,
+                    autoResolve: autoResolve
                 });
             }
             return actions;
@@ -1081,9 +1162,9 @@
         // --- Node APIs ---
         async function submitAddNode(e) {
             e.preventDefault();
-            let body = { 
-                name: document.getElementById('newNodeName').value, 
-                ipAddress: document.getElementById('newNodeIp').value, 
+            let body = {
+                name: document.getElementById('newNodeName').value,
+                ipAddress: document.getElementById('newNodeIp').value,
                 nodeType: document.getElementById('newNodeType').value,
                 trapActions: getTrapActions('addNodeTrapsContainer')
             };
@@ -1097,7 +1178,7 @@
             document.getElementById('editNodeName').value = name;
             document.getElementById('editNodeIp').value = ip;
             document.getElementById('editNodeType').value = type || 'BTS';
-            
+
             document.getElementById('editNodeTrapsContainer').innerHTML = '';
             try {
                 let res = await fetchWithAuth(`/api/nodes/${id}/trapActions`);
@@ -1112,9 +1193,9 @@
         async function submitEditNode(e) {
             e.preventDefault();
             let id = document.getElementById('editNodeId').value;
-            let body = { 
-                name: document.getElementById('editNodeName').value, 
-                ipAddress: document.getElementById('editNodeIp').value, 
+            let body = {
+                name: document.getElementById('editNodeName').value,
+                ipAddress: document.getElementById('editNodeIp').value,
                 nodeType: document.getElementById('editNodeType').value,
                 trapActions: getTrapActions('editNodeTrapsContainer')
             };
@@ -1134,8 +1215,7 @@
                 let isMe = u.id === currentUser.userId;
 
                 let actions = `<button class="icon-btn" style="color:var(--primary-blue);" onclick="openAdminEditUser(${u.id}, '${u.username}', '${u.role}')">✏️</button>`;
-                if (!isMe)
-                    actions += `<button class="icon-btn" style="color:var(--danger-red);" onclick="deleteUser(${u.id})">🗑️</button>`;
+                if (!isMe) actions += `<button class="icon-btn" style="color:var(--danger-red);" onclick="deleteUser(${u.id})">🗑️</button>`;
 
                 body.innerHTML += `<tr><td class="code-font">#${u.id}</td><td style="font-weight:700;">${u.username} ${isMe ? '<span style="color:var(--success-green); font-size:11px;">(You)</span>' : ''}</td><td><span class="status-badge ${badge}">${u.role}</span></td><td>${actions}</td></tr>`;
             });
@@ -1157,10 +1237,7 @@
                 openUsersManager();
             } else {
                 let data = await res.json().catch(() => ({ error: "Failed to create user." }));
-                if (errDiv) {
-                    errDiv.innerText = data.error;
-                    errDiv.style.display = 'block';
-                }
+                if (errDiv) { errDiv.innerText = data.error; errDiv.style.display = 'block'; }
             }
         }
 
@@ -1176,7 +1253,6 @@
             document.getElementById('editUserName').value = username;
             document.getElementById('editUserPass').value = '';
             document.getElementById('editUserRole').value = role;
-
             document.getElementById('editUserRoleWrapper').style.display = 'block';
 
             closeModal('usersListModal');
@@ -1194,7 +1270,6 @@
             } else {
                 document.getElementById('editUserRoleWrapper').style.display = 'block';
             }
-
             openModal('editUserModal');
         }
 
@@ -1218,15 +1293,11 @@
                     alert('Your profile was updated. Please login again.');
                     logout();
                 } else {
-                    if (currentUser.role === 'ADMIN')
-                        openUsersManager();
+                    if (currentUser.role === 'ADMIN') openUsersManager();
                 }
             } else {
                 let data = await res.json().catch(() => ({ error: "Failed to update user." }));
-                if (errDiv) {
-                    errDiv.innerText = data.error;
-                    errDiv.style.display = 'block';
-                }
+                if (errDiv) { errDiv.innerText = data.error; errDiv.style.display = 'block'; }
             }
         }
 
@@ -1235,13 +1306,10 @@
             syncAll().then(() => openModal('nodesListModal'));
         }
         function openModal(id) {
-            if(id === 'addNodeModal') {
+            if (id === 'addNodeModal') {
                 document.getElementById('addNodeTrapsContainer').innerHTML = '';
                 document.getElementById('newNodeName').value = '';
                 document.getElementById('newNodeIp').value = '';
-                loadTrapTemplates();
-            } else if (id === 'editNodeModal') {
-                loadTrapTemplates();
             }
             document.getElementById(id).style.display = 'flex';
         }
@@ -1254,8 +1322,7 @@
             let status = document.getElementById('statusFilter').value;
             let trs = document.getElementById('trapsTableBody').getElementsByTagName('tr');
             for (let i = 0; i < trs.length; i++) {
-                if (trs[i].getElementsByTagName('td').length === 1)
-                    continue;
+                if (trs[i].getElementsByTagName('td').length === 1) continue;
                 let matchSearch = trs[i].textContent.toLowerCase().includes(txt);
                 let matchStatus = (status === 'ALL' || trs[i].querySelector('.trap-status-text').textContent === status);
                 trs[i].style.display = (matchSearch && matchStatus) ? "" : "none";
