@@ -110,8 +110,10 @@ public java.util.List<TrapHistory> findAll() throws SQLException {
         String sql = "UPDATE trap_history SET status = 'RESOLVED'::trap_status, resolved_at = CURRENT_TIMESTAMP, resolved_by = ? WHERE id = ?";
         try (Connection conn = databaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setLong(1, userId);
+            
+            setNullableLong(ps, 1, userId); 
             ps.setLong(2, trapId);
+            
             return ps.executeUpdate() > 0;
         }
     }

@@ -14,7 +14,6 @@
             margin: 0;
             padding: 20px;
             direction: ltr;
-            /* Set direction to Left-to-Right */
         }
 
         /* Main Container */
@@ -48,6 +47,7 @@
             border-radius: 8px;
             text-align: center;
             margin-bottom: 40px;
+            overflow-x: auto;
         }
 
         /* Table Styling */
@@ -63,7 +63,6 @@
             padding: 15px;
             border: 1px solid #e0e6ed;
             text-align: left;
-            /* Aligned left for English text */
         }
 
         th {
@@ -126,10 +125,11 @@
         <!-- Mermaid code for Entity-Relationship Diagram -->
         <div class="mermaid-wrapper">
             <div class="mermaid">
+                %%{init: {'theme':'default', 'er': {'layoutDirection': 'LR'}}}%%
                 erDiagram
                 NODES ||--o{ TRAP_ACTIONS : "Configures"
-                TRAP_ACTIONS ||--o{ TRAP_HISTORY : "Triggers"
                 NODES ||--o{ TRAP_HISTORY : "Generates"
+                TRAP_ACTIONS ||--o{ TRAP_HISTORY : "Triggers"
                 USERS ||--o{ TRAP_HISTORY : "Resolves"
 
                 USERS {
@@ -338,7 +338,7 @@
             <tr>
                 <td>action_type</td>
                 <td>VARCHAR(20)</td>
-                <td>NULL</td>
+                <td>NOT NULL</td>
                 <td>The type of automated response to execute ('SMS', 'EMAIL', 'SCRIPT').</td>
             </tr>
             <tr>
