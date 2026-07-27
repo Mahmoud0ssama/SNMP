@@ -16,6 +16,8 @@ import com.snmp.manager.util.EmailNotifier;
 
 import java.sql.SQLException;
 import java.util.Optional;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /* 
  * Coordinates the DAOs to locate the originating node and trap definition,
@@ -38,14 +40,6 @@ public class TrapService {
         this.nodeService = nodeService;
     }
 
-    /**
-     * Processes a received trap end to end.
-     *   Locate the sending node by source IP, or auto-register if unknown.
-     *   Locate the trap definition by OID.
-     *   Persist a trap history record
-     *   Update the node status based on severity.
-     *   Execute any configured action (e.g. run a script).
-     */
     public void process(TrapEvent event) throws SQLException {
         if (event == null) {
             throw new IllegalArgumentException("event must not be null");
@@ -69,36 +63,64 @@ public class TrapService {
         TrapAction action = actionOpt.orElse(null);
 
         TrapHistory history = buildHistory(event, node, action);
-        trapHistoryDAO.save(history);
+        trapHistoryDAO.save(history); // Save method sets the auto-generated ID inside the history object
 
         NodeStatus newStatus = resolveStatus(action);
         nodeService.updateStatus(node, newStatus);
 
-        executeAction(action, event);
+        executeAction(action, event, history);
     }
 
-    private void executeAction(TrapAction action, TrapEvent event) {
+    private void executeAction(TrapAction action, TrapEvent event, TrapHistory history) {
         if (action == null || action.getActionType() == null) {
             return;
         }
-        switch (action.getActionType().toLowerCase()) {
-            case "script" -> {
-                String scriptPath = action.getTargetPayload();
-                if (scriptPath == null || scriptPath.isBlank()) {
+        
+        boolean actionSuccess = false; 
+
+        switch (action.getActionType().toUpperCase()) {
+            case "SCRIPT" -> {
+                String fileName = action.getTargetPayload();
+                if (fileName == null || fileName.isBlank()) {
                     System.err.println("Script action defined but target_payload is empty for trap OID: " + event.getTrapOid());
                     return;
                 }
-                ScriptExecutor.ExecutionResult result = ScriptExecutor.execute(scriptPath);
+                
+                // Dynamically resolve the absolute path to the scripts directory
+                Path currentDir = Paths.get(System.getProperty("user.dir"));
+                Path scriptDir;
+                if (currentDir.getFileName().toString().equals("snmp-server")) {
+                    scriptDir = currentDir.resolveSibling("scripts");
+                } else {
+                    scriptDir = currentDir.resolve("scripts");
+                }
+                
+                Path fullScriptPath = scriptDir.resolve(fileName).normalize();
+                
+                ScriptExecutor.ExecutionResult result = ScriptExecutor.execute(fullScriptPath.toString());
                 if (result.success()) {
-                    System.out.println("Script executed successfully: " + scriptPath);
+                    System.out.println("Script executed successfully: " + fullScriptPath.toString());
+                    actionSuccess = true; 
                 } else {
                     System.err.println("Script execution failed: " + result.message());
                 }
             }
-            case "sms" -> { sendSms(action, event); }
-            case "email" -> { sendEmail(action, event); }
+            case "SMS" -> { sendSms(action, event); actionSuccess = true; }
+            case "EMAIL" -> { sendEmail(action, event); actionSuccess = true; }
             default ->
                 System.out.println("Unknown action type '" + action.getActionType() + "' for trap OID: " + event.getTrapOid());
+        }
+
+        // --- Auto Resolve Logic ---
+        // If action succeeded and auto_resolve is enabled for this action
+        if (actionSuccess && action.isAutoResolve()) {
+            try {
+                // Pass null for user ID since the SYSTEM resolved the issue automatically
+                trapHistoryDAO.resolveTrap(history.getId(), null);
+                System.out.println("System Auto-Resolved trap history ID: " + history.getId());
+            } catch (SQLException e) {
+                System.err.println("Failed to auto-resolve trap: " + e.getMessage());
+            }
         }
     }
 
