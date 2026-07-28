@@ -28,3 +28,4 @@ snmp-server/PROJECT.md
 # OS
 .DS_Store
 gemini_api_key.txt
+nbactions.xml

@@ -333,6 +333,66 @@ public class Main {
             nodeService.updateNode(targetId, req.name, req.ipAddress, req.nodeType, actions);
             ctx.json(Map.of("status", "success"));
         });
+        
+        // --- FORCE EXECUTE API ---
+        app.post("/api/traps/{id}/force-execute", ctx -> {
+            DecodedJWT jwt = ctx.attribute("jwt");
+            Long trapId = Long.parseLong(ctx.pathParam("id"));
+            Long userId = jwt.getClaim("userId").asLong();
+
+            DatabaseConnection db = DatabaseConnection.fromResource();
+            try (java.sql.Connection conn = db.getConnection()) {
+                String sql = "SELECT trap_action_id, message FROM trap_history WHERE id = ?";
+                Long actionId = null;
+                String oldMessage = "";
+                try (java.sql.PreparedStatement ps = conn.prepareStatement(sql)) {
+                    ps.setLong(1, trapId);
+                    try (java.sql.ResultSet rs = ps.executeQuery()) {
+                        if (rs.next()) {
+                            actionId = rs.getLong("trap_action_id");
+                            oldMessage = rs.getString("message");
+                            if (rs.wasNull()) actionId = null;
+                        } else {
+                            ctx.status(404).result("Trap not found");
+                            return;
+                        }
+                    }
+                }
+
+                if (actionId == null) {
+                    ctx.status(400).result("No automated action associated with this trap");
+                    return;
+                }
+
+                TrapActionDAO actionDAO = new TrapActionDAO(db);
+                Optional<TrapAction> actionOpt = actionDAO.findById(actionId);
+                if (actionOpt.isEmpty() || !"SCRIPT".equalsIgnoreCase(actionOpt.get().getActionType())) {
+                    ctx.status(400).result("Action is not a script");
+                    return;
+                }
+
+                String scriptName = actionOpt.get().getTargetPayload();
+                
+                Path currentDir = Paths.get(System.getProperty("user.dir"));
+                Path scriptDir = currentDir.getFileName().toString().equals("snmp-server") ? currentDir.resolveSibling("scripts") : currentDir.resolve("scripts");
+                Path fullPath = scriptDir.resolve(scriptName).normalize();
+
+                com.snmp.manager.util.ScriptExecutor.ExecutionResult result = com.snmp.manager.util.ScriptExecutor.execute(fullPath.toString());
+
+                if (result.success()) {
+                    TrapHistoryDAO historyDAO = new TrapHistoryDAO(db);
+                    historyDAO.resolveTrap(trapId, userId); 
+                    
+                    String newMsg = oldMessage.replace("[AI BLOCKED:", "[AI OVERRIDDEN (Forced):");
+                    historyDAO.updateMessage(trapId, newMsg);
+
+                    ctx.json(Map.of("status", "success", "message", "Script force-executed successfully"));
+                } else {
+                    ctx.status(500).json(Map.of("error", result.message()));
+                }
+            }
+        });
+        
 
         app.start(8080);
 
@@ -352,7 +412,7 @@ public class Main {
         public void onTrapReceived(TrapEvent event) {
             try {
                 DatabaseConnection db = DatabaseConnection.fromResource();
-                new TrapService(new NodeDAO(db), new TrapActionDAO(db), new TrapHistoryDAO(db), new NodeService(new NodeDAO(db))).process(event);
+                new TrapService(new NodeDAO(db), new TrapActionDAO(db), new TrapHistoryDAO(db), new NodeService(new NodeDAO(db)), db).process(event);
             } catch (Exception e) {
                 System.err.println("Error processing Trap: " + e.getMessage());
             }
