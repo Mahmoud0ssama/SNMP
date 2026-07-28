@@ -5,6 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.snmp.manager.config.DatabaseConnection;
+import com.snmp.manager.model.Node;
+import com.snmp.manager.model.TrapAction;
+import java.util.List;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -116,6 +119,64 @@ public class AiAnalysisService {
         } catch (Exception e) {
             e.printStackTrace();
             return "Error communicating with AI service: " + e.getMessage();
+        }
+    }
+
+    // --- AI SAFETY GATE ---
+
+    public record AiSafetyVerdict(boolean isSafe, String reason) {}
+
+    /**
+     * Evaluates whether a proposed script action is safe to execute,
+     * based on the current state of all network nodes (Digital Twin snapshot).
+     */
+    public AiSafetyVerdict evaluateActionSafety(Node faultedNode, TrapAction action, List<Node> allNodes, String scriptContent) {
+        if (geminiApiKey == null || geminiApiKey.isEmpty()) {
+            return new AiSafetyVerdict(true, "AI Gate unavailable (no API key), allowing execution.");
+        }
+
+        // Build the Digital Twin snapshot from live node data
+        StringBuilder networkState = new StringBuilder();
+        for (Node n : allNodes) {
+            networkState.append("- ").append(n.getName())
+                .append(" (").append(n.getIpAddress()).append(") ")
+                .append("[").append(n.getNodeType() != null ? n.getNodeType() : "Unknown").append("] ")
+                .append("— Status: ").append(n.getStatus())
+                .append("\n");
+        }
+
+        String prompt = "You are a Telecom Network Safety AI Agent. "
+            + "Your ONLY job is to evaluate whether an automated action is safe to execute.\n\n"
+            + "CURRENT NETWORK STATE (Digital Twin):\n" + networkState + "\n"
+            + "FAULTED NODE: " + faultedNode.getName() + " (" + faultedNode.getIpAddress() + ")\n"
+            + "TRAP RECEIVED: " + action.getTrapName() + " (Severity: " + action.getSeverity() + ")\n"
+            + "PROPOSED ACTION: Auto-execute script \"" + action.getTargetPayload() + "\"\n\n"
+            + "SCRIPT CONTENTS:\n```bash\n" + scriptContent + "\n```\n\n"
+            + "QUESTION: Based on the network topology and the actual script contents, is it safe to execute this script automatically right now? "
+            + "Could it cause cascading failures, service outages, or affect other nodes?\n\n"
+            + "CRITICAL RULE: The reason MUST be EXTREMELY short (maximum 20 words). Do NOT provide a numbered list. Do NOT over-explain.\n\n"
+            + "RESPOND IN VALID JSON ONLY, nothing else: {\"isSafe\": false, \"reason\": \"<max 20 words>\"}";
+
+        try {
+            String response = callGeminiAPI(prompt);
+
+            // Smarter JSON extraction: find the first '{' and last '}'
+            String cleaned = response;
+            int start = cleaned.indexOf('{');
+            int end = cleaned.lastIndexOf('}');
+            if (start != -1 && end != -1 && end >= start) {
+                cleaned = cleaned.substring(start, end + 1);
+            }
+
+            JsonNode json = mapper.readTree(cleaned);
+            // FAIL-CLOSED DATA PARSING: If the 'isSafe' key is missing, misspelled, or not a boolean, default to FALSE (unsafe).
+            boolean isSafe = json.path("isSafe").asBoolean(false);
+            String reason = json.path("reason").asText("No reason provided");
+            return new AiSafetyVerdict(isSafe, reason);
+        } catch (Exception e) {
+            System.err.println("AI Safety Gate failed to parse response: " + e.getMessage());
+            // FAIL-CLOSED: block execution and explicitly state it was an AI system error
+            return new AiSafetyVerdict(false, "AI System Error: Could not parse response from Gemini (" + e.getMessage() + ")");
         }
     }
 }
