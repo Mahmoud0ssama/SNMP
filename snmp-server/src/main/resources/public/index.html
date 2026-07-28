@@ -890,11 +890,11 @@
                     let editBtn = (currentUser && currentUser.role === 'ADMIN') ? `<td><button class="icon-btn" style="color:var(--primary-blue);" onclick="openEditNode(${n.id}, '${n.name}', '${n.ipAddress}', '${n.nodeType}')">✏️</button></td>` : '';
                     let formattedDate = new Date(n.createdAt).toLocaleString();
 
-                    let badgeClass = 'status-in'; 
+                    let badgeClass = 'status-in';
                     if (n.status === 'DOWN') {
-                        badgeClass = 'status-out'; 
+                        badgeClass = 'status-out';
                     } else if (n.status === 'WARNING' || n.status === 'UNKNOWN') {
-                        badgeClass = 'status-warn'; 
+                        badgeClass = 'status-warn';
                     }
 
                     if (nBody) nBody.innerHTML += `<tr><td style="color:var(--primary-blue); font-weight:700;">${n.name} <br><span style="font-size:13px; color:var(--text-muted);">${n.nodeType}</span></td><td class="code-font" style="font-size: 15px;">${n.ipAddress}</td><td><span class="status-badge ${badgeClass}">${n.status}</span></td><td style="font-size:13px; color:var(--text-muted)">${formattedDate}</td>${editBtn}</tr>`;
@@ -915,25 +915,31 @@
                 traps.forEach(t => {
                     let btn = t.status === 'OPEN' ? `<button class="danger-btn" onclick="resolveTrap(${t.id}, event)">Resolve</button>` : `<span style="color:var(--text-muted); font-size:12px;">✓ Resolved</span>`;
                     let name = nodesMap[t.sourceIp] || "Unknown Node";
-                    let rawMsg = t.message || t.trapOid;
                     let time = new Date(t.receivedAt).toLocaleString();
                     let resName = t.resolvedByUsername || "System";
                     let resTime = t.resolvedAt ? new Date(t.resolvedAt).toLocaleString() : "";
 
                     // --- AI SAFETY UI LOGIC ---
+                    let rawMsg = t.message || t.trapOid; 
                     let displayMsg = rawMsg;
                     let badgeHtml = `<span class="status-badge ${t.status === 'OPEN' ? 'status-out' : 'status-in'} trap-status-text">${t.status}</span>`;
                     let isAiBlocked = rawMsg.includes('[AI BLOCKED:');
                     let aiReason = "";
                     let rowClass = "clickable-row";
 
-                    if (isAiBlocked && t.status === 'OPEN') {
+                    if (isAiBlocked) {
                         let match = rawMsg.match(/\[AI BLOCKED:\s*(.*?)\]/);
                         if (match) aiReason = match[1];
 
-                        displayMsg = rawMsg.replace(/\[AI BLOCKED:.*?\]/, '<br><span style="color:var(--warning-orange); font-weight:800; font-size:13px;">🤖 AI Execution Paused</span>');
-                        badgeHtml = `<span class="status-badge status-warn trap-status-text" style="border-color: var(--warning-orange);">AI BLOCKED</span>`;
-                        rowClass += " ai-blocked-row"; 
+                        let cleanMsg = rawMsg.replace(/\[AI BLOCKED:.*?\]/, '').trim();
+
+                        if (t.status === 'OPEN') {
+                            displayMsg = cleanMsg + '<br><span style="color:var(--warning-orange); font-weight:800; font-size:13px;">🤖 AI Execution Paused</span>';
+                            badgeHtml = `<span class="status-badge status-warn trap-status-text" style="border-color: var(--warning-orange);">AI BLOCKED</span>`;
+                            rowClass += " ai-blocked-row"; 
+                        } else {
+                            displayMsg = cleanMsg + ' <br><span style="font-size:12px; color:var(--text-muted);" title="Auto-execution was prevented by AI">🤖 (Previously AI Blocked)</span>';
+                        }
                     }
 
                     let safeAiReason = aiReason.replace(/'/g, "\\'").replace(/"/g, "&quot;");
@@ -1369,23 +1375,23 @@
         }
         function showTrapDetails(nName, ip, msg, status, tRec, rName, tRes, aiReason = "") {
             let bd = document.getElementById('trapDetailsBody');
-            
+
             let cleanMsg = msg.replace(/\[AI BLOCKED:.*?\]/, '').trim();
-            
+
             let h = `<div class="detail-row"><span>Node Name:</span><span>${nName}</span></div>
                      <div class="detail-row"><span>IP Address:</span><span class="code-font">${ip}</span></div>
                      <div class="detail-row"><span>Alarm:</span><span>${cleanMsg}</span></div>`;
-            
+
             if (aiReason) {
                 h += `<div class="ai-warning-box">
                         <h4 style="margin:0 0 10px 0; color:#d97706; display:flex; align-items:center; gap:8px;">🤖 AI Safety Warning</h4>
                         <p style="margin:0; font-size:13px; color:#92400e; font-weight:600;">${aiReason}</p>
                       </div>`;
             }
-            
+
             h += `<div class="detail-row"><span>Status:</span><span class="status-badge ${status === 'OPEN' ? 'status-out' : 'status-in'}">${status}</span></div>
                   <div class="detail-row"><span>Time Received:</span><span>${tRec}</span></div>`;
-            
+
             if (status === 'RESOLVED') {
                 h += `<div style="margin-top:15px; padding:10px; background:#f0fdf4; border:1px dashed #34d399; border-radius:8px;">
                         <div class="detail-row" style="border:none; padding-bottom:5px;"><span>Resolved By:</span><span style="color:var(--success-green); font-size:15px;">🧑‍💻 ${rName}</span></div>
