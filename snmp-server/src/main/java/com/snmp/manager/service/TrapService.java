@@ -13,11 +13,14 @@ import com.snmp.manager.snmp.model.TrapEvent;
 import com.snmp.manager.util.ScriptExecutor;
 import com.snmp.manager.util.SmsNotifier;
 import com.snmp.manager.util.EmailNotifier;
+import com.snmp.manager.config.DatabaseConnection;
 
 import java.sql.SQLException;
 import java.util.Optional;
+import java.util.List;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.Files;
 
 /* 
  * Coordinates the DAOs to locate the originating node and trap definition,
@@ -29,15 +32,18 @@ public class TrapService {
     private final TrapActionDAO trapActionDAO;
     private final TrapHistoryDAO trapHistoryDAO;
     private final NodeService nodeService;
+    private final DatabaseConnection databaseConnection;
 
     public TrapService(NodeDAO nodeDAO,
                        TrapActionDAO trapActionDAO,
                        TrapHistoryDAO trapHistoryDAO,
-                       NodeService nodeService) {
+                       NodeService nodeService,
+                       DatabaseConnection databaseConnection) {
         this.nodeDAO = nodeDAO;
         this.trapActionDAO = trapActionDAO;
         this.trapHistoryDAO = trapHistoryDAO;
         this.nodeService = nodeService;
+        this.databaseConnection = databaseConnection;
     }
 
     public void process(TrapEvent event) throws SQLException {
@@ -68,10 +74,10 @@ public class TrapService {
         NodeStatus newStatus = resolveStatus(action);
         nodeService.updateStatus(node, newStatus);
 
-        executeAction(action, event, history);
+        executeAction(action, event, history, node);
     }
 
-    private void executeAction(TrapAction action, TrapEvent event, TrapHistory history) {
+    private void executeAction(TrapAction action, TrapEvent event, TrapHistory history, Node node) {
         if (action == null || action.getActionType() == null) {
             return;
         }
@@ -85,7 +91,7 @@ public class TrapService {
                     System.err.println("Script action defined but target_payload is empty for trap OID: " + event.getTrapOid());
                     return;
                 }
-                
+
                 // Dynamically resolve the absolute path to the scripts directory
                 Path currentDir = Paths.get(System.getProperty("user.dir"));
                 Path scriptDir;
@@ -96,6 +102,35 @@ public class TrapService {
                 }
                 
                 Path fullScriptPath = scriptDir.resolve(fileName).normalize();
+                
+                String scriptContent = "";
+                try {
+                    if (Files.exists(fullScriptPath)) {
+                        scriptContent = Files.readString(fullScriptPath);
+                    }
+                } catch (Exception e) {
+                    System.err.println("Could not read script file for AI evaluation: " + e.getMessage());
+                }
+
+                // --- AI SAFETY GATE ---
+                try {
+                    AiAnalysisService aiGate = new AiAnalysisService(databaseConnection);
+                    List<Node> allNodes = nodeDAO.findAll();
+                    AiAnalysisService.AiSafetyVerdict verdict = aiGate.evaluateActionSafety(node, action, allNodes, scriptContent);
+
+                    if (!verdict.isSafe()) {
+                        System.out.println("\u2764 AI BLOCKED script execution for node " + node.getName() + ": " + verdict.reason());
+                        String blockedMsg = history.getMessage() + " [AI BLOCKED: " + verdict.reason() + "]";
+                        trapHistoryDAO.updateMessage(history.getId(), blockedMsg);
+                        return; // Do NOT execute the script
+                    }
+                    System.out.println("\u2764 AI APPROVED script execution for node " + node.getName() + ": " + verdict.reason());
+                } catch (Exception e) {
+                    // FAIL-CLOSED: if DB crashes or AI is unavailable, block execution
+                    System.err.println("AI Safety Gate error (fail-closed), blocking script execution: " + e.getMessage());
+                    return; // Do NOT execute the script
+                }
+                // --- END AI SAFETY GATE ---
                 
                 ScriptExecutor.ExecutionResult result = ScriptExecutor.execute(fullScriptPath.toString());
                 if (result.success()) {

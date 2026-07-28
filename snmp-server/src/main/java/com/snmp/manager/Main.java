@@ -352,7 +352,7 @@ public class Main {
         public void onTrapReceived(TrapEvent event) {
             try {
                 DatabaseConnection db = DatabaseConnection.fromResource();
-                new TrapService(new NodeDAO(db), new TrapActionDAO(db), new TrapHistoryDAO(db), new NodeService(new NodeDAO(db))).process(event);
+                new TrapService(new NodeDAO(db), new TrapActionDAO(db), new TrapHistoryDAO(db), new NodeService(new NodeDAO(db)), db).process(event);
             } catch (Exception e) {
                 System.err.println("Error processing Trap: " + e.getMessage());
             }
