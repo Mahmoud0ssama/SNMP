@@ -117,5 +117,19 @@ public java.util.List<TrapHistory> findAll() throws SQLException {
             return ps.executeUpdate() > 0;
         }
     }
+
+    /**
+     * Updates the message text of a trap history record.
+     * Used by the AI Safety Gate to tag blocked actions with the AI's reasoning.
+     */
+    public void updateMessage(long trapId, String newMessage) throws SQLException {
+        String sql = "UPDATE trap_history SET message = ? WHERE id = ?";
+        try (Connection conn = databaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, newMessage);
+            ps.setLong(2, trapId);
+            ps.executeUpdate();
+        }
+    }
     
 }
