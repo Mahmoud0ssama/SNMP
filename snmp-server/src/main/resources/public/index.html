@@ -919,33 +919,43 @@
                     let resName = t.resolvedByUsername || "System";
                     let resTime = t.resolvedAt ? new Date(t.resolvedAt).toLocaleString() : "";
 
-                    // --- AI SAFETY UI LOGIC ---
-                    let rawMsg = t.message || t.trapOid; 
+                  // --- AI SAFETY UI LOGIC ---
+                    let rawMsg = t.message || t.trapOid;
+                    let cleanMsg = rawMsg;
                     let displayMsg = rawMsg;
                     let badgeHtml = `<span class="status-badge ${t.status === 'OPEN' ? 'status-out' : 'status-in'} trap-status-text">${t.status}</span>`;
+                    
                     let isAiBlocked = rawMsg.includes('[AI BLOCKED:');
+                    let isAiOverridden = rawMsg.includes('[AI OVERRIDDEN');
                     let aiReason = "";
                     let rowClass = "clickable-row";
 
-                    if (isAiBlocked) {
-                        let match = rawMsg.match(/\[AI BLOCKED:\s*(.*?)\]/);
-                        if (match) aiReason = match[1];
+                    if (isAiBlocked || isAiOverridden) {
+                        let startIndex = rawMsg.indexOf('[AI BLOCKED:');
+                        if (startIndex === -1) startIndex = rawMsg.indexOf('[AI OVERRIDDEN');
+                        
+                        cleanMsg = rawMsg.substring(0, startIndex).trim();
+                        
+                        let colonIndex = rawMsg.indexOf(':', startIndex);
+                        if (colonIndex !== -1) {
+                            aiReason = rawMsg.substring(colonIndex + 1, rawMsg.lastIndexOf(']')).trim();
+                        }
 
-                        let cleanMsg = rawMsg.replace(/\[AI BLOCKED:.*?\]/, '').trim();
-
-                        if (t.status === 'OPEN') {
+                        if (t.status === 'OPEN' && isAiBlocked) {
                             displayMsg = cleanMsg + '<br><span style="color:var(--warning-orange); font-weight:800; font-size:13px;">🤖 AI Execution Paused</span>';
                             badgeHtml = `<span class="status-badge status-warn trap-status-text" style="border-color: var(--warning-orange);">AI BLOCKED</span>`;
                             rowClass += " ai-blocked-row"; 
+                        } else if (isAiOverridden) {
+                            displayMsg = cleanMsg + ' <br><span style="font-size:12px; color:var(--success-green); font-weight:bold;" title="Human engineer bypassed AI warning">✅ AI Overridden (Forced Execution)</span>';
                         } else {
                             displayMsg = cleanMsg + ' <br><span style="font-size:12px; color:var(--text-muted);" title="Auto-execution was prevented by AI">🤖 (Previously AI Blocked)</span>';
                         }
                     }
 
-                    let safeAiReason = aiReason.replace(/'/g, "\\'").replace(/"/g, "&quot;");
-                    let safeRawMsg = rawMsg.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+                    let safeAiReason = aiReason.replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/\n/g, " ");
+                    let safeCleanMsg = cleanMsg.replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/\n/g, " ");
 
-                    tBody.innerHTML += `<tr class="${rowClass}" onclick="showTrapDetails('${name}', '${t.sourceIp}', '${safeRawMsg}', '${t.status}', '${time}', '${resName}', '${resTime}', '${safeAiReason}')">
+                    tBody.innerHTML += `<tr class="${rowClass}" onclick="showTrapDetails(${t.id}, '${name}', '${t.sourceIp}', '${safeCleanMsg}', '${t.status}', '${time}', '${resName}', '${resTime}', '${safeAiReason}', ${isAiOverridden})">
                         <td><div style="color:var(--primary-blue); font-weight:700;">${name}</div><div class="code-font" style="font-size:13px;">${t.sourceIp}</div></td>
                         <td style="font-weight:700;">${displayMsg} <br><span style="font-size:13px; color:var(--text-muted);">${time}</span></td>
                         <td>${badgeHtml}</td>
@@ -1373,25 +1383,29 @@
             for (let i = 0; i < trs.length; i++)
                 trs[i].style.display = trs[i].textContent.toLowerCase().includes(txt) ? "" : "none";
         }
-        function showTrapDetails(nName, ip, msg, status, tRec, rName, tRes, aiReason = "") {
+        function showTrapDetails(id, nName, ip, msg, status, tRec, rName, tRes, aiReason = "", isOverridden = false) {
             let bd = document.getElementById('trapDetailsBody');
-
-            let cleanMsg = msg.replace(/\[AI BLOCKED:.*?\]/, '').trim();
-
+            
             let h = `<div class="detail-row"><span>Node Name:</span><span>${nName}</span></div>
                      <div class="detail-row"><span>IP Address:</span><span class="code-font">${ip}</span></div>
-                     <div class="detail-row"><span>Alarm:</span><span>${cleanMsg}</span></div>`;
-
-            if (aiReason) {
+                     <div class="detail-row"><span>Alarm:</span><span>${msg}</span></div>`;
+            
+            if (aiReason && status === 'OPEN') {
                 h += `<div class="ai-warning-box">
                         <h4 style="margin:0 0 10px 0; color:#d97706; display:flex; align-items:center; gap:8px;">🤖 AI Safety Warning</h4>
                         <p style="margin:0; font-size:13px; color:#92400e; font-weight:600;">${aiReason}</p>
+                        <button class="danger-btn" style="margin-top:15px; width:100%; border-color:#d97706; color:#b45309;" onclick="forceExecute(${id}, event)">⚠️ Force Execute Script (Override AI)</button>
+                      </div>`;
+            } else if (isOverridden) {
+                h += `<div class="ai-warning-box" style="background-color:#f0fdf4; border-color:#34d399;">
+                        <h4 style="margin:0 0 10px 0; color:#047857; display:flex; align-items:center; gap:8px;">✅ AI Overridden</h4>
+                        <p style="margin:0; font-size:13px; color:#065f46; font-weight:600;">A human engineer bypassed the AI warning and forced execution.</p>
                       </div>`;
             }
-
+            
             h += `<div class="detail-row"><span>Status:</span><span class="status-badge ${status === 'OPEN' ? 'status-out' : 'status-in'}">${status}</span></div>
                   <div class="detail-row"><span>Time Received:</span><span>${tRec}</span></div>`;
-
+            
             if (status === 'RESOLVED') {
                 h += `<div style="margin-top:15px; padding:10px; background:#f0fdf4; border:1px dashed #34d399; border-radius:8px;">
                         <div class="detail-row" style="border:none; padding-bottom:5px;"><span>Resolved By:</span><span style="color:var(--success-green); font-size:15px;">🧑‍💻 ${rName}</span></div>
@@ -1400,6 +1414,33 @@
             }
             bd.innerHTML = h;
             openModal('trapDetailsModal');
+        }
+
+        async function forceExecute(id, event) {
+            if (event) event.stopPropagation();
+            if (!confirm('⚠️ WARNING: You are overriding the AI Safety Gate. Are you sure you want to FORCE execute this script?')) return;
+
+            let btn = event.target;
+            let originalText = btn.innerHTML;
+            btn.innerHTML = 'Executing... ⏳';
+            btn.disabled = true;
+
+            try {
+                let res = await fetchWithAuth(`/api/traps/${id}/force-execute`, { method: 'POST' });
+                if (res.ok) {
+                    closeModal('trapDetailsModal');
+                    syncAll();
+                } else {
+                    let data = await res.json();
+                    alert("Execution Failed: " + (data.error || 'Unknown error'));
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }
+            } catch (e) {
+                alert("Error connecting to server.");
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
         }
     </script>
 </body>
