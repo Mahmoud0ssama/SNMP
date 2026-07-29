@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SNMP - Premium NOC</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         :root {
             --bg-body: #f4f7fb;
@@ -469,6 +470,206 @@
             border: 1px solid #fcd34d;
             border-radius: 8px;
         }
+        /* --- NOC Chat Assistant --- */
+        .chat-bubble-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #4f46e5, #3b82f6);
+            color: white;
+            font-size: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.5);
+            cursor: pointer;
+            z-index: 1000;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .chat-bubble-btn:hover {
+            transform: scale(1.1) rotate(-5deg);
+        }
+
+        .chat-panel {
+            position: fixed;
+            bottom: 100px;
+            right: 30px;
+            width: 340px;  /* Reduced from 380px */
+            height: 480px; /* Reduced from 550px */
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+            display: flex;
+            flex-direction: column;
+            z-index: 1000;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(20px) scale(0.95);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .chat-panel.active {
+            opacity: 1;
+            pointer-events: all;
+            transform: translateY(0) scale(1);
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            padding: 15px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-header h3 {
+            margin: 0;
+            color: white;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chat-close {
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 20px;
+            transition: color 0.2s;
+        }
+
+        .chat-close:hover {
+            color: white;
+        }
+
+        .chat-body {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .chat-message {
+            max-width: 85%;
+            padding: 10px 14px;
+            border-radius: 14px;
+            font-size: 14px;
+            line-height: 1.4;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .chat-message.bot {
+            background-color: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            color: #1e293b;
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+
+        .chat-message.bot p { margin-top: 0; margin-bottom: 8px; }
+        .chat-message.bot p:last-child { margin-bottom: 0; }
+        .chat-message.bot pre { background: #1e293b; padding: 8px; border-radius: 6px; overflow-x: auto; color: #f8fafc; }
+        .chat-message.bot code { background: #e2e8f0; padding: 2px 5px; border-radius: 4px; color: #b91c1c; font-weight: 600; font-family: monospace; }
+        .chat-message.bot pre code { background: transparent; color: inherit; padding: 0; font-weight: normal; }
+        
+        .chat-message.user {
+            background: linear-gradient(135deg, #4f46e5, #3b82f6);
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+
+        .chat-input-area {
+            padding: 15px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            gap: 10px;
+            background: #ffffff;
+            border-bottom-left-radius: 20px;
+            border-bottom-right-radius: 20px;
+        }
+
+        .chat-input {
+            flex: 1;
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            color: #1e293b;
+            border-radius: 20px;
+            padding: 10px 15px;
+            outline: none;
+            font-family: inherit;
+        }
+
+        .chat-input::placeholder {
+            color: #64748b;
+        }
+
+        .chat-input:focus {
+            border-color: #3b82f6;
+            background: #ffffff;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .chat-send-btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .chat-send-btn:hover {
+            background: #2563eb;
+        }
+
+        .typing-indicator {
+            display: none;
+            align-self: flex-start;
+            background-color: rgba(255, 255, 255, 0.05);
+            padding: 12px 16px;
+            border-radius: 14px;
+            border-bottom-left-radius: 4px;
+            margin-bottom: 10px;
+        }
+
+        .typing-indicator span {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            background-color: var(--text-muted);
+            border-radius: 50%;
+            margin: 0 2px;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+
+        .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+        .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 
@@ -587,6 +788,35 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- NOC Chat Assistant -->
+    <div class="chat-bubble-btn" id="chatBtn" onclick="toggleChat()" title="Ask AI Assistant">
+        ✨
+    </div>
+
+    <div class="chat-panel" id="chatPanel">
+        <div class="chat-header">
+            <h3><span>✨</span> NOC AI Assistant</h3>
+            <span class="chat-close" onclick="toggleChat()">&times;</span>
+        </div>
+        <div class="chat-body" id="chatBody">
+            <div class="chat-message bot">
+                Hello! I'm your NOC AI Assistant. I have access to the live network state and alarm history. How can I help you today?
+            </div>
+            <div class="typing-indicator" id="typingIndicator">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="chat-input-area">
+            <input type="text" class="chat-input" id="chatInput" placeholder="Ask about network status..." onkeypress="handleChatKeyPress(event)">
+            <button class="chat-send-btn" onclick="sendChatMessage()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+            </button>
         </div>
     </div>
 
@@ -1442,7 +1672,107 @@
                 btn.disabled = false;
             }
         }
+        // --- NOC Chat Assistant JS ---
+        let chatHistory = [];
+
+        function toggleChat() {
+            document.getElementById('chatPanel').classList.toggle('active');
+            if (document.getElementById('chatPanel').classList.contains('active')) {
+                document.getElementById('chatInput').focus();
+            }
+        }
+
+        function handleChatKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendChatMessage();
+            }
+        }
+
+        async function sendChatMessage() {
+            let input = document.getElementById('chatInput');
+            let msg = input.value.trim();
+            if (!msg) return;
+
+            input.value = '';
+            
+            appendMessage('user', msg);
+            
+            document.getElementById('typingIndicator').style.display = 'block';
+            scrollToBottom();
+
+            try {
+                let res = await fetchWithAuth('/api/ai/chat', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        message: msg,
+                        history: chatHistory
+                    })
+                });
+                
+                document.getElementById('typingIndicator').style.display = 'none';
+
+                if (res.ok) {
+                    let data = await res.json();
+                    
+                    chatHistory.push({ role: 'user', content: msg });
+                    chatHistory.push({ role: 'assistant', content: data.response });
+                    
+                    streamBotMessage(data.response);
+                } else {
+                    appendMessage('bot', 'Sorry, I encountered an error communicating with the server.');
+                }
+            } catch (e) {
+                document.getElementById('typingIndicator').style.display = 'none';
+                appendMessage('bot', 'Network error. Please try again later.');
+            }
+        }
+
+        function streamBotMessage(fullText) {
+            let body = document.getElementById('chatBody');
+            let typing = document.getElementById('typingIndicator');
+
+            let div = document.createElement('div');
+            div.className = 'chat-message bot';
+            body.insertBefore(div, typing);
+
+            let words = fullText.split(/(\s+)/); // split but keep whitespace
+            let current = '';
+            let i = 0;
+            let speed = 20; // ms per word
+
+            let interval = setInterval(() => {
+                if (i < words.length) {
+                    current += words[i];
+                    div.innerHTML = marked.parse(current);
+                    scrollToBottom();
+                    i++;
+                } else {
+                    clearInterval(interval);
+                }
+            }, speed);
+        }
+
+        function appendMessage(role, content, isHtml = false) {
+            let body = document.getElementById('chatBody');
+            let typing = document.getElementById('typingIndicator');
+            
+            let div = document.createElement('div');
+            div.className = `chat-message ${role}`;
+            
+            if (isHtml) {
+                div.innerHTML = content;
+            } else {
+                div.textContent = content;
+            }
+            
+            body.insertBefore(div, typing);
+            scrollToBottom();
+        }
+
+        function scrollToBottom() {
+            let body = document.getElementById('chatBody');
+            body.scrollTop = body.scrollHeight;
+        }
     </script>
 </body>
-
 </html>

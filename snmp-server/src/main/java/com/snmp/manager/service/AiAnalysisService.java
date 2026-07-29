@@ -7,7 +7,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.snmp.manager.config.DatabaseConnection;
 import com.snmp.manager.model.Node;
 import com.snmp.manager.model.TrapAction;
+import com.snmp.manager.model.TrapHistory;
 import java.util.List;
+import java.util.Map;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -178,5 +180,48 @@ public class AiAnalysisService {
             // FAIL-CLOSED: block execution and explicitly state it was an AI system error
             return new AiSafetyVerdict(false, "AI System Error: Could not parse response from Gemini (" + e.getMessage() + ")");
         }
+    }
+
+    // --- NOC CHAT ASSISTANT ---
+    public String chatWithNOC(String userMessage, List<Node> allNodes, List<TrapHistory> recentTraps, List<Map<String, String>> conversationHistory) {
+        if (geminiApiKey == null || geminiApiKey.isEmpty()) {
+            return "Error: Gemini API key is not configured. Please add it to `secrets/gemini_api_key.txt` in the project root.";
+        }
+
+        StringBuilder networkState = new StringBuilder();
+        for (Node n : allNodes) {
+            networkState.append("- ").append(n.getName())
+                .append(" (").append(n.getIpAddress()).append(") ")
+                .append("[").append(n.getNodeType() != null ? n.getNodeType() : "Unknown").append("] ")
+                .append("— Status: ").append(n.getStatus())
+                .append("\n");
+        }
+
+        StringBuilder trapHistoryStr = new StringBuilder();
+        for (TrapHistory t : recentTraps) {
+            trapHistoryStr.append("- [").append(t.getReceivedAt()).append("] ")
+                .append("Node ID: ").append(t.getNodeId())
+                .append(" | Msg: ").append(t.getMessage())
+                .append(" | Status: ").append(t.getStatus())
+                .append("\n");
+        }
+
+        StringBuilder promptBuilder = new StringBuilder();
+        promptBuilder.append("You are an expert Network Operations Center (NOC) AI Assistant. ")
+                     .append("Your job is to answer the engineer's questions, troubleshoot issues, and simulate 'what-if' scenarios based on the live network state.\n\n")
+                     .append("CURRENT NETWORK STATE (Digital Twin):\n").append(networkState).append("\n")
+                     .append("RECENT ALARM HISTORY (Last 50 traps):\n").append(trapHistoryStr).append("\n")
+                     .append("CONVERSATION HISTORY:\n");
+                     
+        if (conversationHistory != null) {
+            for (Map<String, String> msg : conversationHistory) {
+                promptBuilder.append(msg.get("role")).append(": ").append(msg.get("content")).append("\n");
+            }
+        }
+        
+        promptBuilder.append("\nENGINEER'S QUESTION:\n").append(userMessage).append("\n\n")
+                     .append("Provide a concise, professional, and helpful response. Use Markdown for formatting (bolding, lists, code blocks).");
+
+        return callGeminiAPI(promptBuilder.toString());
     }
 }
