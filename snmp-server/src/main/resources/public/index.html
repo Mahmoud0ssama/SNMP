@@ -792,7 +792,7 @@
     </div>
 
     <!-- NOC Chat Assistant -->
-    <div class="chat-bubble-btn" id="chatBtn" onclick="toggleChat()" title="Ask AI Assistant">
+    <div class="chat-bubble-btn" id="chatBtn" onclick="toggleChat()" title="Ask AI Assistant" style="display:none">
         ✨
     </div>
 
@@ -1064,12 +1064,15 @@
             clearInterval(refreshInterval);
             document.getElementById('dashboardScreen').style.display = 'none';
             document.getElementById('loginScreen').style.display = 'flex';
+            document.getElementById('chatBtn').style.display = 'none';
+            document.getElementById('chatWindow').style.display = 'none';
             document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
         }
 
         function showDashboard() {
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('dashboardScreen').style.display = 'block';
+            document.getElementById('chatBtn').style.display = 'flex';
             currentUser = parseJwt(jwtToken);
             if (currentUser) {
                 document.getElementById('userDisplay').innerText = currentUser.username;

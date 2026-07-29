@@ -142,7 +142,7 @@ public class AiAnalysisService {
                 return callGeminiAPIInternal(prompt, geminiApiKey, false);
             } else {
                 System.err.println("Gemini API Error: " + response.body());
-                return "⏳ AI quota temporarily exceeded. Please wait about a minute and try again.";
+                return "⏳ AI quota temporarily exceeded. Please wait try again later.";
             }
         } catch (Exception e) {
             e.printStackTrace();
