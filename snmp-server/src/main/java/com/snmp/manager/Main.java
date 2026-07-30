@@ -60,6 +60,11 @@ public class Main {
         public String value;
     }
 
+    static class ChatReq {
+        public String message;
+        public List<Map<String, String>> history;
+    }
+
     static class TrapActionReq {
 
         public String trapOid;
@@ -149,6 +154,21 @@ public class Main {
             AiAnalysisService aiService = new AiAnalysisService(DatabaseConnection.fromResource());
             String result = aiService.generateInsights();
             ctx.json(Map.of("markdown", result));
+        });
+
+        app.post("/api/ai/chat", ctx -> {
+            ChatReq req = ctx.bodyAsClass(ChatReq.class);
+            
+            List<Node> allNodes = new NodeDAO(DatabaseConnection.fromResource()).findAll();
+            List<com.snmp.manager.model.TrapHistory> recentTraps = new TrapHistoryDAO(DatabaseConnection.fromResource()).findAll();
+            if (recentTraps.size() > 50) {
+                recentTraps = recentTraps.subList(0, 50);
+            }
+            
+            AiAnalysisService aiService = new AiAnalysisService(DatabaseConnection.fromResource());
+            String response = aiService.chatWithNOC(req.message, allNodes, recentTraps, req.history);
+            
+            ctx.json(Map.of("response", response));
         });
 
         // --- USER MANAGEMENT APIs ---

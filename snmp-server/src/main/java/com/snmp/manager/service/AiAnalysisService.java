@@ -7,7 +7,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.snmp.manager.config.DatabaseConnection;
 import com.snmp.manager.model.Node;
 import com.snmp.manager.model.TrapAction;
+import com.snmp.manager.model.TrapHistory;
 import java.util.List;
+import java.util.Map;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -25,20 +27,32 @@ public class AiAnalysisService {
     private final DatabaseConnection databaseConnection;
     private final ObjectMapper mapper = new ObjectMapper();
     private final HttpClient httpClient = HttpClient.newHttpClient();
-    private String geminiApiKey = null;
+    private static String geminiApiKey = null;
+    private static String fallbackApiKey = null;
+    private static boolean keysLoaded = false;
 
     public AiAnalysisService(DatabaseConnection databaseConnection) {
         this.databaseConnection = databaseConnection;
-        loadApiKey();
+        if (!keysLoaded) {
+            loadApiKey();
+            keysLoaded = true;
+        }
     }
 
     private void loadApiKey() {
         try (InputStream in = getClass().getClassLoader().getResourceAsStream("gemini_api_key.txt")) {
             if (in != null) {
-                this.geminiApiKey = new String(in.readAllBytes()).trim();
+                geminiApiKey = new String(in.readAllBytes()).trim();
             }
         } catch (Exception e) {
-            System.err.println("Failed to load Gemini API key: " + e.getMessage());
+            System.err.println("Failed to load primary Gemini API key: " + e.getMessage());
+        }
+        try (InputStream in = getClass().getClassLoader().getResourceAsStream("gemini_api_key_2.txt")) {
+            if (in != null) {
+                fallbackApiKey = new String(in.readAllBytes()).trim();
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to load fallback Gemini API key: " + e.getMessage());
         }
     }
 
@@ -89,8 +103,15 @@ public class AiAnalysisService {
     }
 
     private String callGeminiAPI(String prompt) {
+        return callGeminiAPIInternal(prompt, geminiApiKey, true);
+    }
+
+    private String callGeminiAPIInternal(String prompt, String apiKey, boolean allowRetry) {
+        if (apiKey == null || apiKey.isEmpty() || apiKey.contains("PUT_YOUR_")) {
+            return "Error: API key is not configured.";
+        }
         try {
-            String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + geminiApiKey;
+            String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + apiKey;
 
             ObjectNode rootNode = mapper.createObjectNode();
             ArrayNode contentsNode = rootNode.putArray("contents");
@@ -112,9 +133,16 @@ public class AiAnalysisService {
             if (response.statusCode() == 200) {
                 JsonNode responseNode = mapper.readTree(response.body());
                 return responseNode.path("candidates").get(0).path("content").path("parts").get(0).path("text").asText();
+            } else if (response.statusCode() == 429 && allowRetry && fallbackApiKey != null && !fallbackApiKey.contains("PUT_YOUR_")) {
+                System.err.println("Primary API key exhausted quota (429). Switching to fallback key...");
+                // Swap keys so future requests use the working one
+                String temp = geminiApiKey;
+                geminiApiKey = fallbackApiKey;
+                fallbackApiKey = temp;
+                return callGeminiAPIInternal(prompt, geminiApiKey, false);
             } else {
                 System.err.println("Gemini API Error: " + response.body());
-                return "Error generating insights from AI. HTTP " + response.statusCode();
+                return "⏳ AI quota temporarily exceeded. Please wait try again later.";
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -178,5 +206,58 @@ public class AiAnalysisService {
             // FAIL-CLOSED: block execution and explicitly state it was an AI system error
             return new AiSafetyVerdict(false, "AI System Error: Could not parse response from Gemini (" + e.getMessage() + ")");
         }
+    }
+
+    // --- NOC CHAT ASSISTANT ---
+    public String chatWithNOC(String userMessage, List<Node> allNodes, List<TrapHistory> recentTraps, List<Map<String, String>> conversationHistory) {
+        if (geminiApiKey == null || geminiApiKey.isEmpty()) {
+            return "Error: Gemini API key is not configured. Please add it to `secrets/gemini_api_key.txt` in the project root.";
+        }
+
+        StringBuilder networkState = new StringBuilder();
+        for (Node n : allNodes) {
+            networkState.append("- ID: ").append(n.getId())
+                .append(" | Name: ").append(n.getName())
+                .append(" (").append(n.getIpAddress()).append(") ")
+                .append("[").append(n.getNodeType() != null ? n.getNodeType() : "Unknown").append("] ")
+                .append("— Status: ").append(n.getStatus())
+                .append("\n");
+        }
+
+        StringBuilder trapHistoryStr = new StringBuilder();
+        for (TrapHistory t : recentTraps) {
+            // Find the node name for this trap
+            String nodeName = "Unknown Node (ID " + t.getNodeId() + ")";
+            for (Node n : allNodes) {
+                if (n.getId().equals(t.getNodeId())) {
+                    nodeName = n.getName();
+                    break;
+                }
+            }
+
+            trapHistoryStr.append("- [").append(t.getReceivedAt()).append("] ")
+                .append("Node: ").append(nodeName)
+                .append(" | Msg: ").append(t.getMessage())
+                .append(" | Status: ").append(t.getStatus())
+                .append("\n");
+        }
+
+        StringBuilder promptBuilder = new StringBuilder();
+        promptBuilder.append("You are an expert Network Operations Center (NOC) AI Assistant. ")
+                     .append("Your job is to answer the engineer's questions, troubleshoot issues, and simulate 'what-if' scenarios based on the live network state.\n\n")
+                     .append("CURRENT NETWORK STATE (Digital Twin):\n").append(networkState).append("\n")
+                     .append("RECENT ALARM HISTORY (Last 50 traps):\n").append(trapHistoryStr).append("\n")
+                     .append("CONVERSATION HISTORY:\n");
+                     
+        if (conversationHistory != null) {
+            for (Map<String, String> msg : conversationHistory) {
+                promptBuilder.append(msg.get("role")).append(": ").append(msg.get("content")).append("\n");
+            }
+        }
+        
+        promptBuilder.append("\nENGINEER'S QUESTION:\n").append(userMessage).append("\n\n")
+                     .append("Provide a concise, professional, and helpful response. Use Markdown for formatting (bolding, lists, code blocks).");
+
+        return callGeminiAPI(promptBuilder.toString());
     }
 }
