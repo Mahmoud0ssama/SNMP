@@ -1493,14 +1493,18 @@
                 let oid, name;
 
                 if (trapSelect === 'CUSTOM') {
-                    oid = row.querySelector('.t-oid').value;
-                    name = row.querySelector('.t-name').value;
-                } else if (trapSelect !== '') {
-                    let parts = trapSelect.split('|');
-                    oid = parts[0];
-                    name = parts[1];
-                } else {
-                    continue; // Skip invalid row
+                    oid = row.querySelector('.t-oid').value.trim();
+                    name = row.querySelector('.t-name').value.trim();
+                    
+                    let oidRegex = /^\d+(\.\d+)+$/;
+                    if (!oid || !oidRegex.test(oid)) {
+                        alert(`❌ Validation Error: Please enter a valid OID format (e.g., 1.3.6.1.4.1) for the custom trap.`);
+                        return null;
+                    }
+                    if (!name) {
+                        alert(`❌ Validation Error: Please enter a valid Alarm Name for the custom trap.`);
+                        return null;
+                    }
                 }
 
                 let severity = row.querySelector('.t-sev').value;
@@ -1557,16 +1561,25 @@
             return actions;
         }
         // --- Node APIs ---
+        function isValidIP(ip) {
+            const ipRegex = /^(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}$/;
+            return ipRegex.test(ip);
+        }
+
         async function submitAddNode(e) {
             e.preventDefault();
-            let actions = getTrapActions('addNodeTrapsContainer');
+            let nodeName = document.getElementById('newNodeName').value.trim();
+            let nodeIp = document.getElementById('newNodeIp').value.trim();
             
-            // Stop saving if validation failed
+            if (!nodeName) { alert("❌ Please enter a valid Node Name."); return; }
+            if (!isValidIP(nodeIp)) { alert("❌ Please enter a valid IPv4 Address (e.g., 10.0.0.5)."); return; }
+
+            let actions = getTrapActions('addNodeTrapsContainer');
             if (actions === null) return; 
 
             let body = {
-                name: document.getElementById('newNodeName').value,
-                ipAddress: document.getElementById('newNodeIp').value,
+                name: nodeName,
+                ipAddress: nodeIp,
                 nodeType: document.getElementById('newNodeType').value,
                 trapActions: actions
             };
@@ -1578,22 +1591,25 @@
         async function submitEditNode(e) {
             e.preventDefault();
             let id = document.getElementById('editNodeId').value;
+            let nodeName = document.getElementById('editNodeName').value.trim();
+            let nodeIp = document.getElementById('editNodeIp').value.trim();
+
+            if (!nodeName) { alert("❌ Please enter a valid Node Name."); return; }
+            if (!isValidIP(nodeIp)) { alert("❌ Please enter a valid IPv4 Address (e.g., 10.0.0.5)."); return; }
+
             let actions = getTrapActions('editNodeTrapsContainer');
-            
-            // Stop saving if validation failed
             if (actions === null) return; 
 
             let body = {
-                name: document.getElementById('editNodeName').value,
-                ipAddress: document.getElementById('editNodeIp').value,
+                name: nodeName,
+                ipAddress: nodeIp,
                 nodeType: document.getElementById('editNodeType').value,
                 trapActions: actions
             };
             await fetchWithAuth(`/api/nodes/${id}`, { method: 'PUT', body: JSON.stringify(body) });
             closeModal('editNodeModal');
-            openNodesManager(); // Keep this one, because edit opens FROM the elements list
+            openNodesManager(); 
         }
-
         async function openEditNode(id, name, ip, type) {
             document.getElementById('editNodeId').value = id;
             document.getElementById('editNodeName').value = name;
@@ -1635,6 +1651,11 @@
             if (errDiv) errDiv.style.display = 'none';
 
             let body = { username: document.getElementById('newUserName').value, password: document.getElementById('newUserPass').value, role: document.getElementById('newUserRole').value };
+            let pass = document.getElementById('newUserPass').value;
+            if (pass.length < 4) {
+                if (errDiv) { errDiv.innerText = "Password must be at least 4 characters long."; errDiv.style.display = 'block'; }
+                return;
+            }
             let res = await fetchWithAuth('/api/users', { method: 'POST', body: JSON.stringify(body) });
 
             if (res.ok) {
@@ -1691,7 +1712,11 @@
                 password: document.getElementById('editUserPass').value,
                 role: document.getElementById('editUserRole').value
             };
-
+            let pass = document.getElementById('editUserPass').value;
+            if (pass && pass.length < 4) {
+                if (errDiv) { errDiv.innerText = "New password must be at least 4 characters long."; errDiv.style.display = 'block'; }
+                return;
+            }
             let res = await fetchWithAuth(`/api/users/${id}`, { method: 'PUT', body: JSON.stringify(body) });
 
             if (res.ok) {
