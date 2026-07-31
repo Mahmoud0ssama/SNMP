@@ -500,7 +500,7 @@
             position: fixed;
             bottom: 100px;
             right: 30px;
-            width: 400px;  /* كبرنا الحجم المبدئي شوية عشان التقرير */
+            width: 400px; 
             height: 550px;
             background-color: var(--card-bg);
             border: 1px solid var(--border-color);
@@ -1487,6 +1487,7 @@
             let container = document.getElementById(containerId);
             let rows = container.getElementsByClassName('trap-action-row');
             let actions = [];
+            
             for (let row of rows) {
                 let trapSelect = row.querySelector('.t-trap-select').value;
                 let oid, name;
@@ -1504,18 +1505,45 @@
 
                 let severity = row.querySelector('.t-sev').value;
                 let actionType = row.querySelector('.t-atype').value;
-
                 let targetPayload = '';
+                let autoResolve = false;
+
+                // --- Strict Validation ---
                 if (actionType === 'SCRIPT') {
                     targetPayload = row.querySelector('.t-payload-script').value;
-                } else {
-                    targetPayload = row.querySelector('.t-payload-text').value;
-                }
-
-                let autoResolve = false;
-                if (actionType === 'SCRIPT') {
                     autoResolve = row.querySelector('.t-autoresolve').checked;
+                    
+                    if (!targetPayload || targetPayload.trim() === '') {
+                        alert(`Validation Error: Please select a script file for the [${name}] alarm.`);
+                        return null; // Stop and return null
+                    }
+                } 
+                else if (actionType === 'SMS') {
+                    targetPayload = row.querySelector('.t-payload-text').value;
+                    // Regex for E.164 Twilio format (+ followed by 10 to 14 digits)
+                    let phoneRegex = /^\+[1-9]\d{9,14}$/;
+                    
+                    if (!targetPayload || !phoneRegex.test(targetPayload)) {
+                        alert(`Validation Error: Please enter a valid international phone number for the [${name}] alarm.\nFormat must be: +[CountryCode][Number] (e.g., +201012345678)`);
+                        return null; 
+                    }
+                } 
+                else if (actionType === 'EMAIL') {
+                    targetPayload = row.querySelector('.t-payload-text').value;
+                    // Regex for standard Email format
+                    let emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+                    
+                    if (!targetPayload || !emailRegex.test(targetPayload)) {
+                        alert(`Validation Error: Please enter a valid Email Address for the [${name}] alarm.`);
+                        return null; 
+                    }
+                } 
+                else {
+                    // User forgot to select an Action Type
+                    alert(`Validation Error: Please select an Automated Action for the [${name}] alarm.`);
+                    return null;
                 }
+                // --- End Validation ---
 
                 actions.push({
                     trapOid: oid,
@@ -1528,19 +1556,42 @@
             }
             return actions;
         }
-
         // --- Node APIs ---
         async function submitAddNode(e) {
             e.preventDefault();
+            let actions = getTrapActions('addNodeTrapsContainer');
+            
+            // Stop saving if validation failed
+            if (actions === null) return; 
+
             let body = {
                 name: document.getElementById('newNodeName').value,
                 ipAddress: document.getElementById('newNodeIp').value,
                 nodeType: document.getElementById('newNodeType').value,
-                trapActions: getTrapActions('addNodeTrapsContainer')
+                trapActions: actions
             };
             await fetchWithAuth('/api/nodes', { method: 'POST', body: JSON.stringify(body) });
             closeModal('addNodeModal');
-            openNodesManager();
+            openNodesManager(); 
+        }
+
+        async function submitEditNode(e) {
+            e.preventDefault();
+            let id = document.getElementById('editNodeId').value;
+            let actions = getTrapActions('editNodeTrapsContainer');
+            
+            // Stop saving if validation failed
+            if (actions === null) return; 
+
+            let body = {
+                name: document.getElementById('editNodeName').value,
+                ipAddress: document.getElementById('editNodeIp').value,
+                nodeType: document.getElementById('editNodeType').value,
+                trapActions: actions
+            };
+            await fetchWithAuth(`/api/nodes/${id}`, { method: 'PUT', body: JSON.stringify(body) });
+            closeModal('editNodeModal');
+            openNodesManager(); // Keep this one, because edit opens FROM the elements list
         }
 
         async function openEditNode(id, name, ip, type) {
@@ -1558,20 +1609,6 @@
 
             closeModal('nodesListModal');
             openModal('editNodeModal');
-        }
-
-        async function submitEditNode(e) {
-            e.preventDefault();
-            let id = document.getElementById('editNodeId').value;
-            let body = {
-                name: document.getElementById('editNodeName').value,
-                ipAddress: document.getElementById('editNodeIp').value,
-                nodeType: document.getElementById('editNodeType').value,
-                trapActions: getTrapActions('editNodeTrapsContainer')
-            };
-            await fetchWithAuth(`/api/nodes/${id}`, { method: 'PUT', body: JSON.stringify(body) });
-            closeModal('editNodeModal');
-            openNodesManager();
         }
 
         // --- User APIs ---
