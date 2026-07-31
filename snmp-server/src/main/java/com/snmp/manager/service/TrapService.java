@@ -72,7 +72,10 @@ public class TrapService {
         trapHistoryDAO.save(history); // Save method sets the auto-generated ID inside the history object
 
         NodeStatus newStatus = resolveStatus(action);
-        nodeService.updateStatus(node, newStatus);
+        
+        if (node.getStatus() != NodeStatus.UNKNOWN) {
+            nodeService.updateStatus(node, newStatus);
+        }
 
         executeAction(action, event, history, node);
     }

@@ -61,7 +61,10 @@ public class NodeService {
         node.setIpAddress(ipAddress);
         node.setNodeType(nodeType);
         node.setPort(161);
-        node.setStatus(NodeStatus.UP);
+        
+        // Set new auto-registered nodes to UNKNOWN instead of UP
+        node.setStatus(NodeStatus.UNKNOWN); 
+        
         nodeDAO.save(node);
 
         if (trapActions != null && trapActionDAO != null) {
@@ -80,6 +83,9 @@ public class NodeService {
             node.setName(name);
             node.setIpAddress(ipAddress);
             node.setNodeType(nodeType);
+            if (node.getStatus() == NodeStatus.UNKNOWN) {
+                node.setStatus(NodeStatus.UP);
+            }
             nodeDAO.update(node);
 
             if (trapActions != null && trapActionDAO != null) {
