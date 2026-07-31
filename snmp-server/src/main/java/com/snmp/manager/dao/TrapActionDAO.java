@@ -40,7 +40,7 @@ public class TrapActionDAO {
     }
 
     public List<TrapAction> findByNodeId(Long nodeId) throws SQLException {
-        String sql = "SELECT id, node_id, trap_oid, trap_name, severity, "
+        String sql = "SELECT id, node_id, trap_oid, trap_name, severity, description, "
                 + "auto_resolve, action_type, target_payload, created_at, updated_at "
                 + "FROM trap_actions WHERE node_id = ?";
         List<TrapAction> actions = new ArrayList<>();
