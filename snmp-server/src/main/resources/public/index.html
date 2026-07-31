@@ -229,6 +229,19 @@
             border-color: #fde68a;
         }
 
+        .status-unknown {
+            color: #5b21b6; 
+            background-color: #e2e8f0; 
+            border-color: #c4b5fd; 
+        }
+
+        .unknown-trap-row {
+            background-color: #f5f3ff !important; 
+        }
+        .unknown-trap-row:hover {
+            background-color: #ede9fe !important; 
+        }
+
         .primary-btn {
             background-color: var(--primary-blue);
             color: white;
@@ -1214,8 +1227,11 @@
                     let badgeClass = 'status-in';
                     if (n.status === 'DOWN') {
                         badgeClass = 'status-out';
-                    } else if (n.status === 'WARNING' || n.status === 'UNKNOWN') {
+                    } else if (n.status === 'WARNING') {
                         badgeClass = 'status-warn';
+                    } else if (n.status === 'UNKNOWN') {
+                        // Apply the new gray badge for UNKNOWN nodes
+                        badgeClass = 'status-unknown'; 
                     }
 
                     if (nBody) nBody.innerHTML += `<tr><td style="color:var(--primary-blue); font-weight:700;">${n.name} <br><span style="font-size:13px; color:var(--text-muted);">${n.nodeType}</span></td><td class="code-font" style="font-size: 15px;">${n.ipAddress}</td><td><span class="status-badge ${badgeClass}">${n.status}</span></td><td style="font-size:13px; color:var(--text-muted)">${formattedDate}</td>${editBtn}</tr>`;
@@ -1240,7 +1256,7 @@
                     let resName = t.resolvedByUsername || "System";
                     let resTime = t.resolvedAt ? new Date(t.resolvedAt).toLocaleString() : "";
 
-                    // --- AI SAFETY UI LOGIC ---
+                    // --- AI SAFETY & UNKNOWN UI LOGIC ---
                     let rawMsg = t.message || t.trapOid;
                     let cleanMsg = rawMsg;
                     let displayMsg = rawMsg;
@@ -1248,10 +1264,21 @@
 
                     let isAiBlocked = rawMsg.includes('[AI BLOCKED:');
                     let isAiOverridden = rawMsg.includes('[AI OVERRIDDEN');
+                    let isUnrecognized = rawMsg.includes('Unrecognized trap');
                     let aiReason = "";
                     let rowClass = "clickable-row";
 
-                    if (isAiBlocked || isAiOverridden) {
+                    if (isUnrecognized) {
+                        rowClass += " unknown-trap-row";
+                        
+                        let extractedOid = cleanMsg.replace('Unrecognized trap:', '').trim();
+                        
+                        let knownTrap = EMULATOR_TRAPS.find(t => t.oid === extractedOid);
+                        let niceName = knownTrap ? knownTrap.name : "System Alarm (" + extractedOid + ")";
+                        
+                        displayMsg = `<span style="color: var(--text-dark); font-size: 14px;">${niceName}</span> <span class="status-badge status-unknown" style="margin-left: 10px; font-size: 10px; padding: 4px 8px;">❓ UNKNOWN</span>`;
+                    }
+                    else if (isAiBlocked || isAiOverridden) {
                         let startIndex = rawMsg.indexOf('[AI BLOCKED:');
                         if (startIndex === -1) startIndex = rawMsg.indexOf('[AI OVERRIDDEN');
 
