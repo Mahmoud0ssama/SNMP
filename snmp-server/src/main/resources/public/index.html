@@ -1505,7 +1505,17 @@
                         alert(`❌ Validation Error: Please enter a valid Alarm Name for the custom trap.`);
                         return null;
                     }
+                } 
+                else if (trapSelect !== '') {
+                    let parts = trapSelect.split('|');
+                    oid = parts[0];
+                    name = parts[1];
+                } 
+                else {
+                    alert(`❌ Validation Error: Please select a Hardware Alarm (Trap) from the dropdown for all rules.`);
+                    return null;
                 }
+                // ----------------------------------------
 
                 let severity = row.querySelector('.t-sev').value;
                 let actionType = row.querySelector('.t-atype').value;
@@ -1606,9 +1616,18 @@
                 nodeType: document.getElementById('editNodeType').value,
                 trapActions: actions
             };
-            await fetchWithAuth(`/api/nodes/${id}`, { method: 'PUT', body: JSON.stringify(body) });
-            closeModal('editNodeModal');
-            openNodesManager(); 
+            
+            try {
+                let res = await fetchWithAuth(`/api/nodes/${id}`, { method: 'PUT', body: JSON.stringify(body) });
+                if (res.ok) {
+                    closeModal('editNodeModal');
+                    openNodesManager(); 
+                } else {
+                    alert("❌ Server Error: Failed to save changes. Make sure you don't have duplicate rules for the same hardware alarm.");
+                }
+            } catch (err) {
+                alert("❌ Network Error: Could not reach the server.");
+            }
         }
         async function openEditNode(id, name, ip, type) {
             document.getElementById('editNodeId').value = id;
