@@ -18,7 +18,7 @@ import java.util.List;
 // Opens a UDP socket and listens for incoming SNMP traps.
 public class TrapReceiver {
 
-    private static final int DEFAULT_PORT = 1162;
+    private static final int DEFAULT_PORT = 162;
 
     private final int port;
     private final TrapParser parser;
