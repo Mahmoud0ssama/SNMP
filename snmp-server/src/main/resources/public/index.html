@@ -931,16 +931,22 @@
         </div>
     </div>
 
-    <!-- Nodes Manager -->
-    <div id="nodesListModal" class="modal">
-        <div class="modal-content modal-large">
-            <div class="modal-header">
-                <h3>Network Elements</h3><span class="close-btn" onclick="closeModal('nodesListModal')">&times;</span>
+    <!-- Nodes Screen -->
+    <div id="nodesScreen" class="dashboard-container" style="display:none;">
+        <div class="header card-panel">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <button class="header-action-btn" onclick="backToDashboard()">🔙 Back to Dashboard</button>
+                <h2>Network Elements</h2>
             </div>
-            <div class="search-box" style="margin-bottom: 15px; width: 100%;"><span>🔍</span><input type="text"
+            <div class="search-box" style="width: 300px;">
+                <span>🔍</span><input type="text"
                     id="searchNodesList" onkeyup="filterTable('searchNodesList', 'nodesListBody')"
-                    placeholder="Search Nodes by Name or IP..."></div>
-            <div class="scrollable-list">
+                    placeholder="Search Nodes by Name or IP...">
+            </div>
+        </div>
+        
+        <div class="card card-panel">
+            <div class="scrollable-list" style="max-height: 70vh;">
                 <table>
                     <thead id="nodesListHead">
                         <tr>
@@ -952,6 +958,28 @@
                         </tr>
                     </thead>
                     <tbody id="nodesListBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Node Traps History Modal -->
+    <div id="nodeTrapsHistoryModal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3 id="historyModalTitle">Node Trap History</h3><span class="close-btn" onclick="closeModal('nodeTrapsHistoryModal')">&times;</span>
+            </div>
+            <div class="scrollable-list" style="max-height: 400px;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Message</th>
+                            <th>Status</th>
+                            <th>Received At</th>
+                            <th>Resolved At</th>
+                        </tr>
+                    </thead>
+                    <tbody id="nodeTrapsHistoryBody"></tbody>
                 </table>
             </div>
         </div>
@@ -1221,7 +1249,13 @@
 
                 nodes.forEach(n => {
                     nodesMap[n.ipAddress] = n.name;
-                    let editBtn = (currentUser && currentUser.role === 'ADMIN') ? `<td><button class="icon-btn" style="color:var(--primary-blue);" onclick="openEditNode(${n.id}, '${n.name}', '${n.ipAddress}', '${n.nodeType}')">✏️</button></td>` : '';
+                    let actionBtns = '';
+                    if (currentUser && currentUser.role === 'ADMIN') {
+                        actionBtns = `<td>
+                            <button class="icon-btn" style="color:var(--primary-blue);" title="Edit Node" onclick="openEditNode(${n.id}, '${n.name}', '${n.ipAddress}', '${n.nodeType}')">✏️</button>
+                            <button class="icon-btn" style="color:var(--warning-orange);" title="View Trap History" onclick="viewNodeHistory('${n.ipAddress}', '${n.name}')">📜</button>
+                        </td>`;
+                    }
                     let formattedDate = new Date(n.createdAt).toLocaleString();
 
                     let badgeClass = 'status-in';
@@ -1234,7 +1268,7 @@
                         badgeClass = 'status-unknown'; 
                     }
 
-                    if (nBody) nBody.innerHTML += `<tr><td style="color:var(--primary-blue); font-weight:700;">${n.name} <br><span style="font-size:13px; color:var(--text-muted);">${n.nodeType}</span></td><td class="code-font" style="font-size: 15px;">${n.ipAddress}</td><td><span class="status-badge ${badgeClass}">${n.status}</span></td><td style="font-size:13px; color:var(--text-muted)">${formattedDate}</td>${editBtn}</tr>`;
+                    if (nBody) nBody.innerHTML += `<tr><td style="color:var(--primary-blue); font-weight:700;">${n.name} <br><span style="font-size:13px; color:var(--text-muted);">${n.nodeType}</span></td><td class="code-font" style="font-size: 15px;">${n.ipAddress}</td><td><span class="status-badge ${badgeClass}">${n.status}</span></td><td style="font-size:13px; color:var(--text-muted)">${formattedDate}</td>${actionBtns}</tr>`;
                 });
 
                 if (document.getElementById('searchNodesList')) {
@@ -1781,7 +1815,59 @@
 
         // Helpers
         function openNodesManager() {
-            syncAll().then(() => openModal('nodesListModal'));
+            syncAll().then(() => {
+                document.getElementById('dashboardScreen').style.display = 'none';
+                document.getElementById('nodesScreen').style.display = 'block';
+            });
+        }
+        function backToDashboard() {
+            document.getElementById('nodesScreen').style.display = 'none';
+            document.getElementById('dashboardScreen').style.display = 'block';
+        }
+        
+        async function viewNodeHistory(ipAddress, nodeName) {
+            try {
+                let tRes = await fetchWithAuth('/api/traps');
+                let allTraps = await tRes.json();
+                let nodeTraps = allTraps.filter(t => t.sourceIp === ipAddress);
+                
+                let hBody = document.getElementById('nodeTrapsHistoryBody');
+                hBody.innerHTML = '';
+                
+                if (nodeTraps.length === 0) {
+                    hBody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No history available for this node.</td></tr>';
+                } else {
+                    // Sort traps by receivedAt descending
+                    nodeTraps.sort((a, b) => new Date(b.receivedAt) - new Date(a.receivedAt));
+                    
+                    nodeTraps.forEach(t => {
+                        let recTime = new Date(t.receivedAt).toLocaleString();
+                        let resTime = t.resolvedAt ? new Date(t.resolvedAt).toLocaleString() : '-';
+                        let badgeHtml = `<span class="status-badge ${t.status === 'OPEN' ? 'status-out' : 'status-in'} trap-status-text">${t.status}</span>`;
+                        let msg = t.message || t.trapOid;
+                        
+                        // Clean AI blocks/overrides from message display for history if present
+                        if (msg.includes('[AI BLOCKED:')) {
+                            msg = msg.substring(0, msg.indexOf('[AI BLOCKED:')).trim() + ' 🤖';
+                        } else if (msg.includes('[AI OVERRIDDEN')) {
+                            msg = msg.substring(0, msg.indexOf('[AI OVERRIDDEN')).trim() + ' 🧑‍💻';
+                        }
+                        
+                        hBody.innerHTML += `<tr>
+                            <td style="font-size:14px; max-width: 300px; word-wrap: break-word;">${msg}</td>
+                            <td>${badgeHtml}</td>
+                            <td style="font-size:13px; color:var(--text-muted)">${recTime}</td>
+                            <td style="font-size:13px; color:var(--text-muted)">${resTime}</td>
+                        </tr>`;
+                    });
+                }
+                
+                document.getElementById('historyModalTitle').textContent = `Trap History: ${nodeName} (${ipAddress})`;
+                openModal('nodeTrapsHistoryModal');
+            } catch(e) {
+                console.error("Error fetching trap history", e);
+                alert("Failed to load trap history");
+            }
         }
         function openModal(id) {
             if (id === 'addNodeModal') {
