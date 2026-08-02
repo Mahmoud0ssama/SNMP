@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SNMP - Premium NOC</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         :root {
@@ -767,6 +768,17 @@
             border-color: #93c5fd;
             transform: translateY(-1px);
         }
+    
+        .fa-solid, .fa-regular {
+            margin-right: 5px;
+        }
+        .icon-btn .fa-solid, .icon-btn .fa-regular {
+            margin-right: 0;
+        }
+        .input-icon .fa-solid, .input-icon .fa-regular {
+            margin-right: 0;
+            color: var(--text-muted);
+        }
     </style>
 </head>
 
@@ -779,11 +791,11 @@
             <p style="color: var(--text-muted); margin-bottom: 30px;">Network Management Platform</p>
             <form id="loginForm" onsubmit="performLogin(event)">
                 <div class="input-group">
-                    <span class="input-icon">👤</span>
+                    <span class="input-icon"><i class="fa-solid fa-user"></i> </span>
                     <input type="text" id="username" placeholder="Username" required>
                 </div>
                 <div class="input-group">
-                    <span class="input-icon">🔒</span>
+                    <span class="input-icon"><i class="fa-solid fa-lock"></i> </span>
                     <input type="password" id="password" placeholder="Password" required>
                 </div>
                 <button type="submit" class="primary-btn">Secure Login</button>
@@ -798,11 +810,11 @@
             <h2>DT NOC Dashboard</h2>
             <div style="display: flex; align-items: center; gap: 22px;">
                 <span
-                    style="font-size: 14px; font-weight: 700; padding: 8px 16px; border-radius: 20px; background-color: #d1fae5; color: #047857; border: 1px solid #a7f3d0;">🟢
+                    style="font-size: 14px; font-weight: 700; padding: 8px 16px; border-radius: 20px; background-color: #d1fae5; color: #047857; border: 1px solid #a7f3d0;"><i class="fa-solid fa-circle" style="font-size: 10px;"></i> 
                     System Live</span>
                 <span style="font-size: 17px; color: var(--text-muted); font-weight: 500;">Welcome, <span
                         style="color: var(--primary-blue); font-weight: 700;" id="userDisplay">User</span></span>
-                <button class="header-action-btn" onclick="syncAll()">↻ Refresh</button>
+                <button class="header-action-btn" onclick="syncAll()"><i class="fa-solid fa-rotate-right"></i> Refresh</button>
                 <button class="logout-btn" onclick="logout()">Logout</button>
             </div>
         </div>
@@ -820,7 +832,7 @@
                             <option value="RESOLVED">Resolved</option>
                         </select>
                         <div class="search-box">
-                            <span>🔍</span>
+                            <span><i class="fa-solid fa-magnifying-glass"></i> </span>
                             <input type="text" id="searchTraps" onkeyup="filterTraps()"
                                 placeholder="Search Name, IP or Msg...">
                         </div>
@@ -828,7 +840,7 @@
                 </div>
                 <div
                     style="display: flex; align-items: center; gap: 8px; background-color: var(--light-blue); padding: 10px 15px; border-radius: 8px; width: fit-content; margin-bottom: 15px;">
-                    <span style="font-size: 16px;">💡</span><span
+                    <span style="font-size: 16px;"><i class="fa-solid fa-lightbulb"></i> </span><span
                         style="font-size: 13px; color: var(--primary-blue); font-weight: 600;">Tip: Click on any alarm
                         row to view resolution details.</span>
                 </div>
@@ -857,7 +869,7 @@
                         <h3 style="margin: 0;">Profile Settings</h3>
                     </div>
                     <div style="display: flex; flex-direction: column; gap: 15px;">
-                        <button class="manage-btn" onclick="openProfileEdit()">👤 Edit My Profile</button>
+                        <button class="manage-btn" onclick="openProfileEdit()"><i class="fa-solid fa-user"></i> Edit My Profile</button>
                     </div>
                 </div>
 
@@ -870,15 +882,15 @@
                     <div style="display: flex; flex-direction: column; gap: 15px;">
                         <!-- Visible to ALL -->
                         <button class="manage-btn" onclick="openNodesManager()"
-                            style="background-color: var(--light-blue); color: var(--primary-blue); border-color: #bfdbfe;">📡
+                            style="background-color: var(--light-blue); color: var(--primary-blue); border-color: #bfdbfe;"><i class="fa-solid fa-satellite-dish"></i> 
                             View Network Elements</button>
 
                         <!-- Visible to ADMIN ONLY -->
                         <button class="success-btn admin-only-item" onclick="openModal('addNodeModal')">+ Add New
                             Node</button>
-                        <button class="primary-btn admin-only-item" onclick="openModal('addUserModal')">🛡️ Add System
+                        <button class="primary-btn admin-only-item" onclick="openModal('addUserModal')"><i class="fa-solid fa-shield-halved"></i> Add System
                             User</button>
-                        <button class="manage-btn admin-only-item" onclick="openUsersManager()">👥 Manage Users</button>
+                        <button class="manage-btn admin-only-item" onclick="openUsersManager()"><i class="fa-solid fa-users-gear"></i> Manage Users</button>
                     </div>
                 </div>
             </div>
@@ -887,12 +899,12 @@
 
     <!-- NOC Chat Assistant -->
     <div class="chat-bubble-btn" id="chatBtn" onclick="toggleChat()" title="Ask AI Assistant" style="display:none">
-        ✨
+        <i class="fa-solid fa-wand-magic-sparkles"></i> 
     </div>
 
     <div class="chat-panel" id="chatPanel">
         <div class="chat-header">
-            <h3><span>✨</span> NOC AI Assistant</h3>
+            <h3><span><i class="fa-solid fa-wand-magic-sparkles"></i> </span> NOC AI Assistant</h3>
             <span class="chat-close" onclick="toggleChat()">&times;</span>
         </div>
         <div class="chat-body" id="chatBody">
@@ -900,7 +912,7 @@
                 Hello! I'm your NOC AI Assistant. I have access to the live network state and alarm history. How can I help you today?
                 <div>
                     <button class="quick-action-btn" onclick="requestAiInsights()">
-                        📊 Generate Root Cause Analysis
+                        <i class="fa-solid fa-chart-simple"></i> Generate Root Cause Analysis
                     </button>
                 </div>
             </div>
@@ -935,11 +947,11 @@
     <div id="nodesScreen" class="dashboard-container" style="display:none;">
         <div class="header card-panel">
             <div style="display: flex; align-items: center; gap: 15px;">
-                <button class="header-action-btn" onclick="backToDashboard()">🔙 Back to Dashboard</button>
+                <button class="header-action-btn" onclick="backToDashboard()"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</button>
                 <h2>Network Elements</h2>
             </div>
             <div class="search-box" style="width: 300px;">
-                <span>🔍</span><input type="text"
+                <span><i class="fa-solid fa-magnifying-glass"></i> </span><input type="text"
                     id="searchNodesList" onkeyup="filterTable('searchNodesList', 'nodesListBody')"
                     placeholder="Search Nodes by Name or IP...">
             </div>
@@ -1012,7 +1024,7 @@
                     <h4 style="margin-top: 0; color: var(--primary-blue);">Trap Actions (Solutions Rules)</h4>
                     <div id="addNodeTrapsContainer"
                         style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 15px;"></div>
-                    <button type="button" class="add-trap-btn" onclick="addTrapRow('addNodeTrapsContainer')">➕ Add
+                    <button type="button" class="add-trap-btn" onclick="addTrapRow('addNodeTrapsContainer')"><i class="fa-solid fa-plus"></i> Add
                         Action Rule</button>
                 </div>
 
@@ -1047,7 +1059,7 @@
                     <h4 style="margin-top: 0; color: var(--primary-blue);">Trap Actions (Solutions Rules)</h4>
                     <div id="editNodeTrapsContainer"
                         style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 15px;"></div>
-                    <button type="button" class="add-trap-btn" onclick="addTrapRow('editNodeTrapsContainer')">➕ Add
+                    <button type="button" class="add-trap-btn" onclick="addTrapRow('editNodeTrapsContainer')"><i class="fa-solid fa-plus"></i> Add
                         Action Rule</button>
                 </div>
 
@@ -1063,7 +1075,7 @@
                 <h3>Manage System Users</h3><span class="close-btn"
                     onclick="closeModal('usersListModal')">&times;</span>
             </div>
-            <div class="search-box" style="margin-bottom: 15px; width: 100%;"><span>🔍</span><input type="text"
+            <div class="search-box" style="margin-bottom: 15px; width: 100%;"><span><i class="fa-solid fa-magnifying-glass"></i> </span><input type="text"
                     id="searchUsersList" onkeyup="filterTable('searchUsersList', 'usersListBody')"
                     placeholder="Search Users..."></div>
             <div class="scrollable-list">
@@ -1252,8 +1264,8 @@
                     let actionBtns = '';
                     if (currentUser && currentUser.role === 'ADMIN') {
                         actionBtns = `<td>
-                            <button class="icon-btn" style="color:var(--primary-blue);" title="Edit Node" onclick="openEditNode(${n.id}, '${n.name}', '${n.ipAddress}', '${n.nodeType}')">✏️</button>
-                            <button class="icon-btn" style="color:var(--warning-orange);" title="View Trap History" onclick="viewNodeHistory('${n.ipAddress}', '${n.name}')">📜</button>
+                            <button class="icon-btn" style="color:var(--primary-blue);" title="Edit Node" onclick="openEditNode(${n.id}, '${n.name}', '${n.ipAddress}', '${n.nodeType}')"><i class="fa-solid fa-pen"></i> </button>
+                            <button class="icon-btn" style="color:var(--warning-orange);" title="View Trap History" onclick="viewNodeHistory('${n.ipAddress}', '${n.name}')"><i class="fa-solid fa-clock-rotate-left"></i> </button>
                         </td>`;
                     }
                     let formattedDate = new Date(n.createdAt).toLocaleString();
@@ -1284,7 +1296,7 @@
                 if (traps.length === 0) tBody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No alarms.</td></tr>';
 
                 traps.forEach(t => {
-                    let btn = t.status === 'OPEN' ? `<button class="danger-btn" onclick="resolveTrap(${t.id}, event)">Resolve</button>` : `<span style="color:var(--text-muted); font-size:12px;">✓ Resolved</span>`;
+                    let btn = t.status === 'OPEN' ? `<button class="danger-btn" onclick="resolveTrap(${t.id}, event)">Resolve</button>` : `<span style="color:var(--text-muted); font-size:12px;"><i class="fa-solid fa-check"></i> Resolved</span>`;
                     let name = nodesMap[t.sourceIp] || "Unknown Node";
                     let time = new Date(t.receivedAt).toLocaleString();
                     let resName = t.resolvedByUsername || "System";
@@ -1310,7 +1322,7 @@
                         let knownTrap = EMULATOR_TRAPS.find(t => t.oid === extractedOid);
                         let niceName = knownTrap ? knownTrap.name : "System Alarm (" + extractedOid + ")";
                         
-                        displayMsg = `<span style="color: var(--text-dark); font-size: 14px;">${niceName}</span> <span class="status-badge status-unknown" style="margin-left: 10px; font-size: 10px; padding: 4px 8px;">❓ UNKNOWN</span>`;
+                        displayMsg = `<span style="color: var(--text-dark); font-size: 14px;">${niceName}</span> <span class="status-badge status-unknown" style="margin-left: 10px; font-size: 10px; padding: 4px 8px;"><i class="fa-solid fa-circle-question"></i> UNKNOWN</span>`;
                     }
                     else if (isAiBlocked || isAiOverridden) {
                         let startIndex = rawMsg.indexOf('[AI BLOCKED:');
@@ -1324,13 +1336,13 @@
                         }
 
                         if (t.status === 'OPEN' && isAiBlocked) {
-                            displayMsg = cleanMsg + '<br><span style="color:var(--warning-orange); font-weight:800; font-size:13px;">🤖 AI Execution Paused</span>';
+                            displayMsg = cleanMsg + '<br><span style="color:var(--warning-orange); font-weight:800; font-size:13px;"><i class="fa-solid fa-robot"></i> AI Execution Paused</span>';
                             badgeHtml = `<span class="status-badge status-warn trap-status-text" style="border-color: var(--warning-orange);">AI BLOCKED</span>`;
                             rowClass += " ai-blocked-row";
                         } else if (isAiOverridden) {
-                            displayMsg = cleanMsg + ' <br><span style="font-size:12px; color:var(--success-green); font-weight:bold;" title="Human engineer bypassed AI warning">✅ AI Overridden (Forced Execution)</span>';
+                            displayMsg = cleanMsg + ' <br><span style="font-size:12px; color:var(--success-green); font-weight:bold;" title="Human engineer bypassed AI warning"><i class="fa-solid fa-check"></i> AI Overridden (Forced Execution)</span>';
                         } else {
-                            displayMsg = cleanMsg + ' <br><span style="font-size:12px; color:var(--text-muted);" title="Auto-execution was prevented by AI">🤖 (Previously AI Blocked)</span>';
+                            displayMsg = cleanMsg + ' <br><span style="font-size:12px; color:var(--text-muted);" title="Auto-execution was prevented by AI"><i class="fa-solid fa-robot"></i> (Previously AI Blocked)</span>';
                         }
                     }
 
@@ -1386,11 +1398,11 @@
                 let selected = (trapSelectValue === val) ? 'selected' : '';
                 trapOptions += `<option value="${val}" ${selected}>${t.name}</option>`;
             });
-            trapOptions += `<option value="CUSTOM" ${trapSelectValue === 'CUSTOM' ? 'selected' : ''}>➕ Add Custom Hardware Trap</option>`;
+            trapOptions += `<option value="CUSTOM" ${trapSelectValue === 'CUSTOM' ? 'selected' : ''}><i class="fa-solid fa-plus"></i> Add Custom Hardware Trap</option>`;
             row.innerHTML = `
                     <div style="display: flex; justify-content: space-between; font-weight: bold; color: var(--primary-blue); font-size: 14px;">
-                        <span>⚙️ Alarm Rule Definition</span>
-                        <button type="button" class="danger-btn" style="padding: 4px 10px; font-size: 12px; height: 26px;" onclick="this.closest('.trap-action-row').remove()">🗑️ Remove</button>
+                        <span><i class="fa-solid fa-gear"></i> Alarm Rule Definition</span>
+                        <button type="button" class="danger-btn" style="padding: 4px 10px; font-size: 12px; height: 26px;" onclick="this.closest('.trap-action-row').remove()"><i class="fa-solid fa-trash"></i> Remove</button>
                     </div>
 
                     <!-- 1. Trap Selection -->
@@ -1430,9 +1442,9 @@
                             <label>Automated Action</label>
                             <select class="t-atype" onchange="toggleActionInputs(this)" required style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border-color);">
                                 <option value="">-- Select Action --</option>
-                                <option value="SMS" ${actionType === 'SM S' ? 'selected' : ''}>📱 Send SMS</option>
-                                <option value="EMAIL" ${actionType === ' EMA IL' ? 'selected' : ''}>✉️ Send Email</option>
-                                <option value="SCRIPT" ${actionType === 'S CRIPT' ? 'selected' : ''}>🛠️ Run Server Script</option>
+                                <option value="SMS" ${actionType === 'SM S' ? 'selected' : ''}><i class="fa-solid fa-mobile-screen"></i> Send SMS</option>
+                                <option value="EMAIL" ${actionType === ' EMA IL' ? 'selected' : ''}><i class="fa-solid fa-envelope"></i> Send Email</option>
+                                <option value="SCRIPT" ${actionType === 'S CRIPT' ? 'selected' : ''}><i class="fa-solid fa-screwdriver-wrench"></i> Run Server Script</option>
                             </select>
                         </div>
 
@@ -1532,7 +1544,7 @@
                     let data = await res.json();
                     // Server returns just the filename now
                     payloadInput.value = data.fileName;
-                    uploadBtn.innerText = 'Uploaded ✓';
+                    uploadBtn.innerText = 'Uploaded <i class="fa-solid fa-check"></i> ';
                     setTimeout(() => uploadBtn.innerText = 'Browse', 2000);
                 } else {
                     alert("File upload failed!");
@@ -1717,8 +1729,8 @@
                 let badge = u.role === 'ADMIN' ? 'status-warn' : 'status-in';
                 let isMe = u.id === currentUser.userId;
 
-                let actions = `<button class="icon-btn" style="color:var(--primary-blue);" onclick="openAdminEditUser(${u.id}, '${u.username}', '${u.role}')">✏️</button>`;
-                if (!isMe) actions += `<button class="icon-btn" style="color:var(--danger-red);" onclick="deleteUser(${u.id})">🗑️</button>`;
+                let actions = `<button class="icon-btn" style="color:var(--primary-blue);" onclick="openAdminEditUser(${u.id}, '${u.username}', '${u.role}')"><i class="fa-solid fa-pen"></i> </button>`;
+                if (!isMe) actions += `<button class="icon-btn" style="color:var(--danger-red);" onclick="deleteUser(${u.id})"><i class="fa-solid fa-trash"></i> </button>`;
 
                 body.innerHTML += `<tr><td class="code-font">#${u.id}</td><td style="font-weight:700;">${u.username} ${isMe ? '<span style="color:var(--success-green); font-size:11px;">(You)</span>' : ''}</td><td><span class="status-badge ${badge}">${u.role}</span></td><td>${actions}</td></tr>`;
             });
@@ -1848,9 +1860,9 @@
                         
                         // Clean AI blocks/overrides from message display for history if present
                         if (msg.includes('[AI BLOCKED:')) {
-                            msg = msg.substring(0, msg.indexOf('[AI BLOCKED:')).trim() + ' 🤖';
+                            msg = msg.substring(0, msg.indexOf('[AI BLOCKED:')).trim() + ' <i class="fa-solid fa-robot"></i> ';
                         } else if (msg.includes('[AI OVERRIDDEN')) {
-                            msg = msg.substring(0, msg.indexOf('[AI OVERRIDDEN')).trim() + ' 🧑‍💻';
+                            msg = msg.substring(0, msg.indexOf('[AI OVERRIDDEN')).trim() + ' <i class="fa-solid fa-user-gear"></i> ';
                         }
                         
                         hBody.innerHTML += `<tr>
@@ -1907,13 +1919,13 @@
 
             if (aiReason && status === 'OPEN') {
                 h += `<div class="ai-warning-box">
-                        <h4 style="margin:0 0 10px 0; color:#d97706; display:flex; align-items:center; gap:8px;">🤖 AI Safety Warning</h4>
+                        <h4 style="margin:0 0 10px 0; color:#d97706; display:flex; align-items:center; gap:8px;"><i class="fa-solid fa-robot"></i> AI Safety Warning</h4>
                         <p style="margin:0; font-size:13px; color:#92400e; font-weight:600;">${aiReason}</p>
-                        <button class="danger-btn" style="margin-top:15px; width:100%; border-color:#d97706; color:#b45309;" onclick="forceExecute(${id}, event)">⚠️ Force Execute Script (Override AI)</button>
+                        <button class="danger-btn" style="margin-top:15px; width:100%; border-color:#d97706; color:#b45309;" onclick="forceExecute(${id}, event)"><i class="fa-solid fa-triangle-exclamation"></i> Force Execute Script (Override AI)</button>
                       </div>`;
             } else if (isOverridden) {
                 h += `<div class="ai-warning-box" style="background-color:#f0fdf4; border-color:#34d399;">
-                        <h4 style="margin:0 0 10px 0; color:#047857; display:flex; align-items:center; gap:8px;">✅ AI Overridden</h4>
+                        <h4 style="margin:0 0 10px 0; color:#047857; display:flex; align-items:center; gap:8px;"><i class="fa-solid fa-check"></i> AI Overridden</h4>
                         <p style="margin:0; font-size:13px; color:#065f46; font-weight:600;">A human engineer bypassed the AI warning and forced execution.</p>
                       </div>`;
             }
@@ -1923,8 +1935,8 @@
 
             if (status === 'RESOLVED') {
                 h += `<div style="margin-top:15px; padding:10px; background:#f0fdf4; border:1px dashed #34d399; border-radius:8px;">
-                        <div class="detail-row" style="border:none; padding-bottom:5px;"><span>Resolved By:</span><span style="color:var(--success-green); font-size:15px;">🧑‍💻 ${rName}</span></div>
-                        <div class="detail-row" style="border:none; padding-top:0;"><span>Time Resolved:</span><span>🕒 ${tRes}</span></div>
+                        <div class="detail-row" style="border:none; padding-bottom:5px;"><span>Resolved By:</span><span style="color:var(--success-green); font-size:15px;"><i class="fa-solid fa-user-gear"></i> ${rName}</span></div>
+                        <div class="detail-row" style="border:none; padding-top:0;"><span>Time Resolved:</span><span><i class="fa-regular fa-clock"></i> ${tRes}</span></div>
                       </div>`;
             }
             bd.innerHTML = h;
@@ -1937,7 +1949,7 @@
 
             let btn = event.target;
             let originalText = btn.innerHTML;
-            btn.innerHTML = 'Executing... ⏳';
+            btn.innerHTML = 'Executing... <i class="fa-solid fa-hourglass-half"></i> ';
             btn.disabled = true;
 
             try {

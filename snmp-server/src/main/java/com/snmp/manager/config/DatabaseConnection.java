@@ -1,21 +1,23 @@
 package com.snmp.manager.config;
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Properties;
 
-// Manages PostgreSQL JDBC connection configuration and lifecycle.
+// Manages PostgreSQL JDBC connection configuration and lifecycle using HikariCP.
 
 public class DatabaseConnection {
 
     private static final String CONFIG_RESOURCE = "db.properties";
 
+    private final HikariDataSource dataSource;
     private final String url;
     private final String user;
-    private final String password;
 
     // Constructs a connection manager from the given parameters.
     public DatabaseConnection(String url, String user, String password) {
@@ -30,16 +32,28 @@ public class DatabaseConnection {
         }
         this.url = url;
         this.user = user;
-        this.password = password;
+
+        HikariConfig config = new HikariConfig();
+        config.setJdbcUrl(url);
+        config.setUsername(user);
+        config.setPassword(password);
+        
+        // Recommended HikariCP settings for PostgreSQL
+        config.setMaximumPoolSize(10);
+        config.setMinimumIdle(2);
+        config.setIdleTimeout(30000);
+        config.setConnectionTimeout(10000);
+        config.setMaxLifetime(1800000); // 30 minutes
+
+        this.dataSource = new HikariDataSource(config);
     }
 
-    // Loads the connection configuration from the  db.properties resource on the classpath.
-     
+    // Loads the connection configuration from the db.properties resource on the classpath.
     public static DatabaseConnection fromResource() throws IOException {
         return fromResource(CONFIG_RESOURCE);
     }
 
-    //Loads the connection configuration from the named properties resource.
+    // Loads the connection configuration from the named properties resource.
     public static DatabaseConnection fromResource(String resource) throws IOException {
         Properties props = new Properties();
         try (InputStream in = DatabaseConnection.class.getClassLoader().getResourceAsStream(resource)) {
@@ -54,9 +68,9 @@ public class DatabaseConnection {
         return new DatabaseConnection(url, user, password);
     }
 
-    // Opens a new JDBC connection to the configured PostgreSQL database.
+    // Gets a connection from the HikariCP connection pool.
     public Connection getConnection() throws SQLException {
-        return DriverManager.getConnection(url, user, password);
+        return dataSource.getConnection();
     }
 
     public String getUrl() {
@@ -65,5 +79,12 @@ public class DatabaseConnection {
 
     public String getUser() {
         return user;
+    }
+    
+    // Close the connection pool gracefully
+    public void close() {
+        if (dataSource != null && !dataSource.isClosed()) {
+            dataSource.close();
+        }
     }
 }
