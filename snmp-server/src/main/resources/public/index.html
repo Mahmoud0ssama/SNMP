@@ -871,7 +871,7 @@
                     System Live</span>
                 <span style="font-size: 17px; color: var(--text-muted); font-weight: 500;">Welcome, <span
                         style="color: var(--primary-blue); font-weight: 700;" id="userDisplay">User</span></span>
-                <button class="header-action-btn" onclick="syncAll()"><i class="fa-solid fa-rotate-right"></i>
+                <button class="header-action-btn" onclick="manualRefresh()"><i class="fa-solid fa-rotate-right"></i>
                     Refresh</button>
                 <button class="logout-btn" onclick="logout()">Logout</button>
             </div>
@@ -1340,6 +1340,15 @@
                 throw new Error("Token Expired");
             }
             return response;
+        }
+        
+        async function manualRefresh() {
+            showLoader('Syncing data...');
+            try {
+                await syncAll();
+            } finally {
+                hideLoader();
+            }
         }
 
         async function syncAll() {
