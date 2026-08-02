@@ -22,6 +22,18 @@
             --shadow-soft: 0 10px 30px -10px rgba(0, 86, 179, 0.1);
         }
 
+        [data-theme="dark"] {
+            --bg-body: #000000;
+            --card-bg: #111111;
+            --primary-blue: #3b82f6;
+            --primary-hover: #2563eb;
+            --light-blue: #1a1a1a;
+            --text-dark: #f8fafc;
+            --text-muted: #a1a1aa;
+            --border-color: #222222;
+            --shadow-soft: 0 10px 30px -10px rgba(0, 0, 0, 0.8);
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, sans-serif;
             background-color: var(--bg-body);
@@ -767,7 +779,91 @@
             border-color: #93c5fd;
             transform: translateY(-1px);
         }
+        /* Overrides for hardcoded colors in dark mode */
+        [data-theme="dark"] .input-group input,
+        [data-theme="dark"] .form-group select,
+        [data-theme="dark"] .search-box input,
+        [data-theme="dark"] .filter-select,
+        [data-theme="dark"] .header-action-btn,
+        [data-theme="dark"] .manage-btn {
+            background-color: #1a1a1a;
+            color: #f8fafc;
+            border-color: var(--border-color);
+        }
+        
+        [data-theme="dark"] .logout-btn {
+            background-color: #450a0a;
+            color: #fecaca;
+            border-color: #7f1d1d;
+        }
+        [data-theme="dark"] .logout-btn:hover {
+            background-color: #7f1d1d;
+            color: #ffffff;
+        }
+        [data-theme="dark"] .danger-btn {
+            background-color: transparent;
+        }
+        
+        [data-theme="dark"] .clickable-row:hover {
+            background-color: #1a1a1a;
+        }
+        
+        [data-theme="dark"] th {
+            background: var(--card-bg);
+        }
+
+        [data-theme="dark"] .status-unknown {
+            color: #ddd6fe; 
+            background-color: #4c1d95; 
+            border-color: #5b21b6; 
+        }
+
+        [data-theme="dark"] .unknown-trap-row {
+            background-color: #1e1b4b !important; 
+        }
+        [data-theme="dark"] .unknown-trap-row:hover {
+            background-color: #312e81 !important; 
+        }
+
+        [data-theme="dark"] .modal {
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+
+        [data-theme="dark"] .flash-msg {
+            background-color: #450a0a;
+            color: #fca5a5;
+        }
+
+        [data-theme="dark"] .ai-blocked-row {
+            background-color: #422006 !important;
+        }
+        [data-theme="dark"] .ai-blocked-row:hover {
+            background-color: #78350f !important;
+        }
+        [data-theme="dark"] .ai-warning-box {
+            background-color: #422006;
+            border-color: #92400e;
+        }
+        [data-theme="dark"] .chat-input-area {
+            background: var(--card-bg);
+        }
+        [data-theme="dark"] .chat-input {
+            background: #334155;
+            color: #f8fafc;
+        }
+        [data-theme="dark"] .chat-message.bot {
+            background-color: #334155;
+            border-color: var(--border-color);
+            color: #f8fafc;
+        }
     </style>
+    
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
 </head>
 
 <body>
@@ -802,6 +898,7 @@
                     System Live</span>
                 <span style="font-size: 17px; color: var(--text-muted); font-weight: 500;">Welcome, <span
                         style="color: var(--primary-blue); font-weight: 700;" id="userDisplay">User</span></span>
+                <button class="header-action-btn" onclick="toggleTheme()" id="themeToggleBtn">🌙 Theme</button>
                 <button class="header-action-btn" onclick="syncAll()">↻ Refresh</button>
                 <button class="logout-btn" onclick="logout()">Logout</button>
             </div>
@@ -2083,6 +2180,26 @@
             let body = document.getElementById('chatBody');
             body.scrollTop = body.scrollHeight;
         }
+        
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            const toggleBtn = document.getElementById('themeToggleBtn');
+            if(toggleBtn) {
+                toggleBtn.innerHTML = newTheme === 'dark' ? '☀️ Theme' : '🌙 Theme';
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            const toggleBtn = document.getElementById('themeToggleBtn');
+            if(toggleBtn) {
+                toggleBtn.innerHTML = savedTheme === 'dark' ? '☀️ Theme' : '🌙 Theme';
+            }
+        });
     </script>
 </body>
 
