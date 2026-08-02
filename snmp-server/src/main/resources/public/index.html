@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SNMP - Premium NOC</title>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg-body: #f4f7fb;
@@ -35,7 +36,7 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, sans-serif;
+            font-family: 'Inter', sans-serif;
             background-color: var(--bg-body);
             margin: 0;
             padding: 25px 35px;
@@ -111,6 +112,7 @@
             display: grid;
             grid-template-columns: 2fr 1fr;
             gap: 30px;
+            align-items: stretch;
         }
 
         .card {
@@ -195,19 +197,25 @@
             font-weight: 600;
         }
 
+        .alarm-row td:first-child {
+            border-left: 3px solid transparent;
+        }
+        .alarm-open td:first-child {
+            border-left-color: var(--danger-red) !important;
+        }
+
         .clickable-row {
             cursor: pointer;
-            transition: 0.2s;
+            transition: background-color 150ms ease;
         }
 
         .clickable-row:hover {
-            background-color: #f8fafc;
-            transform: scale(1.005);
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            background-color: #f1f5f9;
         }
 
         .scrollable-list {
-            max-height: 450px;
+            flex: 1;
+            max-height: 60vh;
             overflow-y: auto;
             padding-right: 10px;
         }
@@ -215,7 +223,7 @@
         .status-badge {
             font-weight: 700;
             padding: 6px 12px;
-            border-radius: 20px;
+            border-radius: 12px;
             font-size: 11px;
             border: 1px solid transparent;
             display: inline-block;
@@ -321,7 +329,10 @@
         }
 
         .modal {
-            display: none;
+            display: flex;
+            opacity: 0;
+            pointer-events: none;
+            visibility: hidden;
             position: fixed;
             z-index: 1000;
             left: 0;
@@ -332,6 +343,13 @@
             align-items: center;
             justify-content: center;
             backdrop-filter: blur(5px);
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .modal.active {
+            opacity: 1;
+            pointer-events: auto;
+            visibility: visible;
         }
 
         .modal-content {
@@ -343,6 +361,12 @@
             border: 1px solid rgba(255, 255, 255, 0.8);
             max-height: 90vh;
             overflow-y: auto;
+            transform: scale(0.95);
+            transition: transform 0.3s ease;
+        }
+
+        .modal.active .modal-content {
+            transform: scale(1);
         }
 
         .modal-large {
@@ -812,10 +836,28 @@
             background: var(--card-bg);
         }
 
+        [data-theme="dark"] .status-in {
+            color: #6ee7b7;
+            background-color: rgba(16, 185, 129, 0.15);
+            border-color: transparent;
+        }
+        [data-theme="dark"] .status-out {
+            color: #fca5a5;
+            background-color: rgba(239, 68, 68, 0.15);
+            border-color: transparent;
+        }
+        [data-theme="dark"] .status-warn {
+            color: #fcd34d;
+            background-color: rgba(245, 158, 11, 0.15);
+            border-color: transparent;
+        }
         [data-theme="dark"] .status-unknown {
-            color: #ddd6fe; 
-            background-color: #4c1d95; 
-            border-color: #5b21b6; 
+            color: #c4b5fd; 
+            background-color: rgba(139, 92, 246, 0.15); 
+            border-color: transparent; 
+        }
+        [data-theme="dark"] .alarm-open td:first-child {
+            border-left-color: #f87171 !important;
         }
 
         [data-theme="dark"] .unknown-trap-row {
@@ -906,7 +948,28 @@
 
         <div class="grid-container">
             <!-- Left: Traps Table -->
-            <div class="card card-panel">
+            <div class="card card-panel" style="display: flex; flex-direction: column;">
+                
+                <!-- Summary Stat Cards -->
+                <div id="statsRow" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 25px;">
+                    <div style="background: var(--bg-body); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color); text-align: center;">
+                        <div style="font-size: 12px; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Open Alarms</div>
+                        <div id="statOpen" style="font-size: 24px; font-weight: 800; color: var(--danger-red); margin-top: 5px;">0</div>
+                    </div>
+                    <div style="background: var(--bg-body); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color); text-align: center;">
+                        <div style="font-size: 12px; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Resolved (24h)</div>
+                        <div id="statResolved" style="font-size: 24px; font-weight: 800; color: var(--success-green); margin-top: 5px;">0</div>
+                    </div>
+                    <div style="background: var(--bg-body); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color); text-align: center;">
+                        <div style="font-size: 12px; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Unknown Sources</div>
+                        <div id="statUnknown" style="font-size: 24px; font-weight: 800; color: var(--warning-orange); margin-top: 5px;">0</div>
+                    </div>
+                    <div style="background: var(--bg-body); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color); text-align: center;">
+                        <div style="font-size: 12px; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Nodes Online</div>
+                        <div id="statNodes" style="font-size: 24px; font-weight: 800; color: var(--primary-blue); margin-top: 5px;">0 / 0</div>
+                    </div>
+                </div>
+
                 <div
                     style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 15px;">
                     <h3 style="margin: 0; color: var(--text-dark);">Recent Alarms (Traps Logs)</h3>
@@ -1343,8 +1406,10 @@
                 let nBody = document.getElementById('nodesListBody');
                 if (nBody) nBody.innerHTML = '';
                 nodesMap = {};
+                let nodesOnlineCount = 0;
 
                 nodes.forEach(n => {
+                    if(n.status === 'UP') nodesOnlineCount++;
                     nodesMap[n.ipAddress] = n.name;
                     let actionBtns = '';
                     if (currentUser && currentUser.role === 'ADMIN') {
@@ -1377,10 +1442,21 @@
                 let traps = await tRes.json();
                 let tBody = document.getElementById('trapsTableBody');
                 tBody.innerHTML = '';
+                
+                let openCount = 0;
+                let resolvedTodayCount = 0;
+                let unknownCount = 0;
+                let today = new Date();
+                today.setHours(0,0,0,0);
 
                 if (traps.length === 0) tBody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No alarms.</td></tr>';
 
                 traps.forEach(t => {
+                    if (t.status === 'OPEN') openCount++;
+                    if (t.status === 'RESOLVED' && t.resolvedAt) {
+                        let resDate = new Date(t.resolvedAt);
+                        if (resDate >= today) resolvedTodayCount++;
+                    }
                     let btn = t.status === 'OPEN' ? `<button class="danger-btn" onclick="resolveTrap(${t.id}, event)">Resolve</button>` : `<span style="color:var(--text-muted); font-size:12px;">✓ Resolved</span>`;
                     let name = nodesMap[t.sourceIp] || "Unknown Node";
                     let time = new Date(t.receivedAt).toLocaleString();
@@ -1400,6 +1476,7 @@
                     let rowClass = "clickable-row";
 
                     if (isUnrecognized) {
+                        unknownCount++;
                         rowClass += " unknown-trap-row";
                         
                         let extractedOid = cleanMsg.replace('Unrecognized trap:', '').trim();
@@ -1434,7 +1511,8 @@
                     let safeAiReason = aiReason.replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/\n/g, " ");
                     let safeCleanMsg = cleanMsg.replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/\n/g, " ");
 
-                    tBody.innerHTML += `<tr class="${rowClass}" onclick="showTrapDetails(${t.id}, '${name}', '${t.sourceIp}', '${safeCleanMsg}', '${t.status}', '${time}', '${resName}', '${resTime}', '${safeAiReason}', ${isAiOverridden})">
+                    let alarmRowClass = t.status === 'OPEN' ? 'alarm-row alarm-open' : 'alarm-row';
+                    tBody.innerHTML += `<tr class="${rowClass} ${alarmRowClass}" onclick="showTrapDetails(${t.id}, '${name}', '${t.sourceIp}', '${safeCleanMsg}', '${t.status}', '${time}', '${resName}', '${resTime}', '${safeAiReason}', ${isAiOverridden})">
                         <td><div style="color:var(--primary-blue); font-weight:700;">${name}</div><div class="code-font" style="font-size:13px;">${t.sourceIp}</div></td>
                         <td style="font-weight:700;">${displayMsg} <br><span style="font-size:13px; color:var(--text-muted);">${time}</span></td>
                         <td>${badgeHtml}</td>
@@ -1442,6 +1520,14 @@
                 });
 
                 filterTraps();
+                
+                // Update stat cards
+                if(document.getElementById('statOpen')) {
+                    document.getElementById('statOpen').innerText = openCount;
+                    document.getElementById('statResolved').innerText = resolvedTodayCount;
+                    document.getElementById('statUnknown').innerText = unknownCount;
+                    document.getElementById('statNodes').innerText = `${nodesOnlineCount} / ${nodes.length}`;
+                }
 
             } catch (e) {
                 console.error("Sync Error:", e);
@@ -1972,10 +2058,10 @@
                 document.getElementById('newNodeName').value = '';
                 document.getElementById('newNodeIp').value = '';
             }
-            document.getElementById(id).style.display = 'flex';
+            document.getElementById(id).classList.add('active');
         }
         function closeModal(id) {
-            document.getElementById(id).style.display = 'none';
+            document.getElementById(id).classList.remove('active');
         }
 
         function filterTraps() {
