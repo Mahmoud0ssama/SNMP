@@ -87,6 +87,28 @@ public class Main {
         java.util.TimeZone.setDefault(java.util.TimeZone.getTimeZone("UTC"));
         System.out.println("SNMP Manager Started");
 
+        // --- SINGLETON INITIALIZATION ---
+        DatabaseConnection db;
+        try {
+            db = DatabaseConnection.fromResource();
+        } catch (IOException e) {
+            System.err.println("Fatal error: Could not initialize database connection pool.");
+            e.printStackTrace();
+            return;
+        }
+        
+        // Cache DAOs to reuse across all requests
+        UserDAO userDAO = new UserDAO(db);
+        NodeDAO nodeDAO = new NodeDAO(db);
+        TrapActionDAO trapActionDAO = new TrapActionDAO(db);
+        TrapHistoryDAO trapHistoryDAO = new TrapHistoryDAO(db);
+        NodeService nodeService = new NodeService(nodeDAO, trapActionDAO);
+        AiAnalysisService aiService = new AiAnalysisService(db);
+        TrapService trapService = new TrapService(nodeDAO, trapActionDAO, trapHistoryDAO, nodeService, db);
+
+        // Make sure pool is closed on shutdown
+        Runtime.getRuntime().addShutdownHook(new Thread(db::close));
+
         Javalin app = Javalin.create(config -> {
             config.staticFiles.add("/public", Location.CLASSPATH);
             ObjectMapper mapper = new ObjectMapper();
@@ -117,8 +139,6 @@ public class Main {
         // Auth Login API
         app.post("/api/login", ctx -> {
             LoginReq req = ctx.bodyAsClass(LoginReq.class);
-            DatabaseConnection db = DatabaseConnection.fromResource();
-            UserDAO userDAO = new UserDAO(db);
 
             Optional<User> userOpt = userDAO.findByUsername(req.username);
             if (userOpt.isPresent() && BCrypt.checkpw(req.password, userOpt.get().getPasswordHash())) {
@@ -132,17 +152,17 @@ public class Main {
 
         // --- DASHBOARD APIs ---
         app.get("/api/nodes", ctx -> {
-            ctx.json(new NodeDAO(DatabaseConnection.fromResource()).findAll());
+            ctx.json(nodeDAO.findAll());
         });
 
         app.get("/api/traps", ctx -> {
-            ctx.json(new TrapHistoryDAO(DatabaseConnection.fromResource()).findAll());
+            ctx.json(trapHistoryDAO.findAll());
         });
 
         app.put("/api/traps/{id}/resolve", ctx -> {
             DecodedJWT jwt = ctx.attribute("jwt");
             Long trapId = Long.parseLong(ctx.pathParam("id"));
-            boolean success = new TrapHistoryDAO(DatabaseConnection.fromResource()).resolveTrap(trapId, jwt.getClaim("userId").asLong());
+            boolean success = trapHistoryDAO.resolveTrap(trapId, jwt.getClaim("userId").asLong());
             if (success) {
                 ctx.json(Map.of("status", "success"));
             } else {
@@ -151,7 +171,6 @@ public class Main {
         });
 
         app.get("/api/ai/insights", ctx -> {
-            AiAnalysisService aiService = new AiAnalysisService(DatabaseConnection.fromResource());
             String result = aiService.generateInsights();
             ctx.json(Map.of("markdown", result));
         });
@@ -159,13 +178,12 @@ public class Main {
         app.post("/api/ai/chat", ctx -> {
             ChatReq req = ctx.bodyAsClass(ChatReq.class);
             
-            List<Node> allNodes = new NodeDAO(DatabaseConnection.fromResource()).findAll();
-            List<com.snmp.manager.model.TrapHistory> recentTraps = new TrapHistoryDAO(DatabaseConnection.fromResource()).findAll();
+            List<Node> allNodes = nodeDAO.findAll();
+            List<com.snmp.manager.model.TrapHistory> recentTraps = trapHistoryDAO.findAll();
             if (recentTraps.size() > 50) {
                 recentTraps = recentTraps.subList(0, 50);
             }
             
-            AiAnalysisService aiService = new AiAnalysisService(DatabaseConnection.fromResource());
             String response = aiService.chatWithNOC(req.message, allNodes, recentTraps, req.history);
             
             ctx.json(Map.of("response", response));
@@ -178,7 +196,7 @@ public class Main {
                 throw new UnauthorizedResponse("Admin access required");
             }
 
-            List<User> users = new UserDAO(DatabaseConnection.fromResource()).findAll();
+            List<User> users = userDAO.findAll();
             List<Map<String, Object>> safeUsers = users.stream()
                     .map(u -> java.util.Map.<String, Object>of(
                     "id", u.getId(),
@@ -202,7 +220,7 @@ public class Main {
             u.setRole(req.role != null ? req.role : "SUPPORT");
 
             try {
-                new UserDAO(DatabaseConnection.fromResource()).save(u);
+                userDAO.save(u);
                 ctx.json(Map.of("status", "success"));
             } catch (Exception e) {
                 ctx.status(400).json(Map.of("error", "Username already exists. Please choose another one."));
@@ -220,7 +238,7 @@ public class Main {
                 ctx.status(400).json(Map.of("error", "Cannot delete yourself"));
                 return;
             }
-            new UserDAO(DatabaseConnection.fromResource()).delete(targetId);
+            userDAO.delete(targetId);
             ctx.json(Map.of("status", "success"));
         });
 
@@ -235,15 +253,14 @@ public class Main {
             }
 
             UserReq req = ctx.bodyAsClass(UserReq.class);
-            UserDAO dao = new UserDAO(DatabaseConnection.fromResource());
 
             String newRole = isAdmin ? req.role : jwt.getClaim("role").asString();
 
             try {
                 if (req.password != null && !req.password.trim().isEmpty()) {
-                    dao.updateWithPassword(targetId, req.username, BCrypt.hashpw(req.password, BCrypt.gensalt()), newRole);
+                    userDAO.updateWithPassword(targetId, req.username, BCrypt.hashpw(req.password, BCrypt.gensalt()), newRole);
                 } else {
-                    dao.update(targetId, req.username, newRole);
+                    userDAO.update(targetId, req.username, newRole);
                 }
                 ctx.json(Map.of("status", "success"));
             } catch (Exception e) {
@@ -254,7 +271,7 @@ public class Main {
         // --- TRAP CONFIGURATION APIs ---
         app.get("/api/nodes/{id}/trapActions", ctx -> {
             Long targetId = Long.parseLong(ctx.pathParam("id"));
-            ctx.json(new TrapActionDAO(DatabaseConnection.fromResource()).findByNodeId(targetId));
+            ctx.json(trapActionDAO.findByNodeId(targetId));
         });
 
         app.post("/api/upload-script", ctx -> {
@@ -296,8 +313,6 @@ public class Main {
             }
 
             NodeReq req = ctx.bodyAsClass(NodeReq.class);
-            DatabaseConnection db = DatabaseConnection.fromResource();
-            NodeService nodeService = new NodeService(new NodeDAO(db), new TrapActionDAO(db));
 
             List<TrapAction> actions = null;
             if (req.trapActions != null) {
@@ -329,8 +344,6 @@ public class Main {
 
             Long targetId = Long.parseLong(ctx.pathParam("id"));
             NodeReq req = ctx.bodyAsClass(NodeReq.class);
-            DatabaseConnection db = DatabaseConnection.fromResource();
-            NodeService nodeService = new NodeService(new NodeDAO(db), new TrapActionDAO(db));
 
             List<TrapAction> actions = null;
             if (req.trapActions != null) {
@@ -360,7 +373,6 @@ public class Main {
             Long trapId = Long.parseLong(ctx.pathParam("id"));
             Long userId = jwt.getClaim("userId").asLong();
 
-            DatabaseConnection db = DatabaseConnection.fromResource();
             try (java.sql.Connection conn = db.getConnection()) {
                 String sql = "SELECT trap_action_id, message FROM trap_history WHERE id = ?";
                 Long actionId = null;
@@ -384,8 +396,7 @@ public class Main {
                     return;
                 }
 
-                TrapActionDAO actionDAO = new TrapActionDAO(db);
-                Optional<TrapAction> actionOpt = actionDAO.findById(actionId);
+                Optional<TrapAction> actionOpt = trapActionDAO.findById(actionId);
                 if (actionOpt.isEmpty() || !"SCRIPT".equalsIgnoreCase(actionOpt.get().getActionType())) {
                     ctx.status(400).result("Action is not a script");
                     return;
@@ -400,11 +411,10 @@ public class Main {
                 com.snmp.manager.util.ScriptExecutor.ExecutionResult result = com.snmp.manager.util.ScriptExecutor.execute(fullPath.toString());
 
                 if (result.success()) {
-                    TrapHistoryDAO historyDAO = new TrapHistoryDAO(db);
-                    historyDAO.resolveTrap(trapId, userId); 
+                    trapHistoryDAO.resolveTrap(trapId, userId); 
                     
                     String newMsg = oldMessage.replace("[AI BLOCKED:", "[AI OVERRIDDEN (Forced):");
-                    historyDAO.updateMessage(trapId, newMsg);
+                    trapHistoryDAO.updateMessage(trapId, newMsg);
 
                     ctx.json(Map.of("status", "success", "message", "Script force-executed successfully"));
                 } else {
@@ -418,7 +428,7 @@ public class Main {
 
         // --- SNMP Receiver Setup ---
         TrapReceiver receiver = new TrapReceiver();
-        receiver.addTrapListener(new PersistenceTrapListener());
+        receiver.addTrapListener(new PersistenceTrapListener(trapService));
         try {
             receiver.start();
         } catch (IOException e) {
@@ -427,12 +437,16 @@ public class Main {
     }
 
     private static class PersistenceTrapListener implements TrapListener {
+        private final TrapService trapService;
+
+        public PersistenceTrapListener(TrapService trapService) {
+            this.trapService = trapService;
+        }
 
         @Override
         public void onTrapReceived(TrapEvent event) {
             try {
-                DatabaseConnection db = DatabaseConnection.fromResource();
-                new TrapService(new NodeDAO(db), new TrapActionDAO(db), new TrapHistoryDAO(db), new NodeService(new NodeDAO(db)), db).process(event);
+                trapService.process(event);
             } catch (Exception e) {
                 System.err.println("Error processing Trap: " + e.getMessage());
             }

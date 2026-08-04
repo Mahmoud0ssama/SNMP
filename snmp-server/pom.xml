@@ -29,6 +29,14 @@
             <artifactId>postgresql</artifactId>
             <version>42.7.7</version>
         </dependency>
+        
+        <!-- HikariCP Connection Pool -->
+        <dependency>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>HikariCP</artifactId>
+            <version>5.1.0</version>
+        </dependency>
+        
         <!-- Javalin Web Server -->
         <dependency>
             <groupId>io.javalin</groupId>
@@ -38,8 +46,9 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
-            <version>2.0.12</version>
+            <version>1.7.36</version>
         </dependency>
+
         <!-- Jackson for JSON Serialization -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -77,6 +86,9 @@
             <artifactId>angus-mail</artifactId>
             <version>2.0.3</version>
         </dependency>
+
+
+
 
         <!-- Test Dependencies -->
         <dependency>
