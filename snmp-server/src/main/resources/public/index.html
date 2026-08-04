@@ -126,8 +126,14 @@
 
         .form-group input,
         .form-group select {
-            padding: 12px;
-            padding-left: 15px;
+            width: 100%;
+            padding: 12px 15px;
+            background-color: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            outline: none;
+            box-sizing: border-box;
+            transition: all 0.2s ease;
         }
 
         .input-icon {
@@ -873,11 +879,14 @@
 
         /* Overrides for hardcoded colors in dark mode */
         [data-theme="dark"] .input-group input,
+        [data-theme="dark"] .form-group input,
         [data-theme="dark"] .form-group select,
         [data-theme="dark"] .search-box input,
         [data-theme="dark"] .filter-select,
         [data-theme="dark"] .header-action-btn,
-        [data-theme="dark"] .manage-btn {
+        [data-theme="dark"] .manage-btn,
+        [data-theme="dark"] .trap-action-row input,
+        [data-theme="dark"] .trap-action-row select {
             background-color: #1a1a1a;
             color: #f8fafc;
             border-color: var(--border-color);
@@ -966,7 +975,7 @@
             border-color: var(--border-color);
             color: #f8fafc;
         }
-        }
+        
     </style>
     
     <script>
@@ -1665,7 +1674,7 @@
             let container = document.getElementById(containerId);
             let row = document.createElement('div');
             row.className = 'trap-action-row';
-            row.style.cssText = 'display: flex; flex-direction: column; gap: 15px; border: 1px solid var(--border-color); padding: 15px; background: #f8fafc; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);'; let oid = data ? data.trapOid : '';
+            row.style.cssText = 'display: flex; flex-direction: column; gap: 15px; border: 1px solid var(--border-color); padding: 15px; background: var(--bg-body); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);'; let oid = data ? data.trapOid : '';
             let name = data ? data.trapName : '';
             let severity = data ? data.severity : 'INFO';
             let actionType = data ? data.actionType : ''; let payload = data ? (data.targetPayload || '') : '';
@@ -1706,10 +1715,10 @@
                         <div>
                             <label>Severity</label>
                             <select class="t-sev" required style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border-color);">
-                                <option value="INFO" ${severity === 'INFO' ? 'sel ect ed' : ''}>INFO</option>
-                                <option value="MINOR" ${severity === 'MINOR' ? ' sel ected' : ''}>MINOR</option>
-                                <option value="MAJOR" ${severity === 'MAJOR' ? 's elected' : ''}>MAJOR</option>
-                                <option value="CRITICAL" ${severity === 'CRIT ICA L' ? 'selected' : ''}>CRITICAL</option>
+                                <option value="INFO" ${severity === 'INFO' ? 'selected' : ''}>INFO</option>
+                                <option value="MINOR" ${severity === 'MINOR' ? 'selected' : ''}>MINOR</option>
+                                <option value="MAJOR" ${severity === 'MAJOR' ? 'selected' : ''}>MAJOR</option>
+                                <option value="CRITICAL" ${severity === 'CRITICAL' ? 'selected' : ''}>CRITICAL</option>
                             </select>
                         </div>
                     </div>
@@ -1732,16 +1741,16 @@
                             <label>Automated Action</label>
                             <select class="t-atype" onchange="toggleActionInputs(this)" required style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border-color);">
                                 <option value="">-- Select Action --</option>
-                                <option value="SMS" ${actionType === 'SM S' ? 'selected' : ''}><i class="fa-solid fa-mobile-screen"></i> Send SMS</option>
-                                <option value="EMAIL" ${actionType === ' EMA IL' ? 'selected' : ''}><i class="fa-solid fa-envelope"></i> Send Email</option>
-                                <option value="SCRIPT" ${actionType === 'S CRIPT' ? 'selected' : ''}><i class="fa-solid fa-screwdriver-wrench"></i> Run Server Script</option>
+                                <option value="SMS" ${actionType === 'SMS' ? 'selected' : ''}><i class="fa-solid fa-mobile-screen"></i> Send SMS</option>
+                                <option value="EMAIL" ${actionType === 'EMAIL' ? 'selected' : ''}><i class="fa-solid fa-envelope"></i> Send Email</option>
+                                <option value="SCRIPT" ${actionType === 'SCRIPT' ? 'selected' : ''}><i class="fa-solid fa-screwdriver-wrench"></i> Run Server Script</option>
                             </select>
                         </div>
 
                         <!-- Dynamic Input Area -->
                         <div class="action-dynamic-area">
                             <!-- Shown for SMS / EMAIL -->
-                            <div class="target-input-wrapper" style="display: ${['SMS', ' EMAIL'].includes(actionType) ? 'block' : 'none'};">
+                            <div class="target-input-wrapper" style="display: ${['SMS', 'EMAIL'].includes(actionType) ? 'block' : 'none'};">
                                 <label class="target-label">${actionType === 'EMAIL' ? 'Target Email Address' : 'Target Phone Number'}</label>
                                 <input type="text" class="t-payload-text" placeholder="Enter recipient..." value="${['SMS', 'EMAIL'].includes(actionType) ? payload : ''}" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border-color); box-sizing: border-box;">
                             </div>
@@ -1861,7 +1870,7 @@
 
                     let oidRegex = /^\d+(\.\d+)+$/;
                     if (!oid || !oidRegex.test(oid)) {
-                        alert(`❌ Validation Error: Please enter a valid OID format (e.g., 1.3.6.1.4.1) for the custom trap.`);
+                        alert(`❌ Validation Error: Please add a hardware trap.`);
                         return null;
                     }
                     if (!name) {
@@ -2013,7 +2022,6 @@
                 actions.forEach(a => addTrapRow('editNodeTrapsContainer', a));
             } catch (e) { console.error("Error fetching trap actions", e); }
 
-            closeModal('nodesListModal');
             openModal('editNodeModal');
         }
 
@@ -2211,10 +2219,12 @@
                 document.getElementById('newNodeName').value = '';
                 document.getElementById('newNodeIp').value = '';
             }
-            document.getElementById(id).classList.add('active');
+            let el = document.getElementById(id);
+            if(el) el.classList.add('active');
         }
         function closeModal(id) {
-            document.getElementById(id).classList.remove('active');
+            let el = document.getElementById(id);
+            if(el) el.classList.remove('active');
         }
 
         function filterTraps() {
@@ -2439,6 +2449,30 @@
             }
         }
 
+        function showCustomAlert(message) {
+            let iconDiv = document.getElementById('customAlertIcon');
+            
+            if (message.includes('❌') || message.toLowerCase().includes('error') || message.toLowerCase().includes('fail')) {
+                iconDiv.innerHTML = '<i class="fa-solid fa-circle-xmark"></i>';
+                iconDiv.style.color = 'var(--danger-red)';
+            } else if (message.includes('✅') || message.toLowerCase().includes('success') || message.toLowerCase().includes('updated')) {
+                iconDiv.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
+                iconDiv.style.color = 'var(--success-green)';
+            } else {
+                iconDiv.innerHTML = '<i class="fa-solid fa-circle-info"></i>';
+                iconDiv.style.color = 'var(--primary-blue)';
+            }
+            
+            let cleanMessage = message.replace(/[❌✅]/g, '').trim();
+            document.getElementById('customAlertMessage').innerText = cleanMessage;
+            
+            openModal('customAlertModal');
+        }
+        
+        window.alert = function(msg) {
+            showCustomAlert(msg);
+        };
+
         window.addEventListener('DOMContentLoaded', () => {
             const savedTheme = localStorage.getItem('theme') || 'light';
             const toggleBtn = document.getElementById('themeToggleBtn');
@@ -2451,6 +2485,17 @@
     <div id="globalLoader" class="loader-overlay" style="display: none;">
         <div class="loader-spinner"></div>
         <div id="globalLoaderText" class="loader-text">Loading...</div>
+    </div>
+    <!-- Custom Alert Modal -->
+    <div id="customAlertModal" class="modal" style="z-index: 10000;">
+        <div class="modal-content" style="max-width: 400px; text-align: center; padding: 40px 30px;">
+            <div id="customAlertIcon" style="font-size: 50px; margin-bottom: 20px;">
+                <i class="fa-solid fa-circle-exclamation"></i>
+            </div>
+            <h3 style="margin-top: 0; margin-bottom: 15px; font-size: 22px;">Notification</h3>
+            <p id="customAlertMessage" style="color: var(--text-muted); line-height: 1.6; margin-bottom: 30px; font-size: 15px;"></p>
+            <button class="primary-btn" onclick="closeModal('customAlertModal')" style="width: 100%; padding: 12px; font-size: 15px;">OK</button>
+        </div>
     </div>
 </body>
 
