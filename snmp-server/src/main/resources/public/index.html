@@ -1298,7 +1298,7 @@
             clearInterval(refreshInterval);
             document.getElementById('dashboardScreen').style.display = 'none';
             document.getElementById('chatBtn').style.display = 'none';
-            document.getElementById('chatWindow').style.display = 'none';
+            document.getElementById('chatPanel').classList.remove('active');
             document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
             document.getElementById('loginScreen').style.display = 'flex';
         }
