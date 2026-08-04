@@ -1759,7 +1759,7 @@
                             <div class="script-upload-wrapper" style="display: ${actionType === 'SCRIPT' ? 'block' : 'none'};">
                                 <label>Script File (.sh, .py, etc.)</label>
                                 <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                                    <input type="text" class="t-payload-script" placeholder="No file selected..." value="${actionType === 'SCRIPT' ? payload : ''}" readonly style="background: #e2e8f0; width:100%; padding:10px; border-radius:8px; border:1px solid var(--border-color); box-sizing: border-box;">
+                                    <input type="text" class="t-payload-script" placeholder="No file selected..." value="${actionType === 'SCRIPT' ? payload : ''}" readonly style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border-color); box-sizing: border-box;">
                                     <button type="button" class="primary-btn t-upload-btn" style="width: auto; padding: 10px 15px;" onclick="this.nextElementSibling.click()">Browse</button>
                                     <input type="file" style="display: none;" onchange="uploadScriptFile(this)">
                                 </div>
