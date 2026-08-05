@@ -25,9 +25,13 @@
             --shadow-soft: 0 10px 30px -10px rgba(0, 86, 179, 0.1);
             --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
         }
+
         .loader-overlay {
             position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
             background: rgba(0, 0, 0, 0.6);
             backdrop-filter: blur(4px);
             display: flex;
@@ -38,6 +42,7 @@
             color: white;
             font-family: inherit;
         }
+
         .loader-spinner {
             border: 4px solid rgba(255, 255, 255, 0.3);
             border-radius: 50%;
@@ -47,28 +52,209 @@
             animation: spin 1s linear infinite;
             margin-bottom: 15px;
         }
+
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
+
         .loader-text {
             font-size: 18px;
             font-weight: 600;
             letter-spacing: 0.5px;
         }
 
+       /* 🌙 Anti-Glare Deep Dark Theme (No Neon/Glowing effects) */
         [data-theme="dark"] {
-            --bg-body: #000000;
-            --card-bg: #111111;
-            --primary-blue: #3b82f6;
-            --primary-hover: #2563eb;
-            --light-blue: #1a1a1a;
-            --text-dark: #f8fafc;
-            --text-muted: #a1a1aa;
-            --border-color: #222222;
-            --shadow-soft: 0 10px 30px -10px rgba(0, 0, 0, 0.8);
+            --bg-body: #0f1015;
+            --card-bg: #16181f;
+            /* 1. Mute the Neon Colors to Pastel/Soft Colors */
+            --primary-blue: #60a5fa; 
+            --primary-hover: #3b82f6; 
+            --light-blue: rgba(96, 165, 250, 0.05); 
+            --success-green: #34d399; 
+            --danger-red: #fb7185; 
+            --warning-orange: #fbbf24; 
+            --text-dark: #e2e8f0; 
+            --text-muted: #64748b; 
+            --border-color: rgba(255, 255, 255, 0.08); 
+            --shadow-soft: none;
+            --shadow-card: none; 
         }
 
+        /* 2. Kill the "Glow" from the massive solid buttons (Add Node / Add User) */
+        [data-theme="dark"] .success-btn {
+            background-color: rgba(52, 211, 153, 0.1) !important; /* Transparent tinted background */
+            color: #34d399 !important; /* Soft text color */
+            border: 1px solid rgba(52, 211, 153, 0.2) !important;
+        }
+        [data-theme="dark"] .success-btn:hover {
+            background-color: rgba(52, 211, 153, 0.15) !important;
+        }
+
+        [data-theme="dark"] .primary-btn {
+            background-color: rgba(96, 165, 250, 0.1) !important;
+            color: #60a5fa !important;
+            border: 1px solid rgba(96, 165, 250, 0.2) !important;
+            box-shadow: none !important;
+        }
+        [data-theme="dark"] .primary-btn:hover {
+            background-color: rgba(96, 165, 250, 0.15) !important;
+        }
+
+        /* 3. Mute the AI Chat Bubble Gradient */
+        [data-theme="dark"] .chat-bubble-btn {
+            background: #16181f !important;
+            border: 1px solid rgba(96, 165, 250, 0.3) !important;
+            color: #60a5fa !important;
+            box-shadow: none !important;
+        }
+
+        /* 4. Fix hardcoded glowing elements (System Live Badge & Tip Box) */
+        [data-theme="dark"] .header span[style*="background-color: #d1fae5"] {
+            background-color: rgba(52, 211, 153, 0.1) !important;
+            color: #34d399 !important;
+            border: 1px solid rgba(52, 211, 153, 0.2) !important;
+        }
+        
+        [data-theme="dark"] div[style*="background-color: var(--light-blue)"] {
+            background-color: rgba(96, 165, 250, 0.05) !important;
+            border: 1px solid rgba(96, 165, 250, 0.1) !important;
+        }
+
+        /* 5. Standard inputs and tables */
+        [data-theme="dark"] .input-group input,
+        [data-theme="dark"] .form-group input,
+        [data-theme="dark"] .form-group select,
+        [data-theme="dark"] .search-box input,
+        [data-theme="dark"] .filter-select,
+        [data-theme="dark"] .trap-action-row input,
+        [data-theme="dark"] .trap-action-row select {
+            background-color: rgba(0, 0, 0, 0.2) !important; 
+            color: var(--text-dark) !important; 
+            border: 1px solid var(--border-color) !important; 
+        }
+
+        [data-theme="dark"] .input-group input:focus,
+        [data-theme="dark"] .form-group input:focus,
+        [data-theme="dark"] .form-group select:focus,
+        [data-theme="dark"] .search-box input:focus,
+        [data-theme="dark"] .filter-select:focus {
+            background-color: rgba(0, 0, 0, 0.4) !important; 
+            border-color: var(--primary-blue) !important;
+            box-shadow: none !important;
+        }
+
+        [data-theme="dark"] .header-action-btn,
+        [data-theme="dark"] .manage-btn {
+            background-color: transparent !important; 
+            color: var(--text-muted) !important; 
+            border: 1px solid var(--border-color) !important; 
+        }
+        
+        [data-theme="dark"] .header-action-btn:hover,
+        [data-theme="dark"] .manage-btn:hover {
+            background-color: rgba(255, 255, 255, 0.05) !important; 
+            color: #ffffff !important; 
+        }
+
+        [data-theme="dark"] .logout-btn,
+        [data-theme="dark"] .danger-btn {
+            background-color: transparent !important; 
+            color: var(--danger-red) !important;
+            border-color: rgba(251, 113, 133, 0.3) !important; 
+        }
+        
+        [data-theme="dark"] .logout-btn:hover,
+        [data-theme="dark"] .danger-btn:hover {
+            background-color: rgba(251, 113, 133, 0.1) !important; 
+        }
+        
+        [data-theme="dark"] .clickable-row:hover {
+            background-color: rgba(96, 165, 250, 0.05) !important; 
+        }
+        
+        [data-theme="dark"] th {
+            background: var(--bg-card) !important; 
+            border-bottom: 1px solid var(--border-color) !important; 
+        }
+
+        [data-theme="dark"] .status-in {
+            color: #34d399 !important; 
+            background-color: rgba(52, 211, 153, 0.1) !important; 
+            border-color: transparent !important;
+        }
+        [data-theme="dark"] .status-out {
+            color: var(--danger-red) !important;
+            background-color: rgba(251, 113, 133, 0.1) !important; 
+            border-color: transparent !important;
+        }
+        [data-theme="dark"] .status-warn {
+            color: #fbbf24 !important; 
+            background-color: rgba(251, 191, 36, 0.1) !important; 
+            border-color: transparent !important;
+        }
+        [data-theme="dark"] .status-unknown {
+            color: #a78bfa !important; 
+            background-color: rgba(167, 139, 250, 0.1) !important; 
+            border-color: transparent !important;
+        }
+        
+        [data-theme="dark"] .alarm-open td:first-child {
+            border-left-color: var(--danger-red) !important;
+        }
+
+        [data-theme="dark"] .unknown-trap-row {
+            background-color: rgba(167, 139, 250, 0.03) !important; 
+        }
+        [data-theme="dark"] .unknown-trap-row:hover {
+            background-color: rgba(167, 139, 250, 0.08) !important; 
+        }
+
+        [data-theme="dark"] .modal {
+            background-color: rgba(15, 16, 21, 0.85) !important; 
+        }
+        [data-theme="dark"] .modal-content {
+            background: var(--bg-card) !important; 
+            border: 1px solid var(--border-color) !important; 
+        }
+
+        [data-theme="dark"] .flash-msg {
+            background: rgba(251, 113, 133, 0.1) !important; 
+            color: var(--danger-red) !important; 
+            border: 1px solid rgba(251, 113, 133, 0.2) !important; 
+        }
+
+        [data-theme="dark"] .ai-blocked-row {
+            background-color: rgba(251, 191, 36, 0.03) !important;
+        }
+        [data-theme="dark"] .ai-blocked-row:hover {
+            background-color: rgba(251, 191, 36, 0.08) !important;
+        }
+        [data-theme="dark"] .ai-warning-box {
+            background-color: rgba(251, 191, 36, 0.05) !important;
+            border-color: rgba(251, 191, 36, 0.2) !important;
+        }
+        [data-theme="dark"] .chat-input-area {
+            background: var(--bg-card) !important;
+            border-top-color: var(--border-color) !important;
+        }
+        [data-theme="dark"] .chat-input {
+            background: rgba(0, 0, 0, 0.2) !important; 
+            color: var(--text-dark) !important; 
+            border-color: var(--border-color) !important; 
+        }
+        [data-theme="dark"] .chat-message.bot {
+            background-color: rgba(0, 0, 0, 0.2) !important;
+            border-color: var(--border-color) !important;
+            color: var(--text-dark) !important;
+        }
+        
         body {
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
             background-color: var(--bg-body);
@@ -151,7 +337,7 @@
 
         .card-panel {
             background-color: var(--card-bg);
-            border: 1px solid rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 16px;
             box-shadow: var(--shadow-card);
         }
@@ -231,7 +417,7 @@
             font-size: 14px;
             padding: 16px;
             text-align: left;
-            border-bottom: 2px solid var(--light-blue);
+            border-bottom: 2px solid var(--border-color);
             position: sticky;
             top: 0;
             background: var(--card-bg);
@@ -248,6 +434,7 @@
         .alarm-row td:first-child {
             border-left: 3px solid transparent;
         }
+
         .alarm-open td:first-child {
             border-left-color: var(--danger-red) !important;
         }
@@ -414,7 +601,7 @@
             border-radius: 20px;
             width: 400px;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-            border: 1px solid rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             max-height: 90vh;
             overflow-y: auto;
             transform: scale(0.95);
@@ -861,6 +1048,7 @@
             border-color: #93c5fd;
             transform: translateY(-1px);
         }
+
         .fa-solid,
         .fa-regular {
             margin-right: 5px;
@@ -887,61 +1075,64 @@
         [data-theme="dark"] .manage-btn,
         [data-theme="dark"] .trap-action-row input,
         [data-theme="dark"] .trap-action-row select {
-            background-color: #1a1a1a;
+            background-color: #0f172a;
             color: #f8fafc;
             border-color: var(--border-color);
         }
-        
+
         [data-theme="dark"] .logout-btn {
-            background-color: #450a0a;
+            background-color: #4c0519;
             color: #fecaca;
-            border-color: #7f1d1d;
+            border-color: #881337;
         }
+
         [data-theme="dark"] .logout-btn:hover {
-            background-color: #7f1d1d;
+            background-color: #881337;
             color: #ffffff;
         }
+
         [data-theme="dark"] .danger-btn {
             background-color: transparent;
         }
-        
+
         [data-theme="dark"] .clickable-row:hover {
             background-color: #1a1a1a;
         }
-        
-        [data-theme="dark"] th {
-            background: var(--card-bg);
-        }
 
         [data-theme="dark"] .status-in {
-            color: #6ee7b7;
-            background-color: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            background-color: rgba(16, 185, 129, 0.1);
             border-color: transparent;
         }
+
         [data-theme="dark"] .status-out {
-            color: #fca5a5;
-            background-color: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+            background-color: rgba(239, 68, 68, 0.1);
             border-color: transparent;
         }
+
         [data-theme="dark"] .status-warn {
-            color: #fcd34d;
-            background-color: rgba(245, 158, 11, 0.15);
+            color: #fbbf24;
+            background-color: rgba(245, 158, 11, 0.1);
             border-color: transparent;
         }
+
         [data-theme="dark"] .status-unknown {
-            color: #c4b5fd; 
-            background-color: rgba(139, 92, 246, 0.15); 
-            border-color: transparent; 
+            color: #a78bfa;
+            background-color: rgba(139, 92, 246, 0.1);
+            border-color: transparent;
         }
+
         [data-theme="dark"] .alarm-open td:first-child {
             border-left-color: #f87171 !important;
         }
 
         [data-theme="dark"] .unknown-trap-row {
-            background-color: #1e1b4b !important; 
+            background-color: rgba(139, 92, 246, 0.05) !important;
         }
+
         [data-theme="dark"] .unknown-trap-row:hover {
-            background-color: #312e81 !important; 
+            background-color: rgba(139, 92, 246, 0.1) !important;
         }
 
         [data-theme="dark"] .modal {
@@ -954,32 +1145,37 @@
         }
 
         [data-theme="dark"] .ai-blocked-row {
-            background-color: #422006 !important;
+            background-color: rgba(245, 158, 11, 0.05) !important;
         }
+
         [data-theme="dark"] .ai-blocked-row:hover {
-            background-color: #78350f !important;
+            background-color: rgba(245, 158, 11, 0.1) !important;
         }
+
         [data-theme="dark"] .ai-warning-box {
-            background-color: #422006;
-            border-color: #92400e;
+            background-color: rgba(245, 158, 11, 0.05);
+            border-color: #b45309;
         }
+
         [data-theme="dark"] .chat-input-area {
             background: var(--card-bg);
         }
+
         [data-theme="dark"] .chat-input {
-            background: #334155;
+            background: var(--bg-body);
             color: #f8fafc;
+            border-color: var(--border-color);
         }
+
         [data-theme="dark"] .chat-message.bot {
-            background-color: #334155;
+            background-color: var(--bg-body);
             border-color: var(--border-color);
             color: #f8fafc;
         }
-        
     </style>
-    
+
     <script>
-        (function() {
+        (function () {
             const savedTheme = localStorage.getItem('theme') || 'light';
             document.documentElement.setAttribute('data-theme', savedTheme);
         })();
@@ -1019,8 +1215,10 @@
                     System Live</span>
                 <span style="font-size: 17px; color: var(--text-muted); font-weight: 500;">Welcome, <span
                         style="color: var(--primary-blue); font-weight: 700;" id="userDisplay">User</span></span>
-                <button class="header-action-btn" onclick="toggleTheme()" id="themeToggleBtn"><i class="fa-solid fa-moon"></i> Theme</button>
-                <button class="header-action-btn" onclick="manualRefresh()"><i class="fa-solid fa-rotate-right"></i> Refresh</button>
+                <button class="header-action-btn" onclick="toggleTheme()" id="themeToggleBtn"><i
+                        class="fa-solid fa-moon"></i> Theme</button>
+                <button class="header-action-btn" onclick="manualRefresh()"><i class="fa-solid fa-rotate-right"></i>
+                    Refresh</button>
                 <button class="logout-btn" onclick="logout()">Logout</button>
             </div>
         </div>
@@ -1028,24 +1226,45 @@
         <div class="grid-container">
             <!-- Left: Traps Table -->
             <div class="card card-panel" style="display: flex; flex-direction: column;">
-                
+
                 <!-- Summary Stat Cards -->
-                <div id="statsRow" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 25px;">
-                    <div style="background: var(--bg-body); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color); text-align: center;">
-                        <div style="font-size: 12px; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Open Alarms</div>
-                        <div id="statOpen" style="font-size: 24px; font-weight: 800; color: var(--danger-red); margin-top: 5px;">0</div>
+                <div id="statsRow"
+                    style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 25px;">
+                    <div
+                        style="background: var(--bg-body); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color); text-align: center;">
+                        <div
+                            style="font-size: 12px; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">
+                            Open Alarms</div>
+                        <div id="statOpen"
+                            style="font-size: 24px; font-weight: 800; color: var(--danger-red); margin-top: 5px;">0
+                        </div>
                     </div>
-                    <div style="background: var(--bg-body); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color); text-align: center;">
-                        <div style="font-size: 12px; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Resolved (24h)</div>
-                        <div id="statResolved" style="font-size: 24px; font-weight: 800; color: var(--success-green); margin-top: 5px;">0</div>
+                    <div
+                        style="background: var(--bg-body); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color); text-align: center;">
+                        <div
+                            style="font-size: 12px; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">
+                            Resolved (24h)</div>
+                        <div id="statResolved"
+                            style="font-size: 24px; font-weight: 800; color: var(--success-green); margin-top: 5px;">0
+                        </div>
                     </div>
-                    <div style="background: var(--bg-body); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color); text-align: center;">
-                        <div style="font-size: 12px; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Unknown Sources</div>
-                        <div id="statUnknown" style="font-size: 24px; font-weight: 800; color: var(--warning-orange); margin-top: 5px;">0</div>
+                    <div
+                        style="background: var(--bg-body); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color); text-align: center;">
+                        <div
+                            style="font-size: 12px; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">
+                            Unknown Sources</div>
+                        <div id="statUnknown"
+                            style="font-size: 24px; font-weight: 800; color: var(--warning-orange); margin-top: 5px;">0
+                        </div>
                     </div>
-                    <div style="background: var(--bg-body); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color); text-align: center;">
-                        <div style="font-size: 12px; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Nodes Online</div>
-                        <div id="statNodes" style="font-size: 24px; font-weight: 800; color: var(--primary-blue); margin-top: 5px;">0 / 0</div>
+                    <div
+                        style="background: var(--bg-body); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color); text-align: center;">
+                        <div
+                            style="font-size: 12px; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">
+                            Nodes Online</div>
+                        <div id="statNodes"
+                            style="font-size: 24px; font-weight: 800; color: var(--primary-blue); margin-top: 5px;">0 /
+                            0</div>
                     </div>
                 </div>
 
@@ -1338,30 +1557,35 @@
             <form onsubmit="submitAddUser(event)">
                 <div id="addUserError" class="flash-msg"></div>
                 <div class="input-group" style="margin-bottom: 20px;">
-                    <label style="font-size:14px; font-weight:600; color:var(--text-dark); display:block; margin-bottom:8px;">Username</label>
+                    <label
+                        style="font-size:14px; font-weight:600; color:var(--text-dark); display:block; margin-bottom:8px;">Username</label>
                     <div style="position:relative;">
                         <i class="fa-solid fa-user input-icon" style="color:var(--text-muted)"></i>
                         <input type="text" id="newUserName" placeholder="Enter username" required>
                     </div>
                 </div>
                 <div class="input-group" style="margin-bottom: 20px;">
-                    <label style="font-size:14px; font-weight:600; color:var(--text-dark); display:block; margin-bottom:8px;">Password</label>
+                    <label
+                        style="font-size:14px; font-weight:600; color:var(--text-dark); display:block; margin-bottom:8px;">Password</label>
                     <div style="position:relative;">
                         <i class="fa-solid fa-lock input-icon" style="color:var(--text-muted)"></i>
                         <input type="password" id="newUserPass" placeholder="••••••••" required>
                     </div>
                 </div>
                 <div class="input-group" style="margin-bottom: 25px;">
-                    <label style="font-size:14px; font-weight:600; color:var(--text-dark); display:block; margin-bottom:8px;">Role</label>
+                    <label
+                        style="font-size:14px; font-weight:600; color:var(--text-dark); display:block; margin-bottom:8px;">Role</label>
                     <div style="position:relative;">
                         <i class="fa-solid fa-user-shield input-icon" style="color:var(--text-muted); z-index:1;"></i>
-                        <select id="newUserRole" required style="width: 100%; padding: 15px 15px 15px 45px; background-color: #f8fafc; border: 1px solid var(--border-color); border-radius: 12px; outline: none; transition: all 0.2s ease;">
+                        <select id="newUserRole" required
+                            style="width: 100%; padding: 15px 15px 15px 45px; background-color: #f8fafc; border: 1px solid var(--border-color); border-radius: 12px; outline: none; transition: all 0.2s ease;">
                             <option value="SUPPORT">Support User (View Only)</option>
                             <option value="ADMIN">System Admin</option>
                         </select>
                     </div>
                 </div>
-                <button type="submit" class="primary-btn"><i class="fa-solid fa-plus" style="margin-right: 8px;"></i>Create User</button>
+                <button type="submit" class="primary-btn"><i class="fa-solid fa-plus"
+                        style="margin-right: 8px;"></i>Create User</button>
             </form>
         </div>
     </div>
@@ -1376,30 +1600,37 @@
                 <input type="hidden" id="editUserId">
                 <div id="editUserError" class="flash-msg"></div>
                 <div class="input-group" style="margin-bottom: 20px;">
-                    <label style="font-size:14px; font-weight:600; color:var(--text-dark); display:block; margin-bottom:8px;">Username</label>
+                    <label
+                        style="font-size:14px; font-weight:600; color:var(--text-dark); display:block; margin-bottom:8px;">Username</label>
                     <div style="position:relative;">
                         <i class="fa-solid fa-user input-icon" style="color:var(--text-muted)"></i>
                         <input type="text" id="editUserName" placeholder="Enter username" required>
                     </div>
                 </div>
                 <div class="input-group" style="margin-bottom: 20px;">
-                    <label style="font-size:14px; font-weight:600; color:var(--text-dark); display:block; margin-bottom:8px;">New Password <span style="font-weight:400; font-size: 12px; color: var(--text-muted);">(Leave empty to keep current)</span></label>
+                    <label
+                        style="font-size:14px; font-weight:600; color:var(--text-dark); display:block; margin-bottom:8px;">New
+                        Password <span style="font-weight:400; font-size: 12px; color: var(--text-muted);">(Leave empty
+                            to keep current)</span></label>
                     <div style="position:relative;">
                         <i class="fa-solid fa-lock input-icon" style="color:var(--text-muted)"></i>
                         <input type="password" id="editUserPass" placeholder="••••••••">
                     </div>
                 </div>
                 <div class="input-group" id="editUserRoleWrapper" style="margin-bottom: 25px;">
-                    <label style="font-size:14px; font-weight:600; color:var(--text-dark); display:block; margin-bottom:8px;">Role</label>
+                    <label
+                        style="font-size:14px; font-weight:600; color:var(--text-dark); display:block; margin-bottom:8px;">Role</label>
                     <div style="position:relative;">
                         <i class="fa-solid fa-user-shield input-icon" style="color:var(--text-muted); z-index:1;"></i>
-                        <select id="editUserRole" required style="width: 100%; padding: 15px 15px 15px 45px; background-color: #f8fafc; border: 1px solid var(--border-color); border-radius: 12px; outline: none; transition: all 0.2s ease;">
+                        <select id="editUserRole" required
+                            style="width: 100%; padding: 15px 15px 15px 45px; background-color: #f8fafc; border: 1px solid var(--border-color); border-radius: 12px; outline: none; transition: all 0.2s ease;">
                             <option value="SUPPORT">Support User (View Only)</option>
                             <option value="ADMIN">System Admin</option>
                         </select>
                     </div>
                 </div>
-                <button type="submit" class="primary-btn"><i class="fa-solid fa-check" style="margin-right: 8px;"></i>Save Changes</button>
+                <button type="submit" class="primary-btn"><i class="fa-solid fa-check"
+                        style="margin-right: 8px;"></i>Save Changes</button>
             </form>
         </div>
     </div>
@@ -1424,12 +1655,30 @@
         if (jwtToken)
             showDashboard();
 
+        // 1. JWT Parser Fix - Handle Base64URL encoding safely to prevent crashes
         function parseJwt(token) {
             try {
-                return JSON.parse(atob(token.split('.')[1]));
+                let base64Url = token.split('.')[1];
+                let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                let jsonPayload = decodeURIComponent(atob(base64).split('').map(function (c) {
+                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                }).join(''));
+                return JSON.parse(jsonPayload);
             } catch (e) {
+                console.error("JWT Parse Error", e);
                 return null;
             }
+        }
+
+        // Helper to escape HTML characters before injecting into DOM elements or onclick events
+        function escapeHtml(str) {
+            if (!str) return "";
+            return String(str).replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;")
+                .replace(/[\n\r]/g, " ");
         }
 
         async function performLogin(e) {
@@ -1464,11 +1713,21 @@
             localStorage.removeItem('snmp_token');
             jwtToken = null;
             currentUser = null;
-            clearInterval(refreshInterval);
+            
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+                refreshInterval = null;
+            }
+            
             document.getElementById('dashboardScreen').style.display = 'none';
+            document.getElementById('nodesScreen').style.display = 'none';
             document.getElementById('chatBtn').style.display = 'none';
-            document.getElementById('chatPanel').classList.remove('active');
-            document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
+            document.getElementById('chatPanel').classList.remove('active');            
+            document.querySelectorAll('.modal').forEach(m => {
+                m.classList.remove('active');
+                m.style.display = ''; 
+            });
+            
             document.getElementById('loginScreen').style.display = 'flex';
         }
 
@@ -1476,6 +1735,7 @@
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('dashboardScreen').style.display = 'block';
             document.getElementById('chatBtn').style.display = 'flex';
+
             currentUser = parseJwt(jwtToken);
             if (currentUser) {
                 document.getElementById('userDisplay').innerText = currentUser.username;
@@ -1493,6 +1753,9 @@
                 if (adminNodeCol)
                     adminNodeCol.style.display = isAdmin ? 'table-cell' : 'none';
             }
+
+            // Clean up old interval before assigning new one
+            if (refreshInterval) clearInterval(refreshInterval);
             syncAll();
             refreshInterval = setInterval(syncAll, 3000);
         }
@@ -1510,7 +1773,7 @@
             }
             return response;
         }
-        
+
         async function manualRefresh() {
             showLoader('Syncing data...');
             try {
@@ -1532,13 +1795,13 @@
                 let nodesOnlineCount = 0;
 
                 nodes.forEach(n => {
-                    if(n.status === 'UP') nodesOnlineCount++;
+                    if (n.status === 'UP') nodesOnlineCount++;
                     nodesMap[n.ipAddress] = n.name;
                     let actionBtns = '';
                     if (currentUser && currentUser.role === 'ADMIN') {
-                        actionBtns = `<td>
-                            <button class="icon-btn" style="color:var(--primary-blue);" title="Edit Node" onclick="openEditNode(${n.id}, '${n.name}', '${n.ipAddress}', '${n.nodeType}')"><i class="fa-solid fa-pen"></i> </button>
-                            <button class="icon-btn" style="color:var(--warning-orange);" title="View Trap History" onclick="viewNodeHistory('${n.ipAddress}', '${n.name}')"><i class="fa-solid fa-clock-rotate-left"></i> </button>
+                        // Keep Edit action isolated from row click propagation
+                        actionBtns = `<td onclick="event.stopPropagation();">
+                            <button class="icon-btn" style="color:var(--primary-blue);" title="Edit Node" onclick="openEditNode(${n.id}, '${escapeHtml(n.name)}', '${escapeHtml(n.ipAddress)}', '${escapeHtml(n.nodeType)}')"><i class="fa-solid fa-pen"></i> Edit</button>
                         </td>`;
                     }
                     let formattedDate = new Date(n.createdAt).toLocaleString();
@@ -1549,11 +1812,18 @@
                     } else if (n.status === 'WARNING') {
                         badgeClass = 'status-warn';
                     } else if (n.status === 'UNKNOWN') {
-                        // Apply the new gray badge for UNKNOWN nodes
                         badgeClass = 'status-unknown';
                     }
 
-                    if (nBody) nBody.innerHTML += `<tr><td style="color:var(--primary-blue); font-weight:700;">${n.name} <br><span style="font-size:13px; color:var(--text-muted);">${n.nodeType}</span></td><td class="code-font" style="font-size: 15px;">${n.ipAddress}</td><td><span class="status-badge ${badgeClass}">${n.status}</span></td><td style="font-size:13px; color:var(--text-muted)">${formattedDate}</td>${actionBtns}</tr>`;
+                    // Making the entire row clickable to show trap history for ALL roles
+                    if (nBody) nBody.innerHTML += `
+                        <tr class="clickable-row" onclick="viewNodeHistory('${escapeHtml(n.ipAddress)}', '${escapeHtml(n.name)}')">
+                            <td style="color:var(--primary-blue); font-weight:700;">${escapeHtml(n.name)} <br><span style="font-size:13px; color:var(--text-muted);">${escapeHtml(n.nodeType)}</span></td>
+                            <td class="code-font" style="font-size: 15px;">${escapeHtml(n.ipAddress)}</td>
+                            <td><span class="status-badge ${badgeClass}">${n.status}</span></td>
+                            <td style="font-size:13px; color:var(--text-muted)">${formattedDate}</td>
+                            ${actionBtns}
+                        </tr>`;
                 });
 
                 if (document.getElementById('searchNodesList')) {
@@ -1565,12 +1835,12 @@
                 let traps = await tRes.json();
                 let tBody = document.getElementById('trapsTableBody');
                 tBody.innerHTML = '';
-                
+
                 let openCount = 0;
                 let resolvedTodayCount = 0;
                 let unknownCount = 0;
                 let today = new Date();
-                today.setHours(0,0,0,0);
+                today.setHours(0, 0, 0, 0);
 
                 if (traps.length === 0) tBody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No alarms.</td></tr>';
 
@@ -1621,31 +1891,35 @@
                         }
 
                         if (t.status === 'OPEN' && isAiBlocked) {
-                            displayMsg = cleanMsg + '<br><span style="color:var(--warning-orange); font-weight:800; font-size:13px;"><i class="fa-solid fa-robot"></i> AI Execution Paused</span>';
+                            displayMsg = escapeHtml(cleanMsg) + '<br><span style="color:var(--warning-orange); font-weight:800; font-size:13px;"><i class="fa-solid fa-robot"></i> AI Execution Paused</span>';
                             badgeHtml = `<span class="status-badge status-warn trap-status-text" style="border-color: var(--warning-orange);">AI BLOCKED</span>`;
                             rowClass += " ai-blocked-row";
                         } else if (isAiOverridden) {
-                            displayMsg = cleanMsg + ' <br><span style="font-size:12px; color:var(--success-green); font-weight:bold;" title="Human engineer bypassed AI warning"><i class="fa-solid fa-check"></i> AI Overridden (Forced Execution)</span>';
+                            displayMsg = escapeHtml(cleanMsg) + ' <br><span style="font-size:12px; color:var(--success-green); font-weight:bold;" title="Human engineer bypassed AI warning"><i class="fa-solid fa-check"></i> AI Overridden (Forced Execution)</span>';
                         } else {
-                            displayMsg = cleanMsg + ' <br><span style="font-size:12px; color:var(--text-muted);" title="Auto-execution was prevented by AI"><i class="fa-solid fa-robot"></i> (Previously AI Blocked)</span>';
+                            displayMsg = escapeHtml(cleanMsg) + ' <br><span style="font-size:12px; color:var(--text-muted);" title="Auto-execution was prevented by AI"><i class="fa-solid fa-robot"></i> (Previously AI Blocked)</span>';
                         }
+                    } else {
+                        displayMsg = escapeHtml(cleanMsg);
                     }
 
-                    let safeAiReason = aiReason.replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/\n/g, " ");
-                    let safeCleanMsg = cleanMsg.replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/\n/g, " ");
+                    // Use proper escaping to prevent onclick execution failures
+                    let safeAiReason = escapeHtml(aiReason);
+                    let safeCleanMsg = escapeHtml(cleanMsg);
 
                     let alarmRowClass = t.status === 'OPEN' ? 'alarm-row alarm-open' : 'alarm-row';
-                    tBody.innerHTML += `<tr class="${rowClass} ${alarmRowClass}" onclick="showTrapDetails(${t.id}, '${name}', '${t.sourceIp}', '${safeCleanMsg}', '${t.status}', '${time}', '${resName}', '${resTime}', '${safeAiReason}', ${isAiOverridden})">
-                        <td><div style="color:var(--primary-blue); font-weight:700;">${name}</div><div class="code-font" style="font-size:13px;">${t.sourceIp}</div></td>
+
+                    tBody.innerHTML += `<tr class="${rowClass} ${alarmRowClass}" onclick="showTrapDetails(${t.id}, '${escapeHtml(name)}', '${escapeHtml(t.sourceIp)}', '${safeCleanMsg}', '${t.status}', '${time}', '${escapeHtml(resName)}', '${resTime}', '${safeAiReason}', ${isAiOverridden})">
+                        <td><div style="color:var(--primary-blue); font-weight:700;">${escapeHtml(name)}</div><div class="code-font" style="font-size:13px;">${escapeHtml(t.sourceIp)}</div></td>
                         <td style="font-weight:700;">${displayMsg} <br><span style="font-size:13px; color:var(--text-muted);">${time}</span></td>
                         <td>${badgeHtml}</td>
-                        <td>${btn}</td></tr>`;
+                        <td onclick="event.stopPropagation();">${btn}</td></tr>`;
                 });
 
                 filterTraps();
-                
+
                 // Update stat cards
-                if(document.getElementById('statOpen')) {
+                if (document.getElementById('statOpen')) {
                     document.getElementById('statOpen').innerText = openCount;
                     document.getElementById('statResolved').innerText = resolvedTodayCount;
                     document.getElementById('statUnknown').innerText = unknownCount;
@@ -1727,11 +2001,11 @@
                     <div class="custom-trap-inputs" style="display: ${isCustom && data ? 'grid' : 'none'}; grid-template-columns: 1fr 1fr; gap: 15px;">
                         <div>
                             <label>Custom OID (From Vendor Manual)</label>
-                            <input type="text" class="t-oid" placeholder="e.g. 1.3.6.1.4.1..." value="${isCustom ? oid : ''}" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border-color); box-sizing: border-box;">
+                            <input type="text" class="t-oid" placeholder="e.g. 1.3.6.1.4.1..." value="${isCustom ? escapeHtml(oid) : ''}" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border-color); box-sizing: border-box;">
                         </div>
                         <div>
                             <label>Custom Alarm Name</label>
-                            <input type="text" class="t-name" placeholder="e.g. Fiber Cut" value="${isCustom ? name : ''}" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border-color); box-sizing: border-box;">
+                            <input type="text" class="t-name" placeholder="e.g. Fiber Cut" value="${isCustom ? escapeHtml(name) : ''}" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border-color); box-sizing: border-box;">
                         </div>
                     </div>
 
@@ -1752,14 +2026,14 @@
                             <!-- Shown for SMS / EMAIL -->
                             <div class="target-input-wrapper" style="display: ${['SMS', 'EMAIL'].includes(actionType) ? 'block' : 'none'};">
                                 <label class="target-label">${actionType === 'EMAIL' ? 'Target Email Address' : 'Target Phone Number'}</label>
-                                <input type="text" class="t-payload-text" placeholder="Enter recipient..." value="${['SMS', 'EMAIL'].includes(actionType) ? payload : ''}" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border-color); box-sizing: border-box;">
+                                <input type="text" class="t-payload-text" placeholder="Enter recipient..." value="${['SMS', 'EMAIL'].includes(actionType) ? escapeHtml(payload) : ''}" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border-color); box-sizing: border-box;">
                             </div>
 
                             <!-- Shown for SCRIPT -->
                             <div class="script-upload-wrapper" style="display: ${actionType === 'SCRIPT' ? 'block' : 'none'};">
                                 <label>Script File (.sh, .py, etc.)</label>
                                 <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                                    <input type="text" class="t-payload-script" placeholder="No file selected..." value="${actionType === 'SCRIPT' ? payload : ''}" readonly style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border-color); box-sizing: border-box;">
+                                    <input type="text" class="t-payload-script" placeholder="No file selected..." value="${actionType === 'SCRIPT' ? escapeHtml(payload) : ''}" readonly style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border-color); box-sizing: border-box;">
                                     <button type="button" class="primary-btn t-upload-btn" style="width: auto; padding: 10px 15px;" onclick="this.nextElementSibling.click()">Browse</button>
                                     <input type="file" style="display: none;" onchange="uploadScriptFile(this)">
                                 </div>
@@ -2033,16 +2307,16 @@
                 let users = await res.json();
                 let body = document.getElementById('usersListBody');
                 body.innerHTML = '';
-            users.forEach(u => {
-                let badge = u.role === 'ADMIN' ? 'status-warn' : 'status-in';
-                let isMe = u.id === currentUser.userId;
+                users.forEach(u => {
+                    let badge = u.role === 'ADMIN' ? 'status-warn' : 'status-in';
+                    let isMe = u.id === currentUser.userId;
 
-                let actions = `<button class="icon-btn" style="color:var(--primary-blue);" onclick="openAdminEditUser(${u.id}, '${u.username}', '${u.role}')"><i class="fa-solid fa-pen"></i> </button>`;
-                if (!isMe) actions += `<button class="icon-btn" style="color:var(--danger-red);" onclick="deleteUser(${u.id})"><i class="fa-solid fa-trash"></i> </button>`;
+                    let actions = `<button class="icon-btn" style="color:var(--primary-blue);" onclick="openAdminEditUser(${u.id}, '${escapeHtml(u.username)}', '${u.role}')"><i class="fa-solid fa-pen"></i> </button>`;
+                    if (!isMe) actions += `<button class="icon-btn" style="color:var(--danger-red);" onclick="deleteUser(${u.id})"><i class="fa-solid fa-trash"></i> </button>`;
 
-                body.innerHTML += `<tr><td class="code-font">#${u.id}</td><td style="font-weight:700;">${u.username} ${isMe ? '<span style="color:var(--success-green); font-size:11px;">(You)</span>' : ''}</td><td><span class="status-badge ${badge}">${u.role}</span></td><td>${actions}</td></tr>`;
-            });
-            openModal('usersListModal');
+                    body.innerHTML += `<tr><td class="code-font">#${u.id}</td><td style="font-weight:700;">${escapeHtml(u.username)} ${isMe ? '<span style="color:var(--success-green); font-size:11px;">(You)</span>' : ''}</td><td><span class="status-badge ${badge}">${u.role}</span></td><td>${actions}</td></tr>`;
+                });
+                openModal('usersListModal');
             } finally {
                 hideLoader();
             }
@@ -2059,20 +2333,20 @@
                 if (errDiv) { errDiv.innerText = "Password must be at least 4 characters long."; errDiv.style.display = 'block'; }
                 return;
             }
-            
+
             showLoader('Creating user...');
             try {
                 let res = await fetchWithAuth('/api/users', { method: 'POST', body: JSON.stringify(body) });
 
                 if (res.ok) {
                     document.getElementById('newUserName').value = '';
-                document.getElementById('newUserPass').value = '';
-                closeModal('addUserModal');
-                openUsersManager();
-            } else {
-                let data = await res.json().catch(() => ({ error: "Failed to create user." }));
-                if (errDiv) { errDiv.innerText = data.error; errDiv.style.display = 'block'; }
-            }
+                    document.getElementById('newUserPass').value = '';
+                    closeModal('addUserModal');
+                    openUsersManager();
+                } else {
+                    let data = await res.json().catch(() => ({ error: "Failed to create user." }));
+                    if (errDiv) { errDiv.innerText = data.error; errDiv.style.display = 'block'; }
+                }
             } finally {
                 hideLoader();
             }
@@ -2186,17 +2460,21 @@
                         let recTime = new Date(t.receivedAt).toLocaleString();
                         let resTime = t.resolvedAt ? new Date(t.resolvedAt).toLocaleString() : '-';
                         let badgeHtml = `<span class="status-badge ${t.status === 'OPEN' ? 'status-out' : 'status-in'} trap-status-text">${t.status}</span>`;
+                        
                         let msg = t.message || t.trapOid;
+                        let iconHtml = '';
 
                         // Clean AI blocks/overrides from message display for history if present
                         if (msg.includes('[AI BLOCKED:')) {
-                            msg = msg.substring(0, msg.indexOf('[AI BLOCKED:')).trim() + ' <i class="fa-solid fa-robot"></i> ';
+                            msg = msg.substring(0, msg.indexOf('[AI BLOCKED:')).trim();
+                            iconHtml = ' <i class="fa-solid fa-robot" style="color: var(--warning-orange);" title="AI Blocked"></i>';
                         } else if (msg.includes('[AI OVERRIDDEN')) {
-                            msg = msg.substring(0, msg.indexOf('[AI OVERRIDDEN')).trim() + ' <i class="fa-solid fa-user-gear"></i> ';
+                            msg = msg.substring(0, msg.indexOf('[AI OVERRIDDEN')).trim();
+                            iconHtml = ' <i class="fa-solid fa-user-gear" style="color: var(--success-green);" title="AI Overridden"></i>';
                         }
-
+                        
                         hBody.innerHTML += `<tr>
-                            <td style="font-size:14px; max-width: 300px; word-wrap: break-word;">${msg}</td>
+                            <td style="font-size:14px; max-width: 300px; word-wrap: break-word;">${escapeHtml(msg)}${iconHtml}</td>
                             <td>${badgeHtml}</td>
                             <td style="font-size:13px; color:var(--text-muted)">${recTime}</td>
                             <td style="font-size:13px; color:var(--text-muted)">${resTime}</td>
@@ -2220,11 +2498,11 @@
                 document.getElementById('newNodeIp').value = '';
             }
             let el = document.getElementById(id);
-            if(el) el.classList.add('active');
+            if (el) el.classList.add('active');
         }
         function closeModal(id) {
             let el = document.getElementById(id);
-            if(el) el.classList.remove('active');
+            if (el) el.classList.remove('active');
         }
 
         function filterTraps() {
@@ -2252,10 +2530,16 @@
                      <div class="detail-row"><span>Alarm:</span><span>${msg}</span></div>`;
 
             if (aiReason && status === 'OPEN') {
+                // Ensure button is ONLY visible for Admins (Check role)
+                let overrideBtnHtml = '';
+                if (currentUser && currentUser.role === 'ADMIN') {
+                    overrideBtnHtml = `<button class="danger-btn" style="margin-top:15px; width:100%; border-color:#d97706; color:#b45309;" onclick="forceExecute(${id}, event)"><i class="fa-solid fa-triangle-exclamation"></i> Force Execute Script (Override AI)</button>`;
+                }
+
                 h += `<div class="ai-warning-box">
                         <h4 style="margin:0 0 10px 0; color:#d97706; display:flex; align-items:center; gap:8px;"><i class="fa-solid fa-robot"></i> AI Safety Warning</h4>
                         <p style="margin:0; font-size:13px; color:#92400e; font-weight:600;">${aiReason}</p>
-                        <button class="danger-btn" style="margin-top:15px; width:100%; border-color:#d97706; color:#b45309;" onclick="forceExecute(${id}, event)"><i class="fa-solid fa-triangle-exclamation"></i> Force Execute Script (Override AI)</button>
+                        ${overrideBtnHtml}
                       </div>`;
             } else if (isOverridden) {
                 h += `<div class="ai-warning-box" style="background-color:#f0fdf4; border-color:#34d399;">
@@ -2303,6 +2587,7 @@
                 btn.disabled = false;
             }
         }
+
         // --- NOC Chat Assistant JS ---
         let chatHistory = [];
 
@@ -2326,7 +2611,7 @@
 
             input.value = '';
 
-            appendMessage('user', msg);
+            appendMessage('user', escapeHtml(msg));
 
             document.getElementById('typingIndicator').style.display = 'block';
             scrollToBottom();
@@ -2360,7 +2645,7 @@
 
         async function requestAiInsights() {
             let msg = "Please generate a Root Cause Analysis report for recent network alarms.";
-            appendMessage('user', msg);
+            appendMessage('user', escapeHtml(msg));
             chatHistory.push({ role: 'user', content: msg });
 
             document.getElementById('typingIndicator').style.display = 'block';
@@ -2444,14 +2729,14 @@
             html.setAttribute('data-theme', newTheme);
             localStorage.setItem('theme', newTheme);
             const toggleBtn = document.getElementById('themeToggleBtn');
-            if(toggleBtn) {
+            if (toggleBtn) {
                 toggleBtn.innerHTML = newTheme === 'dark' ? '<i class="fa-solid fa-sun"></i> Theme' : '<i class="fa-solid fa-moon"></i> Theme';
             }
         }
 
         function showCustomAlert(message) {
             let iconDiv = document.getElementById('customAlertIcon');
-            
+
             if (message.includes('❌') || message.toLowerCase().includes('error') || message.toLowerCase().includes('fail')) {
                 iconDiv.innerHTML = '<i class="fa-solid fa-circle-xmark"></i>';
                 iconDiv.style.color = 'var(--danger-red)';
@@ -2462,21 +2747,21 @@
                 iconDiv.innerHTML = '<i class="fa-solid fa-circle-info"></i>';
                 iconDiv.style.color = 'var(--primary-blue)';
             }
-            
+
             let cleanMessage = message.replace(/[❌✅]/g, '').trim();
             document.getElementById('customAlertMessage').innerText = cleanMessage;
-            
+
             openModal('customAlertModal');
         }
-        
-        window.alert = function(msg) {
+
+        window.alert = function (msg) {
             showCustomAlert(msg);
         };
 
         window.addEventListener('DOMContentLoaded', () => {
             const savedTheme = localStorage.getItem('theme') || 'light';
             const toggleBtn = document.getElementById('themeToggleBtn');
-            if(toggleBtn) {
+            if (toggleBtn) {
                 toggleBtn.innerHTML = savedTheme === 'dark' ? '<i class="fa-solid fa-sun"></i> Theme' : '<i class="fa-solid fa-moon"></i> Theme';
             }
         });
@@ -2493,8 +2778,10 @@
                 <i class="fa-solid fa-circle-exclamation"></i>
             </div>
             <h3 style="margin-top: 0; margin-bottom: 15px; font-size: 22px;">Notification</h3>
-            <p id="customAlertMessage" style="color: var(--text-muted); line-height: 1.6; margin-bottom: 30px; font-size: 15px;"></p>
-            <button class="primary-btn" onclick="closeModal('customAlertModal')" style="width: 100%; padding: 12px; font-size: 15px;">OK</button>
+            <p id="customAlertMessage"
+                style="color: var(--text-muted); line-height: 1.6; margin-bottom: 30px; font-size: 15px;"></p>
+            <button class="primary-btn" onclick="closeModal('customAlertModal')"
+                style="width: 100%; padding: 12px; font-size: 15px;">OK</button>
         </div>
     </div>
 </body>
