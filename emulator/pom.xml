@@ -7,7 +7,7 @@
     <packaging>jar</packaging>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.release>25</maven.compiler.release>
+        <maven.compiler.release>21</maven.compiler.release>
         <exec.mainClass>com.snmp.emulator.Main</exec.mainClass>
     </properties>
     
@@ -57,16 +57,37 @@
             <version>3.12.2</version>
         </dependency>
 
-        <!-- GUI Dependecies -->
+        <!-- GUI Dependencies (linux classifier required for classpath-resident classes) -->
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-controls</artifactId>
             <version>25.0.3</version>
-        </dependency>  
+            <classifier>linux</classifier>
+        </dependency>
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-fxml</artifactId>
             <version>25.0.3</version>
+            <classifier>linux</classifier>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-graphics</artifactId>
+            <version>25.0.3</version>
+            <classifier>linux</classifier>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-base</artifactId>
+            <version>25.0.3</version>
+            <classifier>linux</classifier>
+        </dependency>
+
+        <!-- Reuse the server's HeartbeatSender to avoid duplicating the UDP protocol -->
+        <dependency>
+            <groupId>com.snmp.manager</groupId>
+            <artifactId>snmp-manager</artifactId>
+            <version>1.0-SNAPSHOT</version>
         </dependency>
     </dependencies>
 </project>
