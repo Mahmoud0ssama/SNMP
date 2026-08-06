@@ -11,19 +11,91 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-body: #f4f7fb;
-            --card-bg: #ffffff;
-            --primary-blue: #0056b3;
-            --primary-hover: #004494;
-            --light-blue: #e0f0ff;
-            --success-green: #28a745;
-            --danger-red: #dc3545;
-            --warning-orange: #d97706;
-            --text-dark: #1e293b;
-            --text-muted: #64748b;
-            --border-color: #e2e8f0;
-            --shadow-soft: 0 10px 30px -10px rgba(0, 86, 179, 0.1);
-            --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            /* Default Dark Theme: Pure neutral dark black without warmth */
+            --bg: #09090b;
+            --bg-raised: #121215;
+            --bg-raised-2: #18181b;
+            --border: #27272a;
+            --border-soft: #1f1f23;
+
+            --text-primary: #f4f4f5;
+            --text-meta: #a1a1aa;
+            --text-faint: #71717a;
+
+            --green: #34d399;
+            --green-dim: #064e3b;
+            --amber: #fbbf24;
+            --amber-dim: #451a03;
+            --red: #f87171;
+            --red-dim: #450a0a;
+            --blue: #60a5fa;
+            --blue-dim: #1e3a8a;
+
+            --hover-bg: rgba(255, 255, 255, 0.09);
+
+            --mono: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", Menlo, Consolas, "Liberation Mono", monospace;
+            --sans: ui-sans-serif, -apple-system, "Segoe UI", Inter, Roboto, Helvetica, Arial, sans-serif;
+
+            /* Compatibility tokens */
+            --bg-body: var(--bg);
+            --card-bg: var(--bg-raised);
+            --primary-blue: var(--blue);
+            --primary-hover: #3b82f6;
+            --light-blue: var(--blue-dim);
+            --success-green: var(--green);
+            --danger-red: var(--red);
+            --warning-orange: var(--amber);
+            --text-dark: var(--text-primary);
+            --text-muted: var(--text-meta);
+            --border-color: var(--border);
+            --shadow-soft: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+            --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+        }
+
+        [data-theme="light"] {
+            --bg: #f8fafc;
+            --bg-raised: #ffffff;
+            --bg-raised-2: #f1f5f9;
+            --border: #e2e8f0;
+            --border-soft: #cbd5e1;
+
+            --text-primary: #0f172a;
+            --text-meta: #475569;
+            --text-faint: #94a3b8;
+
+            --green: #10b981;
+            --green-dim: #d1fae5;
+            --amber: #d97706;
+            --amber-dim: #fef3c7;
+            --red: #ef4444;
+            --red-dim: #fee2e2;
+            --blue: #2563eb;
+            --blue-dim: #dbeafe;
+
+            --hover-bg: rgba(0, 0, 0, 0.035);
+
+            --shadow-soft: 0 10px 30px -10px rgba(0, 0, 0, 0.08);
+            --shadow-card: 0 2px 8px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        /* ---- Custom Dark Scrollbars ---- */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-faint);
+        }
+        html {
+            scrollbar-color: var(--border) var(--bg);
+            scrollbar-width: thin;
         }
 
         .loader-overlay {
@@ -54,13 +126,8 @@
         }
 
         @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         .loader-text {
@@ -69,253 +136,352 @@
             letter-spacing: 0.5px;
         }
 
-/* 🌙 Muted Pastel Dark Theme (Calm & Soft) */
-         [data-theme="dark"] {
-             --bg-body: #0a0a0a;
-             --card-bg: #141414;
-             --primary-blue: #a5b4fc;
-             --primary-hover: #818cf8;
-             --light-blue: rgba(165, 180, 252, 0.06);
-             --success-green: #86efac;
-             --danger-red: #fda4af;
-             --warning-orange: #fcd34d;
-             --text-dark: #cbd5e1;
-             --text-muted: #94a3b8;
-             --border-color: rgba(255, 255, 255, 0.08);
-             --shadow-soft: 0 4px 20px -8px rgba(0, 0, 0, 0.3);
-             --shadow-card: 0 2px 8px -2px rgba(0, 0, 0, 0.2);
-         }
-
-/* 2. Kill the "Glow" from the massive solid buttons (Add Node / Add User) */
-         [data-theme="dark"] .success-btn {
-             background-color: rgba(134, 239, 172, 0.1) !important;
-             color: #86efac !important;
-             border: 1px solid rgba(134, 239, 172, 0.2) !important;
-             box-shadow: none !important;
-         }
-         [data-theme="dark"] .success-btn:hover {
-             background-color: rgba(134, 239, 172, 0.15) !important;
-         }
-
-         [data-theme="dark"] .primary-btn {
-             background-color: rgba(165, 180, 252, 0.1) !important;
-             color: #a5b4fc !important;
-             border: 1px solid rgba(165, 180, 252, 0.2) !important;
-             box-shadow: none !important;
-         }
-         [data-theme="dark"] .primary-btn:hover {
-             background-color: rgba(165, 180, 252, 0.15) !important;
-         }
-
-         /* 3. Mute the AI Chat Bubble Gradient */
-         [data-theme="dark"] .chat-bubble-btn {
-             background: #141414 !important;
-             border: 1px solid rgba(165, 180, 252, 0.25) !important;
-             color: #a5b4fc !important;
-             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3) !important;
-         }
-
-/* 4. Fix hardcoded glowing elements (System Live Badge & Tip Box) */
-         [data-theme="dark"] .header span[style*="background-color: rgba(13, 148, 136, 0.1)"] {
-             background-color: rgba(94, 234, 212, 0.1) !important;
-             color: #5eead4 !important;
-             border: 1px solid rgba(94, 234, 212, 0.2) !important;
-         }
-         
-         [data-theme="dark"] div[style*="background-color: var(--light-blue)"] {
-             background-color: rgba(165, 180, 252, 0.06) !important;
-             border: 1px solid rgba(165, 180, 252, 0.1) !important;
-         }
-
-/* 5. Standard inputs and tables */
-         [data-theme="dark"] .input-group input,
-         [data-theme="dark"] .form-group input,
-         [data-theme="dark"] .form-group select,
-         [data-theme="dark"] .search-box input,
-         [data-theme="dark"] .filter-select,
-         [data-theme="dark"] .trap-action-row input,
-         [data-theme="dark"] .trap-action-row select {
-             background-color: rgba(0, 0, 0, 0.3) !important; 
-             color: var(--text-dark) !important; 
-             border: 1px solid var(--border-color) !important; 
-         }
-
-         [data-theme="dark"] .input-group input:focus,
-         [data-theme="dark"] .form-group input:focus,
-[data-theme="dark"] .form-group select:focus,
-          [data-theme="dark"] .search-box input:focus,
-          [data-theme="dark"] .filter-select:focus {
-              background-color: #1a1a1a !important; 
-              border-color: var(--primary-blue) !important;
-              box-shadow: 0 0 0 3px rgba(165, 180, 252, 0.1) !important;
-          }
-
-[data-theme="dark"] .header-action-btn,
-          [data-theme="dark"] .manage-btn {
-              background-color: transparent !important;
-              color: var(--text-muted) !important;
-              border: 1px solid var(--border-color) !important;
-              padding: 8px 10px !important;
-          }
-
-          [data-theme="dark"] .header-action-btn i,
-          [data-theme="dark"] .manage-btn i {
-              font-size: 14px;
-          }
-          
-          [data-theme="dark"] .header-action-btn:hover,
-          [data-theme="dark"] .manage-btn:hover {
-             background-color: rgba(255, 255, 255, 0.04) !important; 
-             color: #cbd5e1 !important; 
-         }
-
-         [data-theme="dark"] .logout-btn {
-              background-color: transparent !important;
-              color: #94a3b8 !important;
-              border-color: rgba(148, 163, 184, 0.25) !important;
-          }
-
-          [data-theme="dark"] .logout-btn:hover {
-              background-color: rgba(148, 163, 184, 0.08) !important;
-              color: #cbd5e1 !important;
-          }
-
-          [data-theme="dark"] .resolve-btn {
-              background-color: rgba(165, 180, 252, 0.15) !important;
-              color: #a5b4fc !important;
-              border: 1px solid rgba(165, 180, 252, 0.25) !important;
-          }
-
-          [data-theme="dark"] .resolve-btn:hover {
-              background-color: rgba(165, 180, 252, 0.25) !important;
-          }
-
-          [data-theme="dark"] .danger-btn {
-              background-color: transparent !important;
-              color: var(--danger-red) !important;
-              border-color: rgba(253, 164, 175, 0.25) !important;
-          }
-
-          [data-theme="dark"] .danger-btn:hover {
-              background-color: rgba(253, 164, 175, 0.08) !important;
-          }
-         
-         [data-theme="dark"] .clickable-row:hover {
-             background-color: rgba(165, 180, 252, 0.04) !important; 
-         }
-         
-         [data-theme="dark"] th {
-             background: var(--card-bg) !important; 
-             border-bottom: 1px solid var(--border-color) !important; 
-         }
-
-         [data-theme="dark"] .status-in {
-             color: #86efac !important; 
-             background-color: rgba(134, 239, 172, 0.08) !important; 
-             border-color: transparent !important;
-         }
-         [data-theme="dark"] .status-out {
-             color: var(--danger-red) !important;
-             background-color: rgba(253, 164, 175, 0.08) !important; 
-             border-color: transparent !important;
-         }
-         [data-theme="dark"] .status-warn {
-             color: #fcd34d !important; 
-             background-color: rgba(252, 211, 77, 0.08) !important; 
-             border-color: transparent !important;
-         }
-[data-theme="dark"] .status-unknown {
-              color: #ddd6fe !important;
-              background-color: rgba(139, 92, 246, 0.12) !important;
-              border-color: transparent !important;
-          }
-
-          [data-theme="dark"] .alarm-row.status-open td:first-child {
-              border-left-color: #fda4af !important;
-          }
-
-          [data-theme="dark"] .alarm-row.status-resolved td:first-child {
-              border-left-color: #0d9488 !important;
-          }
-
-          [data-theme="dark"] .alarm-row.status-unknown td:first-child {
-              border-left-color: #7c3aed !important;
-          }
-
-          [data-theme="dark"] .alarm-row.status-warn td:first-child {
-              border-left-color: #d97706 !important;
-          }
-
-         [data-theme="dark"] .unknown-trap-row {
-             background-color: rgba(196, 181, 253, 0.03) !important; 
-         }
-         [data-theme="dark"] .unknown-trap-row:hover {
-             background-color: rgba(196, 181, 253, 0.06) !important; 
-         }
-
-         [data-theme="dark"] .modal {
-             background-color: rgba(26, 26, 46, 0.85) !important; 
-         }
-         [data-theme="dark"] .modal-content {
-             background: var(--card-bg) !important; 
-             border: 1px solid var(--border-color) !important; 
-         }
-
-         [data-theme="dark"] .flash-msg {
-             background: rgba(253, 164, 175, 0.08) !important; 
-             color: var(--danger-red) !important; 
-             border: 1px solid rgba(253, 164, 175, 0.15) !important; 
-         }
-
-         [data-theme="dark"] .ai-blocked-row {
-             background-color: rgba(252, 211, 77, 0.03) !important;
-         }
-         [data-theme="dark"] .ai-blocked-row:hover {
-             background-color: rgba(252, 211, 77, 0.06) !important;
-         }
-         [data-theme="dark"] .ai-warning-box {
-             background-color: rgba(252, 211, 77, 0.04) !important;
-             border-color: rgba(252, 211, 77, 0.15) !important;
-         }
-         [data-theme="dark"] .chat-input-area {
-             background: var(--card-bg) !important;
-             border-top-color: var(--border-color) !important;
-         }
-         [data-theme="dark"] .chat-input {
-             background: rgba(0, 0, 0, 0.3) !important; 
-             color: var(--text-dark) !important; 
-             border-color: var(--border-color) !important; 
-         }
-         [data-theme="dark"] .chat-message.bot {
-             background-color: rgba(0, 0, 0, 0.2) !important;
-             border-color: var(--border-color) !important;
-             color: var(--text-dark) !important;
-         }
-        
-/* Dark mode scrollbar */
-         [data-theme="dark"] ::-webkit-scrollbar {
-             width: 8px;
-         }
-         [data-theme="dark"] ::-webkit-scrollbar-track {
-             background: #0a0a0a;
-         }
-         [data-theme="dark"] ::-webkit-scrollbar-thumb {
-             background: #333;
-             border-radius: 4px;
-         }
-         [data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
-             background: #444;
-         }
-
-         body {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            background-color: var(--bg-body);
-            margin: 0;
-            padding: 25px 35px;
-            color: var(--text-dark);
-            box-sizing: border-box;
+        body {
+            background: var(--bg);
+            color: var(--text-primary);
+            font-family: var(--sans);
+            padding: 24px;
             min-height: 100vh;
+            margin: 0;
+            box-sizing: border-box;
         }
+
+        /* ---- HEADER ---- */
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            background: var(--bg-raised);
+            border: 1px solid var(--border-soft);
+            border-radius: 14px;
+            padding: 16px 22px;
+            margin-bottom: 22px;
+        }
+        .logo {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--blue);
+            white-space: nowrap;
+            letter-spacing: 0.2px;
+        }
+        .live-pill {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            background: var(--green-dim);
+            color: var(--green);
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 12.5px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .live-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--green);
+            animation: pulse 1.8s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.55); }
+            50% { box-shadow: 0 0 0 5px rgba(52, 211, 153, 0); }
+        }
+
+        /* ---- UNIFIED COMMAND BAR ---- */
+        .command-bar {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--bg-raised-2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 9px 14px;
+            min-width: 0;
+            transition: border-color .15s ease, box-shadow .15s ease;
+        }
+        .command-bar:focus-within {
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px var(--blue-dim);
+        }
+        .command-bar svg { flex-shrink: 0; color: var(--text-faint); }
+        .command-bar input {
+            flex: 1;
+            min-width: 0;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--text-primary);
+            font-family: var(--sans);
+            font-size: 14px;
+        }
+        .command-bar input::placeholder { color: var(--text-faint); }
+        .command-filter {
+            background: transparent;
+            color: var(--text-meta);
+            border: none;
+            border-left: 1px solid var(--border);
+            padding: 0 10px 0 12px;
+            font-family: var(--sans);
+            font-size: 13px;
+            outline: none;
+            cursor: pointer;
+        }
+        .command-filter option { background: var(--bg-raised); color: var(--text-primary); }
+        .command-action {
+            background: transparent;
+            border: none;
+            color: var(--text-meta);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            padding: 4px;
+            border-radius: 6px;
+            flex-shrink: 0;
+            transition: color .15s ease, background .15s ease;
+        }
+        .command-action:hover { color: var(--blue); background: var(--blue-dim); }
+        .kbd-hint {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--text-faint);
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            padding: 2px 6px;
+            flex-shrink: 0;
+        }
+
+        .user-block { display: flex; align-items: center; gap: 10px; white-space: nowrap; }
+        .welcome { font-size: 13.5px; color: var(--text-meta); }
+        .welcome strong { color: var(--text-primary); }
+        .logout-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--bg-raised-2);
+            border: 1px solid var(--border);
+            color: var(--text-meta);
+            font-size: 13px;
+            font-weight: 600;
+            padding: 8px 14px;
+            border-radius: 9px;
+            cursor: pointer;
+            transition: color .15s ease, border-color .15s ease, background .15s ease;
+        }
+        .logout-btn:hover { color: var(--text-primary); border-color: var(--text-meta); background: var(--bg-raised); }
+
+        /* ---- STAT CARDS ---- */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 26px;
+        }
+        .stat-card {
+            background: var(--bg-raised);
+            border: 1px solid var(--border-soft);
+            border-radius: 12px;
+            padding: 18px 16px;
+            text-align: center;
+        }
+        .stat-label {
+            font-size: 11px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--text-meta);
+            margin-bottom: 10px;
+        }
+        .stat-value {
+            font-family: var(--mono);
+            font-size: 30px;
+            font-weight: 700;
+            line-height: 1;
+        }
+        .stat-value.neutral { color: var(--text-primary); }
+        .stat-value.ok { color: var(--green); }
+        .stat-value.warn { color: var(--amber); }
+        .stat-value.crit { color: var(--red); }
+
+        /* ---- ALARM ROW & SEVERITY ---- */
+        .section-title {
+            font-size: 19px;
+            font-weight: 700;
+            margin: 0 0 14px;
+            color: var(--text-primary);
+        }
+        .tip-banner {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--bg-raised);
+            border: 1px solid var(--border-soft);
+            color: var(--blue);
+            font-size: 13px;
+            font-weight: 600;
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-bottom: 16px;
+        }
+        .alarms {
+            background: var(--bg-raised);
+            border: 1px solid var(--border-soft);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .alarm-head {
+            display: grid;
+            grid-template-columns: 1.4fr 2.2fr 1fr 1fr;
+            padding: 14px 20px;
+            font-size: 11.5px;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--text-meta);
+            border-bottom: 1px solid var(--border-soft);
+        }
+        .alarm-row {
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+        }
+        .alarm-row:hover,
+        .clickable-row:hover {
+            background-color: var(--hover-bg) !important;
+        }
+        .alarm-row td:first-child {
+            position: relative;
+            padding-left: 20px;
+        }
+        .alarm-row td:first-child::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 6px;
+            bottom: 6px;
+            width: 4px;
+            border-radius: 2px;
+        }
+        .alarm-row.sev-critical td:first-child::before { background: var(--red); }
+        .alarm-row.sev-major td:first-child::before { background: var(--amber); }
+        .alarm-row.sev-warning td:first-child::before { background: var(--amber); opacity: 0.75; }
+        .alarm-row.sev-resolved td:first-child::before { background: var(--green); }
+
+        .source-name {
+            font-family: var(--mono);
+            font-weight: 700;
+            font-size: 14px;
+            color: var(--blue);
+        }
+        .source-ip {
+            font-family: var(--mono);
+            font-size: 12px;
+            color: var(--text-meta);
+            margin-top: 2px;
+        }
+        .msg-title {
+            font-weight: 600;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .msg-time {
+            font-family: var(--mono);
+            font-size: 12px;
+            color: var(--text-meta);
+            margin-top: 3px;
+        }
+
+        .unknown-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: var(--blue-dim);
+            color: var(--blue);
+            font-size: 10.5px;
+            font-weight: 700;
+            letter-spacing: .03em;
+            padding: 2px 8px;
+            border-radius: 999px;
+        }
+
+        /* severity pill = shape + color, not color alone */
+        .sev-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-family: var(--mono);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: .04em;
+            padding: 5px 10px;
+            border-radius: 7px;
+            width: fit-content;
+        }
+        .sev-pill svg { flex-shrink: 0; }
+        .sev-pill.sev-critical { background: var(--red-dim); color: var(--red); }
+        .sev-pill.sev-major { background: var(--amber-dim); color: var(--amber); }
+        .sev-pill.sev-warning { background: var(--amber-dim); color: var(--amber); }
+        .sev-pill.sev-resolved { background: var(--green-dim); color: var(--green); }
+
+        .action-btn, .resolve-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--blue-dim) !important;
+            color: var(--blue) !important;
+            border: 1px solid transparent !important;
+            font-family: var(--sans);
+            font-size: 12.5px;
+            font-weight: 700;
+            padding: 7px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            width: fit-content;
+            transition: background 0.15s ease, color 0.15s ease;
+        }
+        .action-btn:hover, .resolve-btn:hover { background: var(--blue) !important; color: var(--bg) !important; transform: none !important; }
+        .action-done {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--green);
+            font-size: 12.5px;
+            font-weight: 700;
+        }
+
+        .side-card {
+            background: var(--bg-raised);
+            border: 1px solid var(--border-soft);
+            border-radius: 12px;
+            padding: 18px;
+            margin-bottom: 18px;
+        }
+        .side-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin: 0 0 12px;
+            color: var(--text-primary);
+        }
+        .side-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            background: var(--bg-raised-2);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            font-size: 13px;
+            font-weight: 600;
+            padding: 11px 14px;
+            border-radius: 9px;
+            cursor: pointer;
+            text-align: left;
+            transition: border-color 0.15s ease, color 0.15s ease;
+        }
+        .side-btn:hover { border-color: var(--blue); color: var(--blue); }
+        .side-btn + .side-btn { margin-top: 8px; }
 
         .login-wrapper {
             display: flex;
@@ -344,34 +510,32 @@
         }
 
         .input-group input,
-        .form-group select {
-            width: 100%;
-            padding: 15px 15px 15px 45px;
-            background-color: #f8fafc;
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            outline: none;
-            box-sizing: border-box;
-            transition: all 0.2s ease;
-        }
-
-        .input-group input:focus,
-        .form-group input:focus,
-        .form-group select:focus {
-            box-shadow: 0 0 0 3px rgba(0, 86, 179, 0.15);
-            border-color: var(--primary-blue);
-        }
-
+        .form-group select,
         .form-group input,
-        .form-group select {
+        .search-box input,
+        .filter-select {
             width: 100%;
             padding: 12px 15px;
-            background-color: #f8fafc;
-            border: 1px solid var(--border-color);
+            background-color: var(--bg-raised-2);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
             border-radius: 8px;
             outline: none;
             box-sizing: border-box;
             transition: all 0.2s ease;
+        }
+
+        .input-group input {
+            padding-left: 45px;
+            border-radius: 12px;
+        }
+
+        .input-group input:focus,
+        .form-group input:focus,
+        .form-group select:focus,
+        .search-box input:focus {
+            box-shadow: 0 0 0 3px var(--blue-dim);
+            border-color: var(--blue);
         }
 
         .input-icon {
@@ -387,114 +551,26 @@
             margin: 0 auto;
         }
 
-.card-panel {
-             background-color: var(--card-bg);
-             border: 1px solid rgba(255, 255, 255, 0.05);
-             border-radius: 12px;
-             box-shadow: var(--shadow-card);
-         }
+        .card-panel {
+            background-color: var(--bg-raised);
+            border: 1px solid var(--border-soft);
+            border-radius: 12px;
+            box-shadow: var(--shadow-card);
+        }
 
         .grid-container {
             display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 30px;
+            grid-template-columns: 1fr 270px;
+            gap: 20px;
             align-items: stretch;
         }
 
         .card {
-            padding: 30px;
+            padding: 24px;
         }
 
         .card-panel h3 {
-            font-size: 20px !important;
-        }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 18px 35px;
-            margin-bottom: 25px;
-        }
-
-        .header h2 {
-            margin: 0;
-            color: var(--primary-blue);
-            font-weight: 800;
-        }
-
-.header-action-btn {
-             background-color: #f8fafc;
-             border: 1px solid #cbd5e1;
-             padding: 8px 10px;
-             border-radius: 8px;
-             cursor: pointer;
-             font-weight: 600;
-             font-size: 15px;
-             transition: 0.2s;
-             display: inline-flex;
-             align-items: center;
-             justify-content: center;
-         }
-
-         .header-action-btn i {
-             font-size: 14px;
-         }
-
-         .header-action-btn:hover {
-             background-color: var(--light-blue);
-             color: var(--primary-blue);
-             border-color: #93c5fd;
-        }
-
-        .logout-btn {
-            background-color: #f1f5f9;
-            color: #64748b;
-            border: 1px solid #e2e8f0;
-            padding: 12px 22px;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            font-size: 15px;
-            transition: 0.2s;
-        }
-
-        .logout-btn:hover {
-            background-color: #e2e8f0;
-            color: #475569;
-        }
-
-        .resolve-btn {
-            background-color: var(--primary-blue);
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 12px;
-            transition: 0.2s;
-        }
-
-        .resolve-btn:hover {
-            background-color: var(--primary-hover);
-            transform: scale(1.05);
-        }
-
-        .danger-btn {
-            background-color: white;
-            color: var(--danger-red);
-            border: 1px solid #fecaca;
-            padding: 6px 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: 0.2s;
-        }
-
-        .danger-btn:hover {
-            background-color: #fef2f2;
-            transform: scale(1.05);
+            font-size: 18px !important;
         }
 
         table {
@@ -504,44 +580,27 @@
         }
 
         th {
-            color: var(--text-muted);
-            font-weight: 600;
-            font-size: 14px;
-            padding: 16px;
+            color: var(--text-meta);
+            font-weight: 700;
+            font-size: 11.5px;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            padding: 12px 16px;
             text-align: left;
-            border-bottom: 2px solid var(--border-color);
+            border-bottom: 1px solid var(--border);
             position: sticky;
             top: 0;
-            background: var(--card-bg);
+            background: var(--bg-raised);
             z-index: 10;
         }
 
         td {
-            padding: 18px 16px;
-            font-size: 15px;
-            border-bottom: 1px solid var(--border-color);
-            font-weight: 600;
+            padding: 14px 16px;
+            font-size: 13.5px;
+            border-bottom: 1px solid var(--border-soft);
+            color: var(--text-primary);
+            vertical-align: middle;
         }
-
-.alarm-row td:first-child {
-             border-left: 3px solid var(--border-color);
-         }
-
-         .alarm-row.status-open td:first-child {
-             border-left-color: var(--danger-red) !important;
-         }
-
-         .alarm-row.status-resolved td:first-child {
-             border-left-color: #0d9488 !important;
-         }
-
-         .alarm-row.status-unknown td:first-child {
-             border-left-color: #7c3aed !important;
-         }
-
-         .alarm-row.status-warn td:first-child {
-             border-left-color: #d97706 !important;
-         }
 
          .clickable-row {
              cursor: pointer;
@@ -594,12 +653,8 @@
             border-color: #a78bfa;
         }
 
-        .unknown-trap-row {
-            background-color: #f5f3ff !important;
-        }
-
-        .unknown-trap-row:hover {
-            background-color: #ede9fe !important;
+        .unknown-trap-row, .unknown-trap-row:hover {
+            background-color: transparent !important;
         }
 
         .primary-btn {
@@ -835,12 +890,8 @@
             background-color: #bfdbfe;
         }
 
-        .ai-blocked-row {
-            background-color: #fffbeb !important;
-        }
-
-        .ai-blocked-row:hover {
-            background-color: #fef3c7 !important;
+        .ai-blocked-row, .ai-blocked-row:hover {
+            background-color: transparent !important;
         }
 
         .ai-warning-box {
@@ -1184,96 +1235,82 @@
              color: #ffffff;
          }
 
-         [data-theme="dark"] .danger-btn {
-             background-color: transparent;
-         }
-
-         [data-theme="dark"] .clickable-row:hover {
-             background-color: rgba(165, 180, 252, 0.04);
-         }
-
-         [data-theme="dark"] .status-in {
-             color: #86efac;
-             background-color: rgba(134, 239, 172, 0.1);
-             border-color: transparent;
-         }
-
-         [data-theme="dark"] .status-out {
-             color: #fda4af;
-             background-color: rgba(253, 164, 175, 0.1);
-             border-color: transparent;
-         }
-
-         [data-theme="dark"] .unknown-trap-row {
-             background-color: rgba(196, 181, 253, 0.05) !important;
-         }
-
-         [data-theme="dark"] .unknown-trap-row:hover {
-             background-color: rgba(196, 181, 253, 0.1) !important;
-         }
-
-         [data-theme="dark"] .modal {
-             background-color: rgba(0, 0, 0, 0.7);
-         }
-
-         [data-theme="dark"] .flash-msg {
-             background-color: #450a0a;
-             color: #fda4af;
-         }
-
-         [data-theme="dark"] .ai-blocked-row {
-             background-color: rgba(252, 211, 77, 0.05) !important;
-         }
-
-         [data-theme="dark"] .ai-blocked-row:hover {
-             background-color: rgba(252, 211, 77, 0.1) !important;
-         }
-
-         [data-theme="dark"] .ai-warning-box {
-             background-color: rgba(252, 211, 77, 0.05);
-             border-color: #b45309;
-         }
-
-         [data-theme="dark"] .chat-input-area {
-             background: var(--card-bg);
-         }
-
-         [data-theme="dark"] .chat-input {
-             background: var(--bg-body);
-             color: #cbd5e1;
-             border-color: var(--border-color);
-         }
-
-         [data-theme="dark"] .chat-message.bot {
-             background-color: var(--bg-body);
-             border-color: var(--border-color);
-             color: #cbd5e1;
-         }
-
-         [data-theme="dark"] .chat-message.user {
-             background: linear-gradient(135deg, #312e81, #4338ca);
-             color: #e0e7ff;
-         }
-
-[data-theme="dark"] .quick-action-btn {
-              background: #141414;
-             border-color: rgba(165, 180, 252, 0.2);
-             color: #a5b4fc;
-         }
-
-[data-theme="dark"] .quick-action-btn:hover {
-              background: rgba(165, 180, 252, 0.08);
-              border-color: rgba(165, 180, 252, 0.3);
+          [data-theme="dark"] .danger-btn {
+              background-color: transparent;
           }
 
-          [data-theme="dark"] .filter-select {
-              padding-right: 30px;
+          [data-theme="dark"] .status-badge {
+              border-color: transparent;
           }
+
+          [data-theme="dark"] .status-in {
+              color: #6ee7b7;
+              background-color: rgba(16, 185, 129, 0.15);
+          }
+
+          [data-theme="dark"] .status-out {
+              color: #fca5a5;
+              background-color: rgba(239, 68, 68, 0.18);
+          }
+
+          [data-theme="dark"] .status-warn {
+              color: #fcd34d;
+              background-color: rgba(245, 158, 11, 0.18);
+          }
+
+          [data-theme="dark"] .status-unknown {
+              color: #c4b5fd;
+              background-color: rgba(167, 139, 250, 0.18);
+          }
+
+         .unknown-trap-row {
+             background-color: transparent !important;
+         }
+
+         .unknown-trap-row:hover {
+             background-color: var(--hover-bg) !important;
+         }
+
+         .modal {
+             background-color: rgba(0, 0, 0, 0.65);
+         }
+
+         .chat-input-area {
+             background: var(--bg-raised);
+         }
+
+         .chat-input {
+             background: var(--bg-raised-2);
+             color: var(--text-primary);
+             border-color: var(--border);
+         }
+
+         .chat-message.bot {
+             background-color: var(--bg-raised-2);
+             border-color: var(--border);
+             color: var(--text-primary);
+         }
+
+         .chat-message.user {
+             background: var(--blue-dim);
+             color: var(--blue);
+         }
+
+         .quick-action-btn {
+             background: var(--bg-raised-2);
+             border-color: var(--border);
+             color: var(--text-meta);
+         }
+
+         .quick-action-btn:hover {
+             background: var(--blue-dim);
+             color: var(--blue);
+         }
       </style>
 
     <script>
         (function () {
-            const savedTheme = localStorage.getItem('theme') || 'light';
+            const savedTheme = localStorage.getItem('theme') || 'dark';
             document.documentElement.setAttribute('data-theme', savedTheme);
         })();
     </script>
@@ -1303,19 +1340,33 @@
 
     <!-- Dashboard Screen -->
     <div id="dashboardScreen" class="dashboard-container">
-        <div class="header card-panel">
-            <h2>DT NOC Dashboard</h2>
-            <div style="display: flex; align-items: center; gap: 22px;">
-                <span
-style="font-size: 14px; font-weight: 700; padding: 8px 16px; border-radius: 20px; background-color: rgba(13, 148, 136, 0.1); color: #0d9488; border: 1px solid rgba(13, 148, 136, 0.2);"><i
-                         class="fa-solid fa-circle" style="font-size: 10px;"></i>
-                    System Live</span>
-                <span style="font-size: 17px; color: var(--text-muted); font-weight: 500;">Welcome, <span
-                        style="color: var(--primary-blue); font-weight: 700;" id="userDisplay">User</span></span>
-<button class="header-action-btn" onclick="toggleTheme()" id="themeToggleBtn"><i
-                         class="fa-solid fa-sun"></i></button>
-                 <button class="header-action-btn" onclick="manualRefresh()"><i class="fa-solid fa-rotate-right"></i></button>
-                <button class="logout-btn" onclick="logout()">Logout</button>
+        <div class="header">
+            <div class="logo">DT NOC Dashboard</div>
+            <div class="live-pill"><span class="live-dot"></span>System Live</div>
+
+            <div class="command-bar" id="commandBar">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+                <input type="text" id="searchTraps" onkeyup="filterTraps()" placeholder="Search alarms, IP, or message…">
+                <select id="statusFilter" class="command-filter" onchange="filterTraps()">
+                    <option value="ALL">All Statuses</option>
+                    <option value="OPEN">Open Only</option>
+                    <option value="RESOLVED">Resolved</option>
+                </select>
+                <button class="command-action" title="Refresh" onclick="manualRefresh()">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+                </button>
+                <button class="command-action" title="Toggle Theme" id="themeToggleBtn" onclick="toggleTheme()">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9c.23.5.7.83 1.25 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+                </button>
+                <span class="kbd-hint">⌘K</span>
+            </div>
+
+            <div class="user-block">
+                <span class="welcome">Welcome, <strong id="userDisplay">User</strong></span>
+                <button class="logout-btn" onclick="logout()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    Logout
+                </button>
             </div>
         </div>
 
@@ -1323,77 +1374,41 @@ style="font-size: 14px; font-weight: 700; padding: 8px 16px; border-radius: 20px
             <!-- Left: Traps Table -->
             <div class="card card-panel" style="display: flex; flex-direction: column;">
 
-<!-- Summary Stat Cards -->
-                 <div id="statsRow"
-                     style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 15px;">
-                     <div
-                         style="background: var(--bg-body); padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); text-align: center;">
-                         <div
-                             style="font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">
-                             Open Alarms</div>
-                         <div id="statOpen"
-                             style="font-size: 22px; font-weight: 700; color: var(--danger-red); margin-top: 2px;">0
-                         </div>
-                     </div>
-                     <div
-                         style="background: var(--bg-body); padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); text-align: center;">
-                         <div
-                             style="font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">
-                             Resolved (24h)</div>
-                         <div id="statResolved"
-                             style="font-size: 22px; font-weight: 700; color: #0d9488; margin-top: 2px;">0
-                         </div>
-                     </div>
-                     <div
-                         style="background: var(--bg-body); padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); text-align: center;">
-                         <div
-                             style="font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">
-                             Unknown Sources</div>
-                         <div id="statUnknown"
-                             style="font-size: 22px; font-weight: 700; color: var(--warning-orange); margin-top: 2px;">0
-                         </div>
-                     </div>
-                     <div
-                         style="background: var(--bg-body); padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); text-align: center;">
-                         <div
-                             style="font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">
-                             Nodes Online</div>
-                         <div id="statNodes"
-                             style="font-size: 22px; font-weight: 700; color: var(--primary-blue); margin-top: 2px;">0 /
-                             0</div>
-                     </div>
-                 </div>
+                <!-- Summary Stat Cards -->
+                <div id="statsRow" class="stats">
+                    <div class="stat-card">
+                        <div class="stat-label">Open Alarms</div>
+                        <div id="statOpen" class="stat-value crit">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Resolved (24h)</div>
+                        <div id="statResolved" class="stat-value ok">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Unknown Sources</div>
+                        <div id="statUnknown" class="stat-value neutral">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Nodes Online</div>
+                        <div id="statNodes" class="stat-value ok">0 / 0</div>
+                    </div>
+                </div>
 
-                 <div
-                     style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
-                     <h3 style="margin: 0; color: var(--text-dark); font-size: 16px;">Recent Alarms (Traps Logs)</h3>
-                     <div style="display: flex; gap: 8px;">
-                         <select id="statusFilter" class="filter-select" onchange="filterTraps()">
-                             <option value="ALL">All Statuses</option>
-                             <option value="OPEN">Open Only</option>
-                             <option value="RESOLVED">Resolved</option>
-                         </select>
-                         <div class="search-box">
-                             <span><i class="fa-solid fa-magnifying-glass"></i> </span>
-                             <input type="text" id="searchTraps" onkeyup="filterTraps()"
-                                 placeholder="Search Name, IP or Msg...">
-                         </div>
-                     </div>
-                 </div>
-                 <div
-                     style="display: flex; align-items: center; gap: 6px; background-color: var(--light-blue); padding: 6px 10px; border-radius: 6px; width: fit-content; margin-bottom: 10px;">
-                     <span style="font-size: 13px;"><i class="fa-solid fa-lightbulb"></i> </span><span
-                         style="font-size: 12px; color: var(--primary-blue); font-weight: 500;">Tip: Click on any alarm
-                         row to view resolution details.</span>
-                 </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <h3 class="section-title">Recent Alarms (Traps Logs)</h3>
+                </div>
+                <div class="tip-banner">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                    Tip: Click on any alarm row to view resolution details.
+                </div>
                 <div class="scrollable-list">
-                    <table>
+                    <table style="table-layout: fixed; width: 100%;">
                         <thead>
                             <tr>
-                                <th>Source (Name & IP)</th>
-                                <th>Message</th>
-                                <th>Status</th>
-                                <th>Action</th>
+                                <th style="width: 25%;">Source (Name & IP)</th>
+                                <th style="width: 45%;">Message</th>
+                                <th style="width: 15%;">Status</th>
+                                <th style="width: 15%;">Action</th>
                             </tr>
                         </thead>
                         <tbody id="trapsTableBody"></tbody>
@@ -1494,7 +1509,7 @@ style="font-size: 14px; font-weight: 700; padding: 8px 16px; border-radius: 20px
     <div id="nodesScreen" class="dashboard-container" style="display:none;">
         <div class="header card-panel">
             <div style="display: flex; align-items: center; gap: 15px;">
-                <button class="header-action-btn" onclick="backToDashboard()"><i class="fa-solid fa-arrow-left"></i>
+                <button class="manage-btn" style="display:inline-flex; width:auto; align-items:center; gap:8px;" onclick="backToDashboard()"><i class="fa-solid fa-arrow-left"></i>
                     Back to Dashboard</button>
                 <h2>Network Elements</h2>
             </div>
@@ -1913,7 +1928,7 @@ style="font-size: 14px; font-weight: 700; padding: 8px 16px; border-radius: 20px
 
                     // Making the entire row clickable to show trap history for ALL roles
                     if (nBody) nBody.innerHTML += `
-                        <tr class="clickable-row" onclick="viewNodeHistory('${escapeHtml(n.ipAddress)}', '${escapeHtml(n.name)}')">
+                        <tr class="clickable-row" onclick="viewNodeHistory('${escapeHtml(n.ipAddress)}', '${escapeHtml(n.name)}', '${n.status}', '${badgeClass}')">
                             <td style="color:var(--primary-blue); font-weight:700;">${escapeHtml(n.name)} <br><span style="font-size:13px; color:var(--text-muted);">${escapeHtml(n.nodeType)}</span></td>
                             <td class="code-font" style="font-size: 15px;">${escapeHtml(n.ipAddress)}</td>
                             <td><span class="status-badge ${badgeClass}">${n.status}</span></td>
@@ -1946,7 +1961,9 @@ style="font-size: 14px; font-weight: 700; padding: 8px 16px; border-radius: 20px
                         let resDate = new Date(t.resolvedAt);
                         if (resDate >= today) resolvedTodayCount++;
                     }
-                    let btn = t.status === 'OPEN' ? `<button class="resolve-btn" onclick="resolveTrap(${t.id}, event)">Resolve</button>` : `<span style="color:var(--text-muted); font-size:12px;"><i class="fa-solid fa-check"></i> Resolved</span>`;
+                    let btn = t.status === 'OPEN' 
+                        ? `<button class="action-btn resolve-btn" onclick="resolveTrap(${t.id}, event)">Resolve</button>` 
+                        : `<span class="action-done"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> Resolved</span>`;
                     let name = nodesMap[t.sourceIp] || "Unknown Node";
                     let time = new Date(t.receivedAt).toLocaleString();
                     let resName = t.resolvedByUsername || "System";
@@ -1956,7 +1973,6 @@ style="font-size: 14px; font-weight: 700; padding: 8px 16px; border-radius: 20px
                     let rawMsg = t.message || t.trapOid;
                     let cleanMsg = rawMsg;
                     let displayMsg = rawMsg;
-                    let badgeHtml = `<span class="status-badge ${t.status === 'OPEN' ? 'status-out' : 'status-in'} trap-status-text">${t.status}</span>`;
 
                     let isAiBlocked = rawMsg.includes('[AI BLOCKED:');
                     let isAiOverridden = rawMsg.includes('[AI OVERRIDDEN');
@@ -1973,7 +1989,7 @@ style="font-size: 14px; font-weight: 700; padding: 8px 16px; border-radius: 20px
                         let knownTrap = EMULATOR_TRAPS.find(t => t.oid === extractedOid);
                         let niceName = knownTrap ? knownTrap.name : "System Alarm (" + extractedOid + ")";
 
-                        displayMsg = `<span style="color: var(--text-dark); font-size: 14px;">${niceName}</span> <span class="status-badge status-unknown" style="margin-left: 10px; font-size: 10px; padding: 4px 8px;"><i class="fa-solid fa-circle-question"></i> UNKNOWN</span>`;
+                        displayMsg = `<span style="color: var(--text-primary); font-size: 14px;">${niceName}</span> <span class="unknown-tag"><i class="fa-solid fa-circle-question"></i> UNKNOWN</span>`;
                     }
                     else if (isAiBlocked || isAiOverridden) {
                         let startIndex = rawMsg.indexOf('[AI BLOCKED:');
@@ -1987,49 +2003,81 @@ style="font-size: 14px; font-weight: 700; padding: 8px 16px; border-radius: 20px
                         }
 
                         if (t.status === 'OPEN' && isAiBlocked) {
-                            displayMsg = escapeHtml(cleanMsg) + '<br><span style="color:var(--warning-orange); font-weight:800; font-size:13px;"><i class="fa-solid fa-robot"></i> AI Execution Paused</span>';
-                            badgeHtml = `<span class="status-badge status-warn trap-status-text" style="border-color: var(--warning-orange);">AI BLOCKED</span>`;
+                            displayMsg = escapeHtml(cleanMsg) + '<br><span style="color:var(--amber); font-weight:800; font-size:13px;"><i class="fa-solid fa-robot"></i> AI Execution Paused</span>';
                             rowClass += " ai-blocked-row";
                         } else if (isAiOverridden) {
-                            displayMsg = escapeHtml(cleanMsg) + ' <br><span style="font-size:12px; color:var(--success-green); font-weight:bold;" title="Human engineer bypassed AI warning"><i class="fa-solid fa-check"></i> AI Overridden (Forced Execution)</span>';
+                            displayMsg = escapeHtml(cleanMsg) + ' <br><span style="font-size:12px; color:var(--green); font-weight:bold;" title="Human engineer bypassed AI warning"><i class="fa-solid fa-check"></i> AI Overridden (Forced Execution)</span>';
                         } else {
-                            displayMsg = escapeHtml(cleanMsg) + ' <br><span style="font-size:12px; color:var(--text-muted);" title="Auto-execution was prevented by AI"><i class="fa-solid fa-robot"></i> (Previously AI Blocked)</span>';
+                            displayMsg = escapeHtml(cleanMsg) + ' <br><span style="font-size:12px; color:var(--text-meta);" title="Auto-execution was prevented by AI"><i class="fa-solid fa-robot"></i> (Previously AI Blocked)</span>';
                         }
                     } else {
                         displayMsg = escapeHtml(cleanMsg);
                     }
 
+                    // Severity shape + color logic
+                    let sevLevel = 'warning';
+                    if (t.status === 'RESOLVED') {
+                        sevLevel = 'resolved';
+                    } else if (t.severity) {
+                        let s = String(t.severity).toLowerCase();
+                        if (s === 'critical') sevLevel = 'critical';
+                        else if (s === 'major') sevLevel = 'major';
+                        else if (s === 'warning' || s === 'minor' || s === 'info') sevLevel = 'warning';
+                    } else {
+                        let lowerMsg = (cleanMsg || '').toLowerCase();
+                        if (lowerMsg.includes('power') || lowerMsg.includes('critical') || lowerMsg.includes('link down') || lowerMsg.includes('down') || lowerMsg.includes('failure')) {
+                            sevLevel = 'critical';
+                        } else if (lowerMsg.includes('congestion') || lowerMsg.includes('memory') || lowerMsg.includes('major')) {
+                            sevLevel = 'major';
+                        } else {
+                            sevLevel = 'warning';
+                        }
+                    }
+
+                    let sevPillHtml = '';
+                    if (sevLevel === 'critical') {
+                        sevPillHtml = `<span class="sev-pill sev-critical"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L1 21h22L12 2z"/></svg><span class="trap-status-text">CRITICAL</span></span>`;
+                    } else if (sevLevel === 'major') {
+                        sevPillHtml = `<span class="sev-pill sev-major"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/></svg><span class="trap-status-text">MAJOR</span></span>`;
+                    } else if (sevLevel === 'warning') {
+                        sevPillHtml = `<span class="sev-pill sev-warning"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><polygon points="12,2 22,12 12,22 2,12"/></svg><span class="trap-status-text">WARNING</span></span>`;
+                    } else {
+                        sevPillHtml = `<span class="sev-pill sev-resolved"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg><span class="trap-status-text">RESOLVED</span></span>`;
+                    }
+
                     // Use proper escaping to prevent onclick execution failures
                     let safeAiReason = escapeHtml(aiReason);
                     let safeCleanMsg = escapeHtml(cleanMsg);
+                    let alarmRowClass = 'alarm-row sev-' + sevLevel;
 
-                    let alarmRowClass = t.status === 'OPEN' ? 'alarm-row status-open' : t.status === 'RESOLVED' ? 'alarm-row status-resolved' : 'alarm-row';
-
-                    tBody.innerHTML += `<tr class="${rowClass} ${alarmRowClass}" onclick="showTrapDetails(${t.id}, '${escapeHtml(name)}', '${escapeHtml(t.sourceIp)}', '${safeCleanMsg}', '${t.status}', '${time}', '${escapeHtml(resName)}', '${resTime}', '${safeAiReason}', ${isAiOverridden})">
-                        <td><div style="color:var(--primary-blue); font-weight:700;">${escapeHtml(name)}</div><div class="code-font" style="font-size:13px;">${escapeHtml(t.sourceIp)}</div></td>
-                        <td style="font-weight:700;">${displayMsg} <br><span style="font-size:13px; color:var(--text-muted);">${time}</span></td>
-                        <td>${badgeHtml}</td>
+                    tBody.innerHTML += `<tr class="${rowClass} ${alarmRowClass}" onclick="showTrapDetails(${t.id}, '${escapeHtml(name)}', '${escapeHtml(t.sourceIp)}', '${safeCleanMsg}', '${t.status}', '${time}', '${escapeHtml(resName)}', '${resTime}', '${safeAiReason}', ${isAiOverridden}, '${sevLevel}')">
+                        <td><div class="source-name">${escapeHtml(name)}</div><div class="source-ip">${escapeHtml(t.sourceIp)}</div></td>
+                        <td><div class="msg-title">${displayMsg}</div><div class="msg-time">${time}</div></td>
+                        <td>${sevPillHtml}</td>
                         <td onclick="event.stopPropagation();">${btn}</td></tr>`;
                 });
 
                 filterTraps();
 
                 // Update stat cards
-if (document.getElementById('statOpen')) {
-                     document.getElementById('statOpen').innerText = openCount;
-                     document.getElementById('statResolved').innerText = resolvedTodayCount;
-                     document.getElementById('statUnknown').innerText = unknownCount;
-                     let statNodesEl = document.getElementById('statNodes');
-                     statNodesEl.innerText = `${nodesOnlineCount} / ${nodes.length}`;
-                     let ratio = nodes.length > 0 ? nodesOnlineCount / nodes.length : 0;
-                     if (ratio >= 0.75) {
-                         statNodesEl.style.color = '#0d9488';
-                     } else if (ratio >= 0.5) {
-                         statNodesEl.style.color = '#d97706';
-                     } else {
-                         statNodesEl.style.color = '#dc2626';
-                     }
-                 }
+                if (document.getElementById('statOpen')) {
+                    document.getElementById('statOpen').innerText = openCount;
+                    document.getElementById('statResolved').innerText = resolvedTodayCount;
+                    document.getElementById('statUnknown').innerText = unknownCount;
+                    let statNodesEl = document.getElementById('statNodes');
+                    statNodesEl.innerText = `${nodesOnlineCount} / ${nodes.length}`;
+                    let ratio = nodes.length > 0 ? nodesOnlineCount / nodes.length : 0;
+                    if (ratio >= 0.75) {
+                        statNodesEl.className = 'stat-value ok';
+                        statNodesEl.style.color = 'var(--green)';
+                    } else if (ratio >= 0.5) {
+                        statNodesEl.className = 'stat-value warn';
+                        statNodesEl.style.color = 'var(--amber)';
+                    } else {
+                        statNodesEl.className = 'stat-value crit';
+                        statNodesEl.style.color = 'var(--red)';
+                    }
+                }
 
             } catch (e) {
                 console.error("Sync Error:", e);
@@ -2545,7 +2593,7 @@ if (document.getElementById('statOpen')) {
             document.getElementById('dashboardScreen').style.display = 'block';
         }
 
-        async function viewNodeHistory(ipAddress, nodeName) {
+        async function viewNodeHistory(ipAddress, nodeName, nodeStatus, nodeBadgeClass) {
             showLoader('Loading history...');
             try {
                 let tRes = await fetchWithAuth('/api/traps');
@@ -2555,8 +2603,10 @@ if (document.getElementById('statOpen')) {
                 let hBody = document.getElementById('nodeTrapsHistoryBody');
                 hBody.innerHTML = '';
 
+                let nodeStatusBadge = `<span class="status-badge ${nodeBadgeClass || 'status-in'}">${nodeStatus || 'UNKNOWN'}</span>`;
+
                 if (nodeTraps.length === 0) {
-                    hBody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No history available for this node.</td></tr>';
+                    hBody.innerHTML = `<tr><td colspan="4" style="text-align:center;">No history available for this node.</td></tr>`;
                 } else {
                     // Sort traps by receivedAt descending
                     nodeTraps.sort((a, b) => new Date(b.receivedAt) - new Date(a.receivedAt));
@@ -2587,7 +2637,7 @@ if (document.getElementById('statOpen')) {
                     });
                 }
 
-                document.getElementById('historyModalTitle').textContent = `Trap History: ${nodeName} (${ipAddress})`;
+                document.getElementById('historyModalTitle').innerHTML = `Trap History: ${nodeName} (${ipAddress}) <span style="font-size:14px; font-weight:500; margin-left:10px; vertical-align:middle;">Node Status: ${nodeStatusBadge}</span>`;
                 openModal('nodeTrapsHistoryModal');
             } catch (e) {
                 console.error("Error fetching trap history", e);
@@ -2627,7 +2677,7 @@ if (document.getElementById('statOpen')) {
             for (let i = 0; i < trs.length; i++)
                 trs[i].style.display = trs[i].textContent.toLowerCase().includes(txt) ? "" : "none";
         }
-        function showTrapDetails(id, nName, ip, msg, status, tRec, rName, tRes, aiReason = "", isOverridden = false) {
+        function showTrapDetails(id, nName, ip, msg, status, tRec, rName, tRes, aiReason = "", isOverridden = false, sevLevel = 'warning') {
             let bd = document.getElementById('trapDetailsBody');
 
             let h = `<div class="detail-row"><span>Node Name:</span><span>${nName}</span></div>
@@ -2647,17 +2697,28 @@ if (document.getElementById('statOpen')) {
                         ${overrideBtnHtml}
                       </div>`;
             } else if (isOverridden) {
-                h += `<div class="ai-warning-box" style="background-color:#f0fdf4; border-color:#34d399;">
-                        <h4 style="margin:0 0 10px 0; color:#047857; display:flex; align-items:center; gap:8px;"><i class="fa-solid fa-check"></i> AI Overridden</h4>
+                h += `<div class="ai-warning-box" style="background-color:var(--green-dim); border-color:var(--success-green);">
+                        <h4 style="margin:0 0 10px 0; color:var(--success-green); display:flex; align-items:center; gap:8px;"><i class="fa-solid fa-check"></i> AI Overridden</h4>
                         <p style="margin:0; font-size:13px; color:#065f46; font-weight:600;">A human engineer bypassed the AI warning and forced execution.</p>
                       </div>`;
             }
 
-            h += `<div class="detail-row"><span>Status:</span><span class="status-badge ${status === 'OPEN' ? 'status-out' : 'status-in'}">${status}</span></div>
+            let cardSevPill = '';
+            if (sevLevel === 'critical') {
+                cardSevPill = `<span class="sev-pill sev-critical"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L1 21h22L12 2z"/></svg><span class="trap-status-text">CRITICAL</span></span>`;
+            } else if (sevLevel === 'major') {
+                cardSevPill = `<span class="sev-pill sev-major"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/></svg><span class="trap-status-text">MAJOR</span></span>`;
+            } else if (sevLevel === 'warning') {
+                cardSevPill = `<span class="sev-pill sev-warning"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><polygon points="12,2 22,12 12,22 2,12"/></svg><span class="trap-status-text">WARNING</span></span>`;
+            } else {
+                cardSevPill = `<span class="sev-pill sev-resolved"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg><span class="trap-status-text">RESOLVED</span></span>`;
+            }
+
+            h += `<div class="detail-row"><span>Status:</span>${cardSevPill}</div>
                   <div class="detail-row"><span>Time Received:</span><span>${tRec}</span></div>`;
 
             if (status === 'RESOLVED') {
-                h += `<div style="margin-top:15px; padding:10px; background:#f0fdf4; border:1px dashed #34d399; border-radius:8px;">
+                h += `<div style="margin-top:15px; padding:10px; background:var(--green-dim); border:1px dashed var(--success-green); border-radius:8px;">
                         <div class="detail-row" style="border:none; padding-bottom:5px;"><span>Resolved By:</span><span style="color:var(--success-green); font-size:15px;"><i class="fa-solid fa-user-gear"></i> ${rName}</span></div>
                         <div class="detail-row" style="border:none; padding-top:0;"><span>Time Resolved:</span><span><i class="fa-regular fa-clock"></i> ${tRes}</span></div>
                       </div>`;
@@ -2864,10 +2925,18 @@ if (document.getElementById('statOpen')) {
         };
 
         window.addEventListener('DOMContentLoaded', () => {
-            const savedTheme = localStorage.getItem('theme') || 'light';
+            const savedTheme = localStorage.getItem('theme') || 'dark';
             const toggleBtn = document.getElementById('themeToggleBtn');
             if (toggleBtn) {
                 toggleBtn.innerHTML = savedTheme === 'dark' ? '<i class="fa-solid fa-moon"></i>' : '<i class="fa-solid fa-sun"></i>';
+            }
+        });
+
+        window.addEventListener('keydown', (e) => {
+            if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+                e.preventDefault();
+                const searchInput = document.getElementById('searchTraps');
+                if (searchInput) searchInput.focus();
             }
         });
     </script>
