@@ -69,193 +69,245 @@
             letter-spacing: 0.5px;
         }
 
-       /* 🌙 Anti-Glare Deep Dark Theme (No Neon/Glowing effects) */
-        [data-theme="dark"] {
-            --bg-body: #0f1015;
-            --card-bg: #16181f;
-            /* 1. Mute the Neon Colors to Pastel/Soft Colors */
-            --primary-blue: #60a5fa; 
-            --primary-hover: #3b82f6; 
-            --light-blue: rgba(96, 165, 250, 0.05); 
-            --success-green: #34d399; 
-            --danger-red: #fb7185; 
-            --warning-orange: #fbbf24; 
-            --text-dark: #e2e8f0; 
-            --text-muted: #64748b; 
-            --border-color: rgba(255, 255, 255, 0.08); 
-            --shadow-soft: none;
-            --shadow-card: none; 
-        }
+/* 🌙 Muted Pastel Dark Theme (Calm & Soft) */
+         [data-theme="dark"] {
+             --bg-body: #0a0a0a;
+             --card-bg: #141414;
+             --primary-blue: #a5b4fc;
+             --primary-hover: #818cf8;
+             --light-blue: rgba(165, 180, 252, 0.06);
+             --success-green: #86efac;
+             --danger-red: #fda4af;
+             --warning-orange: #fcd34d;
+             --text-dark: #cbd5e1;
+             --text-muted: #94a3b8;
+             --border-color: rgba(255, 255, 255, 0.08);
+             --shadow-soft: 0 4px 20px -8px rgba(0, 0, 0, 0.3);
+             --shadow-card: 0 2px 8px -2px rgba(0, 0, 0, 0.2);
+         }
 
-        /* 2. Kill the "Glow" from the massive solid buttons (Add Node / Add User) */
-        [data-theme="dark"] .success-btn {
-            background-color: rgba(52, 211, 153, 0.1) !important; /* Transparent tinted background */
-            color: #34d399 !important; /* Soft text color */
-            border: 1px solid rgba(52, 211, 153, 0.2) !important;
-        }
-        [data-theme="dark"] .success-btn:hover {
-            background-color: rgba(52, 211, 153, 0.15) !important;
-        }
+/* 2. Kill the "Glow" from the massive solid buttons (Add Node / Add User) */
+         [data-theme="dark"] .success-btn {
+             background-color: rgba(134, 239, 172, 0.1) !important;
+             color: #86efac !important;
+             border: 1px solid rgba(134, 239, 172, 0.2) !important;
+             box-shadow: none !important;
+         }
+         [data-theme="dark"] .success-btn:hover {
+             background-color: rgba(134, 239, 172, 0.15) !important;
+         }
 
-        [data-theme="dark"] .primary-btn {
-            background-color: rgba(96, 165, 250, 0.1) !important;
-            color: #60a5fa !important;
-            border: 1px solid rgba(96, 165, 250, 0.2) !important;
-            box-shadow: none !important;
-        }
-        [data-theme="dark"] .primary-btn:hover {
-            background-color: rgba(96, 165, 250, 0.15) !important;
-        }
+         [data-theme="dark"] .primary-btn {
+             background-color: rgba(165, 180, 252, 0.1) !important;
+             color: #a5b4fc !important;
+             border: 1px solid rgba(165, 180, 252, 0.2) !important;
+             box-shadow: none !important;
+         }
+         [data-theme="dark"] .primary-btn:hover {
+             background-color: rgba(165, 180, 252, 0.15) !important;
+         }
 
-        /* 3. Mute the AI Chat Bubble Gradient */
-        [data-theme="dark"] .chat-bubble-btn {
-            background: #16181f !important;
-            border: 1px solid rgba(96, 165, 250, 0.3) !important;
-            color: #60a5fa !important;
-            box-shadow: none !important;
-        }
+         /* 3. Mute the AI Chat Bubble Gradient */
+         [data-theme="dark"] .chat-bubble-btn {
+             background: #141414 !important;
+             border: 1px solid rgba(165, 180, 252, 0.25) !important;
+             color: #a5b4fc !important;
+             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3) !important;
+         }
 
-        /* 4. Fix hardcoded glowing elements (System Live Badge & Tip Box) */
-        [data-theme="dark"] .header span[style*="background-color: #d1fae5"] {
-            background-color: rgba(52, 211, 153, 0.1) !important;
-            color: #34d399 !important;
-            border: 1px solid rgba(52, 211, 153, 0.2) !important;
-        }
+/* 4. Fix hardcoded glowing elements (System Live Badge & Tip Box) */
+         [data-theme="dark"] .header span[style*="background-color: rgba(13, 148, 136, 0.1)"] {
+             background-color: rgba(94, 234, 212, 0.1) !important;
+             color: #5eead4 !important;
+             border: 1px solid rgba(94, 234, 212, 0.2) !important;
+         }
+         
+         [data-theme="dark"] div[style*="background-color: var(--light-blue)"] {
+             background-color: rgba(165, 180, 252, 0.06) !important;
+             border: 1px solid rgba(165, 180, 252, 0.1) !important;
+         }
+
+/* 5. Standard inputs and tables */
+         [data-theme="dark"] .input-group input,
+         [data-theme="dark"] .form-group input,
+         [data-theme="dark"] .form-group select,
+         [data-theme="dark"] .search-box input,
+         [data-theme="dark"] .filter-select,
+         [data-theme="dark"] .trap-action-row input,
+         [data-theme="dark"] .trap-action-row select {
+             background-color: rgba(0, 0, 0, 0.3) !important; 
+             color: var(--text-dark) !important; 
+             border: 1px solid var(--border-color) !important; 
+         }
+
+         [data-theme="dark"] .input-group input:focus,
+         [data-theme="dark"] .form-group input:focus,
+[data-theme="dark"] .form-group select:focus,
+          [data-theme="dark"] .search-box input:focus,
+          [data-theme="dark"] .filter-select:focus {
+              background-color: #1a1a1a !important; 
+              border-color: var(--primary-blue) !important;
+              box-shadow: 0 0 0 3px rgba(165, 180, 252, 0.1) !important;
+          }
+
+[data-theme="dark"] .header-action-btn,
+          [data-theme="dark"] .manage-btn {
+              background-color: transparent !important;
+              color: var(--text-muted) !important;
+              border: 1px solid var(--border-color) !important;
+              padding: 8px 10px !important;
+          }
+
+          [data-theme="dark"] .header-action-btn i,
+          [data-theme="dark"] .manage-btn i {
+              font-size: 14px;
+          }
+          
+          [data-theme="dark"] .header-action-btn:hover,
+          [data-theme="dark"] .manage-btn:hover {
+             background-color: rgba(255, 255, 255, 0.04) !important; 
+             color: #cbd5e1 !important; 
+         }
+
+         [data-theme="dark"] .logout-btn {
+              background-color: transparent !important;
+              color: #94a3b8 !important;
+              border-color: rgba(148, 163, 184, 0.25) !important;
+          }
+
+          [data-theme="dark"] .logout-btn:hover {
+              background-color: rgba(148, 163, 184, 0.08) !important;
+              color: #cbd5e1 !important;
+          }
+
+          [data-theme="dark"] .resolve-btn {
+              background-color: rgba(165, 180, 252, 0.15) !important;
+              color: #a5b4fc !important;
+              border: 1px solid rgba(165, 180, 252, 0.25) !important;
+          }
+
+          [data-theme="dark"] .resolve-btn:hover {
+              background-color: rgba(165, 180, 252, 0.25) !important;
+          }
+
+          [data-theme="dark"] .danger-btn {
+              background-color: transparent !important;
+              color: var(--danger-red) !important;
+              border-color: rgba(253, 164, 175, 0.25) !important;
+          }
+
+          [data-theme="dark"] .danger-btn:hover {
+              background-color: rgba(253, 164, 175, 0.08) !important;
+          }
+         
+         [data-theme="dark"] .clickable-row:hover {
+             background-color: rgba(165, 180, 252, 0.04) !important; 
+         }
+         
+         [data-theme="dark"] th {
+             background: var(--card-bg) !important; 
+             border-bottom: 1px solid var(--border-color) !important; 
+         }
+
+         [data-theme="dark"] .status-in {
+             color: #86efac !important; 
+             background-color: rgba(134, 239, 172, 0.08) !important; 
+             border-color: transparent !important;
+         }
+         [data-theme="dark"] .status-out {
+             color: var(--danger-red) !important;
+             background-color: rgba(253, 164, 175, 0.08) !important; 
+             border-color: transparent !important;
+         }
+         [data-theme="dark"] .status-warn {
+             color: #fcd34d !important; 
+             background-color: rgba(252, 211, 77, 0.08) !important; 
+             border-color: transparent !important;
+         }
+[data-theme="dark"] .status-unknown {
+              color: #ddd6fe !important;
+              background-color: rgba(139, 92, 246, 0.12) !important;
+              border-color: transparent !important;
+          }
+
+          [data-theme="dark"] .alarm-row.status-open td:first-child {
+              border-left-color: #fda4af !important;
+          }
+
+          [data-theme="dark"] .alarm-row.status-resolved td:first-child {
+              border-left-color: #0d9488 !important;
+          }
+
+          [data-theme="dark"] .alarm-row.status-unknown td:first-child {
+              border-left-color: #7c3aed !important;
+          }
+
+          [data-theme="dark"] .alarm-row.status-warn td:first-child {
+              border-left-color: #d97706 !important;
+          }
+
+         [data-theme="dark"] .unknown-trap-row {
+             background-color: rgba(196, 181, 253, 0.03) !important; 
+         }
+         [data-theme="dark"] .unknown-trap-row:hover {
+             background-color: rgba(196, 181, 253, 0.06) !important; 
+         }
+
+         [data-theme="dark"] .modal {
+             background-color: rgba(26, 26, 46, 0.85) !important; 
+         }
+         [data-theme="dark"] .modal-content {
+             background: var(--card-bg) !important; 
+             border: 1px solid var(--border-color) !important; 
+         }
+
+         [data-theme="dark"] .flash-msg {
+             background: rgba(253, 164, 175, 0.08) !important; 
+             color: var(--danger-red) !important; 
+             border: 1px solid rgba(253, 164, 175, 0.15) !important; 
+         }
+
+         [data-theme="dark"] .ai-blocked-row {
+             background-color: rgba(252, 211, 77, 0.03) !important;
+         }
+         [data-theme="dark"] .ai-blocked-row:hover {
+             background-color: rgba(252, 211, 77, 0.06) !important;
+         }
+         [data-theme="dark"] .ai-warning-box {
+             background-color: rgba(252, 211, 77, 0.04) !important;
+             border-color: rgba(252, 211, 77, 0.15) !important;
+         }
+         [data-theme="dark"] .chat-input-area {
+             background: var(--card-bg) !important;
+             border-top-color: var(--border-color) !important;
+         }
+         [data-theme="dark"] .chat-input {
+             background: rgba(0, 0, 0, 0.3) !important; 
+             color: var(--text-dark) !important; 
+             border-color: var(--border-color) !important; 
+         }
+         [data-theme="dark"] .chat-message.bot {
+             background-color: rgba(0, 0, 0, 0.2) !important;
+             border-color: var(--border-color) !important;
+             color: var(--text-dark) !important;
+         }
         
-        [data-theme="dark"] div[style*="background-color: var(--light-blue)"] {
-            background-color: rgba(96, 165, 250, 0.05) !important;
-            border: 1px solid rgba(96, 165, 250, 0.1) !important;
-        }
+/* Dark mode scrollbar */
+         [data-theme="dark"] ::-webkit-scrollbar {
+             width: 8px;
+         }
+         [data-theme="dark"] ::-webkit-scrollbar-track {
+             background: #0a0a0a;
+         }
+         [data-theme="dark"] ::-webkit-scrollbar-thumb {
+             background: #333;
+             border-radius: 4px;
+         }
+         [data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+             background: #444;
+         }
 
-        /* 5. Standard inputs and tables */
-        [data-theme="dark"] .input-group input,
-        [data-theme="dark"] .form-group input,
-        [data-theme="dark"] .form-group select,
-        [data-theme="dark"] .search-box input,
-        [data-theme="dark"] .filter-select,
-        [data-theme="dark"] .trap-action-row input,
-        [data-theme="dark"] .trap-action-row select {
-            background-color: rgba(0, 0, 0, 0.2) !important; 
-            color: var(--text-dark) !important; 
-            border: 1px solid var(--border-color) !important; 
-        }
-
-        [data-theme="dark"] .input-group input:focus,
-        [data-theme="dark"] .form-group input:focus,
-        [data-theme="dark"] .form-group select:focus,
-        [data-theme="dark"] .search-box input:focus,
-        [data-theme="dark"] .filter-select:focus {
-            background-color: rgba(0, 0, 0, 0.4) !important; 
-            border-color: var(--primary-blue) !important;
-            box-shadow: none !important;
-        }
-
-        [data-theme="dark"] .header-action-btn,
-        [data-theme="dark"] .manage-btn {
-            background-color: transparent !important; 
-            color: var(--text-muted) !important; 
-            border: 1px solid var(--border-color) !important; 
-        }
-        
-        [data-theme="dark"] .header-action-btn:hover,
-        [data-theme="dark"] .manage-btn:hover {
-            background-color: rgba(255, 255, 255, 0.05) !important; 
-            color: #ffffff !important; 
-        }
-
-        [data-theme="dark"] .logout-btn,
-        [data-theme="dark"] .danger-btn {
-            background-color: transparent !important; 
-            color: var(--danger-red) !important;
-            border-color: rgba(251, 113, 133, 0.3) !important; 
-        }
-        
-        [data-theme="dark"] .logout-btn:hover,
-        [data-theme="dark"] .danger-btn:hover {
-            background-color: rgba(251, 113, 133, 0.1) !important; 
-        }
-        
-        [data-theme="dark"] .clickable-row:hover {
-            background-color: rgba(96, 165, 250, 0.05) !important; 
-        }
-        
-        [data-theme="dark"] th {
-            background: var(--bg-card) !important; 
-            border-bottom: 1px solid var(--border-color) !important; 
-        }
-
-        [data-theme="dark"] .status-in {
-            color: #34d399 !important; 
-            background-color: rgba(52, 211, 153, 0.1) !important; 
-            border-color: transparent !important;
-        }
-        [data-theme="dark"] .status-out {
-            color: var(--danger-red) !important;
-            background-color: rgba(251, 113, 133, 0.1) !important; 
-            border-color: transparent !important;
-        }
-        [data-theme="dark"] .status-warn {
-            color: #fbbf24 !important; 
-            background-color: rgba(251, 191, 36, 0.1) !important; 
-            border-color: transparent !important;
-        }
-        [data-theme="dark"] .status-unknown {
-            color: #a78bfa !important; 
-            background-color: rgba(167, 139, 250, 0.1) !important; 
-            border-color: transparent !important;
-        }
-        
-        [data-theme="dark"] .alarm-open td:first-child {
-            border-left-color: var(--danger-red) !important;
-        }
-
-        [data-theme="dark"] .unknown-trap-row {
-            background-color: rgba(167, 139, 250, 0.03) !important; 
-        }
-        [data-theme="dark"] .unknown-trap-row:hover {
-            background-color: rgba(167, 139, 250, 0.08) !important; 
-        }
-
-        [data-theme="dark"] .modal {
-            background-color: rgba(15, 16, 21, 0.85) !important; 
-        }
-        [data-theme="dark"] .modal-content {
-            background: var(--bg-card) !important; 
-            border: 1px solid var(--border-color) !important; 
-        }
-
-        [data-theme="dark"] .flash-msg {
-            background: rgba(251, 113, 133, 0.1) !important; 
-            color: var(--danger-red) !important; 
-            border: 1px solid rgba(251, 113, 133, 0.2) !important; 
-        }
-
-        [data-theme="dark"] .ai-blocked-row {
-            background-color: rgba(251, 191, 36, 0.03) !important;
-        }
-        [data-theme="dark"] .ai-blocked-row:hover {
-            background-color: rgba(251, 191, 36, 0.08) !important;
-        }
-        [data-theme="dark"] .ai-warning-box {
-            background-color: rgba(251, 191, 36, 0.05) !important;
-            border-color: rgba(251, 191, 36, 0.2) !important;
-        }
-        [data-theme="dark"] .chat-input-area {
-            background: var(--bg-card) !important;
-            border-top-color: var(--border-color) !important;
-        }
-        [data-theme="dark"] .chat-input {
-            background: rgba(0, 0, 0, 0.2) !important; 
-            color: var(--text-dark) !important; 
-            border-color: var(--border-color) !important; 
-        }
-        [data-theme="dark"] .chat-message.bot {
-            background-color: rgba(0, 0, 0, 0.2) !important;
-            border-color: var(--border-color) !important;
-            color: var(--text-dark) !important;
-        }
-        
-        body {
+         body {
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
             background-color: var(--bg-body);
             margin: 0;
@@ -335,12 +387,12 @@
             margin: 0 auto;
         }
 
-        .card-panel {
-            background-color: var(--card-bg);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
-            box-shadow: var(--shadow-card);
-        }
+.card-panel {
+             background-color: var(--card-bg);
+             border: 1px solid rgba(255, 255, 255, 0.05);
+             border-radius: 12px;
+             box-shadow: var(--shadow-card);
+         }
 
         .grid-container {
             display: grid;
@@ -371,27 +423,34 @@
             font-weight: 800;
         }
 
-        .header-action-btn {
-            background-color: #f8fafc;
-            border: 1px solid #cbd5e1;
-            padding: 12px 18px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 15px;
-            transition: 0.2s;
-        }
+.header-action-btn {
+             background-color: #f8fafc;
+             border: 1px solid #cbd5e1;
+             padding: 8px 10px;
+             border-radius: 8px;
+             cursor: pointer;
+             font-weight: 600;
+             font-size: 15px;
+             transition: 0.2s;
+             display: inline-flex;
+             align-items: center;
+             justify-content: center;
+         }
 
-        .header-action-btn:hover {
-            background-color: var(--light-blue);
-            color: var(--primary-blue);
-            border-color: #93c5fd;
+         .header-action-btn i {
+             font-size: 14px;
+         }
+
+         .header-action-btn:hover {
+             background-color: var(--light-blue);
+             color: var(--primary-blue);
+             border-color: #93c5fd;
         }
 
         .logout-btn {
-            background-color: #fff1f2;
-            color: #e11d48;
-            border: 1px solid #ffe4e6;
+            background-color: #f1f5f9;
+            color: #64748b;
+            border: 1px solid #e2e8f0;
             padding: 12px 22px;
             border-radius: 8px;
             font-weight: 600;
@@ -401,8 +460,41 @@
         }
 
         .logout-btn:hover {
-            background-color: #e11d48;
+            background-color: #e2e8f0;
+            color: #475569;
+        }
+
+        .resolve-btn {
+            background-color: var(--primary-blue);
             color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 12px;
+            transition: 0.2s;
+        }
+
+        .resolve-btn:hover {
+            background-color: var(--primary-hover);
+            transform: scale(1.05);
+        }
+
+        .danger-btn {
+            background-color: white;
+            color: var(--danger-red);
+            border: 1px solid #fecaca;
+            padding: 6px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+
+        .danger-btn:hover {
+            background-color: #fef2f2;
+            transform: scale(1.05);
         }
 
         table {
@@ -431,22 +523,34 @@
             font-weight: 600;
         }
 
-        .alarm-row td:first-child {
-            border-left: 3px solid transparent;
-        }
+.alarm-row td:first-child {
+             border-left: 3px solid var(--border-color);
+         }
 
-        .alarm-open td:first-child {
-            border-left-color: var(--danger-red) !important;
-        }
+         .alarm-row.status-open td:first-child {
+             border-left-color: var(--danger-red) !important;
+         }
 
-        .clickable-row {
-            cursor: pointer;
-            transition: background-color 150ms ease;
-        }
+         .alarm-row.status-resolved td:first-child {
+             border-left-color: #0d9488 !important;
+         }
 
-        .clickable-row:hover {
-            background-color: #f1f5f9;
-        }
+         .alarm-row.status-unknown td:first-child {
+             border-left-color: #7c3aed !important;
+         }
+
+         .alarm-row.status-warn td:first-child {
+             border-left-color: #d97706 !important;
+         }
+
+         .clickable-row {
+             cursor: pointer;
+             transition: background-color 150ms ease;
+         }
+
+         .clickable-row:hover {
+             background-color: #f1f5f9;
+         }
 
         .scrollable-list {
             flex: 1;
@@ -457,13 +561,13 @@
 
         .status-badge {
             font-weight: 700;
-            padding: 6px 12px;
-            border-radius: 12px;
+            padding: 4px 10px;
+            border-radius: 10px;
             font-size: 11px;
             border: 1px solid transparent;
             display: inline-block;
             text-align: center;
-            min-width: 65px;
+            min-width: 55px;
         }
 
         .status-in {
@@ -485,9 +589,9 @@
         }
 
         .status-unknown {
-            color: #5b21b6;
-            background-color: #e2e8f0;
-            border-color: #c4b5fd;
+            color: #4c1d95;
+            background-color: #ede9fe;
+            border-color: #a78bfa;
         }
 
         .unknown-trap-row {
@@ -530,46 +634,30 @@
             font-size: 15px;
         }
 
-        .danger-btn {
-            background-color: white;
-            color: var(--danger-red);
-            border: 1px solid #fecaca;
-            padding: 6px 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: 0.2s;
-        }
+.manage-btn {
+             background-color: #f8fafc;
+             color: var(--text-dark);
+             border: 1px solid var(--border-color);
+             padding: 8px 12px;
+             border-radius: 8px;
+             cursor: pointer;
+             font-weight: 600;
+             width: 100%;
+             text-align: left;
+             display: flex;
+             align-items: center;
+             gap: 8px;
+             transition: 0.2s;
+             box-sizing: border-box;
+             font-size: 13px;
+         }
 
-        .danger-btn:hover {
-            background-color: #fef2f2;
-            transform: scale(1.05);
-        }
-
-        .manage-btn {
-            background-color: #f8fafc;
-            color: var(--text-dark);
-            border: 1px solid var(--border-color);
-            padding: 14px 20px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: 600;
-            width: 100%;
-            text-align: left;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            transition: 0.3s;
-            box-sizing: border-box;
-            font-size: 15px;
-        }
-
-        .manage-btn:hover {
-            background-color: var(--light-blue);
-            color: var(--primary-blue);
-            border-color: #bfdbfe;
-            transform: translateY(-2px);
-        }
+         .manage-btn:hover {
+             background-color: var(--light-blue);
+             color: var(--primary-blue);
+             border-color: #bfdbfe;
+             transform: translateY(-1px);
+         }
 
         .modal {
             display: flex;
@@ -672,15 +760,15 @@
             font-size: 14px;
         }
 
-        .filter-select {
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            background-color: #f8fafc;
-            font-weight: 600;
-            outline: none;
-            cursor: pointer;
-        }
+.filter-select {
+             padding: 10px 30px 10px 10px;
+             border-radius: 8px;
+             border: 1px solid var(--border-color);
+             background-color: #f8fafc;
+             font-weight: 600;
+             outline: none;
+             cursor: pointer;
+         }
 
         .code-font {
             color: var(--text-muted);
@@ -1065,114 +1153,123 @@
             color: var(--text-muted);
         }
 
-        /* Overrides for hardcoded colors in dark mode */
-        [data-theme="dark"] .input-group input,
-        [data-theme="dark"] .form-group input,
-        [data-theme="dark"] .form-group select,
-        [data-theme="dark"] .search-box input,
-        [data-theme="dark"] .filter-select,
-        [data-theme="dark"] .header-action-btn,
-        [data-theme="dark"] .manage-btn,
-        [data-theme="dark"] .trap-action-row input,
-        [data-theme="dark"] .trap-action-row select {
-            background-color: #0f172a;
-            color: #f8fafc;
-            border-color: var(--border-color);
-        }
+/* Overrides for hardcoded colors in dark mode */
+         [data-theme="dark"] .input-group input,
+         [data-theme="dark"] .form-group input,
+         [data-theme="dark"] .form-group select,
+[data-theme="dark"] .search-box input,
+          [data-theme="dark"] .filter-select,
+          [data-theme="dark"] .header-action-btn,
+          [data-theme="dark"] .manage-btn,
+          [data-theme="dark"] .trap-action-row input,
+          [data-theme="dark"] .trap-action-row select {
+              background-color: #1a1a1a;
+              color: #cbd5e1;
+              border-color: var(--border-color);
+          }
 
-        [data-theme="dark"] .logout-btn {
-            background-color: #4c0519;
-            color: #fecaca;
-            border-color: #881337;
-        }
+          [data-theme="dark"] .header-action-btn i,
+          [data-theme="dark"] .manage-btn i {
+              font-size: 14px;
+          }
 
-        [data-theme="dark"] .logout-btn:hover {
-            background-color: #881337;
-            color: #ffffff;
-        }
+         [data-theme="dark"] .logout-btn {
+             background-color: #4c0519;
+             color: #fda4af;
+             border-color: #881337;
+         }
 
-        [data-theme="dark"] .danger-btn {
-            background-color: transparent;
-        }
+         [data-theme="dark"] .logout-btn:hover {
+             background-color: #881337;
+             color: #ffffff;
+         }
 
-        [data-theme="dark"] .clickable-row:hover {
-            background-color: #1a1a1a;
-        }
+         [data-theme="dark"] .danger-btn {
+             background-color: transparent;
+         }
 
-        [data-theme="dark"] .status-in {
-            color: #34d399;
-            background-color: rgba(16, 185, 129, 0.1);
-            border-color: transparent;
-        }
+         [data-theme="dark"] .clickable-row:hover {
+             background-color: rgba(165, 180, 252, 0.04);
+         }
 
-        [data-theme="dark"] .status-out {
-            color: #f87171;
-            background-color: rgba(239, 68, 68, 0.1);
-            border-color: transparent;
-        }
+         [data-theme="dark"] .status-in {
+             color: #86efac;
+             background-color: rgba(134, 239, 172, 0.1);
+             border-color: transparent;
+         }
 
-        [data-theme="dark"] .status-warn {
-            color: #fbbf24;
-            background-color: rgba(245, 158, 11, 0.1);
-            border-color: transparent;
-        }
+         [data-theme="dark"] .status-out {
+             color: #fda4af;
+             background-color: rgba(253, 164, 175, 0.1);
+             border-color: transparent;
+         }
 
-        [data-theme="dark"] .status-unknown {
-            color: #a78bfa;
-            background-color: rgba(139, 92, 246, 0.1);
-            border-color: transparent;
-        }
+         [data-theme="dark"] .unknown-trap-row {
+             background-color: rgba(196, 181, 253, 0.05) !important;
+         }
 
-        [data-theme="dark"] .alarm-open td:first-child {
-            border-left-color: #f87171 !important;
-        }
+         [data-theme="dark"] .unknown-trap-row:hover {
+             background-color: rgba(196, 181, 253, 0.1) !important;
+         }
 
-        [data-theme="dark"] .unknown-trap-row {
-            background-color: rgba(139, 92, 246, 0.05) !important;
-        }
+         [data-theme="dark"] .modal {
+             background-color: rgba(0, 0, 0, 0.7);
+         }
 
-        [data-theme="dark"] .unknown-trap-row:hover {
-            background-color: rgba(139, 92, 246, 0.1) !important;
-        }
+         [data-theme="dark"] .flash-msg {
+             background-color: #450a0a;
+             color: #fda4af;
+         }
 
-        [data-theme="dark"] .modal {
-            background-color: rgba(0, 0, 0, 0.7);
-        }
+         [data-theme="dark"] .ai-blocked-row {
+             background-color: rgba(252, 211, 77, 0.05) !important;
+         }
 
-        [data-theme="dark"] .flash-msg {
-            background-color: #450a0a;
-            color: #fca5a5;
-        }
+         [data-theme="dark"] .ai-blocked-row:hover {
+             background-color: rgba(252, 211, 77, 0.1) !important;
+         }
 
-        [data-theme="dark"] .ai-blocked-row {
-            background-color: rgba(245, 158, 11, 0.05) !important;
-        }
+         [data-theme="dark"] .ai-warning-box {
+             background-color: rgba(252, 211, 77, 0.05);
+             border-color: #b45309;
+         }
 
-        [data-theme="dark"] .ai-blocked-row:hover {
-            background-color: rgba(245, 158, 11, 0.1) !important;
-        }
+         [data-theme="dark"] .chat-input-area {
+             background: var(--card-bg);
+         }
 
-        [data-theme="dark"] .ai-warning-box {
-            background-color: rgba(245, 158, 11, 0.05);
-            border-color: #b45309;
-        }
+         [data-theme="dark"] .chat-input {
+             background: var(--bg-body);
+             color: #cbd5e1;
+             border-color: var(--border-color);
+         }
 
-        [data-theme="dark"] .chat-input-area {
-            background: var(--card-bg);
-        }
+         [data-theme="dark"] .chat-message.bot {
+             background-color: var(--bg-body);
+             border-color: var(--border-color);
+             color: #cbd5e1;
+         }
 
-        [data-theme="dark"] .chat-input {
-            background: var(--bg-body);
-            color: #f8fafc;
-            border-color: var(--border-color);
-        }
+         [data-theme="dark"] .chat-message.user {
+             background: linear-gradient(135deg, #312e81, #4338ca);
+             color: #e0e7ff;
+         }
 
-        [data-theme="dark"] .chat-message.bot {
-            background-color: var(--bg-body);
-            border-color: var(--border-color);
-            color: #f8fafc;
-        }
-    </style>
+[data-theme="dark"] .quick-action-btn {
+              background: #141414;
+             border-color: rgba(165, 180, 252, 0.2);
+             color: #a5b4fc;
+         }
+
+[data-theme="dark"] .quick-action-btn:hover {
+              background: rgba(165, 180, 252, 0.08);
+              border-color: rgba(165, 180, 252, 0.3);
+          }
+
+          [data-theme="dark"] .filter-select {
+              padding-right: 30px;
+          }
+      </style>
 
     <script>
         (function () {
@@ -1210,15 +1307,14 @@
             <h2>DT NOC Dashboard</h2>
             <div style="display: flex; align-items: center; gap: 22px;">
                 <span
-                    style="font-size: 14px; font-weight: 700; padding: 8px 16px; border-radius: 20px; background-color: #d1fae5; color: #047857; border: 1px solid #a7f3d0;"><i
-                        class="fa-solid fa-circle" style="font-size: 10px;"></i>
+style="font-size: 14px; font-weight: 700; padding: 8px 16px; border-radius: 20px; background-color: rgba(13, 148, 136, 0.1); color: #0d9488; border: 1px solid rgba(13, 148, 136, 0.2);"><i
+                         class="fa-solid fa-circle" style="font-size: 10px;"></i>
                     System Live</span>
                 <span style="font-size: 17px; color: var(--text-muted); font-weight: 500;">Welcome, <span
                         style="color: var(--primary-blue); font-weight: 700;" id="userDisplay">User</span></span>
-                <button class="header-action-btn" onclick="toggleTheme()" id="themeToggleBtn"><i
-                        class="fa-solid fa-moon"></i> Theme</button>
-                <button class="header-action-btn" onclick="manualRefresh()"><i class="fa-solid fa-rotate-right"></i>
-                    Refresh</button>
+<button class="header-action-btn" onclick="toggleTheme()" id="themeToggleBtn"><i
+                         class="fa-solid fa-sun"></i></button>
+                 <button class="header-action-btn" onclick="manualRefresh()"><i class="fa-solid fa-rotate-right"></i></button>
                 <button class="logout-btn" onclick="logout()">Logout</button>
             </div>
         </div>
@@ -1227,69 +1323,69 @@
             <!-- Left: Traps Table -->
             <div class="card card-panel" style="display: flex; flex-direction: column;">
 
-                <!-- Summary Stat Cards -->
-                <div id="statsRow"
-                    style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 25px;">
-                    <div
-                        style="background: var(--bg-body); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color); text-align: center;">
-                        <div
-                            style="font-size: 12px; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">
-                            Open Alarms</div>
-                        <div id="statOpen"
-                            style="font-size: 24px; font-weight: 800; color: var(--danger-red); margin-top: 5px;">0
-                        </div>
-                    </div>
-                    <div
-                        style="background: var(--bg-body); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color); text-align: center;">
-                        <div
-                            style="font-size: 12px; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">
-                            Resolved (24h)</div>
-                        <div id="statResolved"
-                            style="font-size: 24px; font-weight: 800; color: var(--success-green); margin-top: 5px;">0
-                        </div>
-                    </div>
-                    <div
-                        style="background: var(--bg-body); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color); text-align: center;">
-                        <div
-                            style="font-size: 12px; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">
-                            Unknown Sources</div>
-                        <div id="statUnknown"
-                            style="font-size: 24px; font-weight: 800; color: var(--warning-orange); margin-top: 5px;">0
-                        </div>
-                    </div>
-                    <div
-                        style="background: var(--bg-body); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color); text-align: center;">
-                        <div
-                            style="font-size: 12px; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">
-                            Nodes Online</div>
-                        <div id="statNodes"
-                            style="font-size: 24px; font-weight: 800; color: var(--primary-blue); margin-top: 5px;">0 /
-                            0</div>
-                    </div>
-                </div>
+<!-- Summary Stat Cards -->
+                 <div id="statsRow"
+                     style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 15px;">
+                     <div
+                         style="background: var(--bg-body); padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); text-align: center;">
+                         <div
+                             style="font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">
+                             Open Alarms</div>
+                         <div id="statOpen"
+                             style="font-size: 22px; font-weight: 700; color: var(--danger-red); margin-top: 2px;">0
+                         </div>
+                     </div>
+                     <div
+                         style="background: var(--bg-body); padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); text-align: center;">
+                         <div
+                             style="font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">
+                             Resolved (24h)</div>
+                         <div id="statResolved"
+                             style="font-size: 22px; font-weight: 700; color: #0d9488; margin-top: 2px;">0
+                         </div>
+                     </div>
+                     <div
+                         style="background: var(--bg-body); padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); text-align: center;">
+                         <div
+                             style="font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">
+                             Unknown Sources</div>
+                         <div id="statUnknown"
+                             style="font-size: 22px; font-weight: 700; color: var(--warning-orange); margin-top: 2px;">0
+                         </div>
+                     </div>
+                     <div
+                         style="background: var(--bg-body); padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); text-align: center;">
+                         <div
+                             style="font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">
+                             Nodes Online</div>
+                         <div id="statNodes"
+                             style="font-size: 22px; font-weight: 700; color: var(--primary-blue); margin-top: 2px;">0 /
+                             0</div>
+                     </div>
+                 </div>
 
-                <div
-                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 15px;">
-                    <h3 style="margin: 0; color: var(--text-dark);">Recent Alarms (Traps Logs)</h3>
-                    <div style="display: flex; gap: 10px;">
-                        <select id="statusFilter" class="filter-select" onchange="filterTraps()">
-                            <option value="ALL">All Statuses</option>
-                            <option value="OPEN">Open Only</option>
-                            <option value="RESOLVED">Resolved</option>
-                        </select>
-                        <div class="search-box">
-                            <span><i class="fa-solid fa-magnifying-glass"></i> </span>
-                            <input type="text" id="searchTraps" onkeyup="filterTraps()"
-                                placeholder="Search Name, IP or Msg...">
-                        </div>
-                    </div>
-                </div>
-                <div
-                    style="display: flex; align-items: center; gap: 8px; background-color: var(--light-blue); padding: 10px 15px; border-radius: 8px; width: fit-content; margin-bottom: 15px;">
-                    <span style="font-size: 16px;"><i class="fa-solid fa-lightbulb"></i> </span><span
-                        style="font-size: 13px; color: var(--primary-blue); font-weight: 600;">Tip: Click on any alarm
-                        row to view resolution details.</span>
-                </div>
+                 <div
+                     style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+                     <h3 style="margin: 0; color: var(--text-dark); font-size: 16px;">Recent Alarms (Traps Logs)</h3>
+                     <div style="display: flex; gap: 8px;">
+                         <select id="statusFilter" class="filter-select" onchange="filterTraps()">
+                             <option value="ALL">All Statuses</option>
+                             <option value="OPEN">Open Only</option>
+                             <option value="RESOLVED">Resolved</option>
+                         </select>
+                         <div class="search-box">
+                             <span><i class="fa-solid fa-magnifying-glass"></i> </span>
+                             <input type="text" id="searchTraps" onkeyup="filterTraps()"
+                                 placeholder="Search Name, IP or Msg...">
+                         </div>
+                     </div>
+                 </div>
+                 <div
+                     style="display: flex; align-items: center; gap: 6px; background-color: var(--light-blue); padding: 6px 10px; border-radius: 6px; width: fit-content; margin-bottom: 10px;">
+                     <span style="font-size: 13px;"><i class="fa-solid fa-lightbulb"></i> </span><span
+                         style="font-size: 12px; color: var(--primary-blue); font-weight: 500;">Tip: Click on any alarm
+                         row to view resolution details.</span>
+                 </div>
                 <div class="scrollable-list">
                     <table>
                         <thead>
@@ -1308,41 +1404,41 @@
             <!-- Right: Panels -->
             <div style="display: flex; flex-direction: column; gap: 25px;">
 
-                <!-- Profile Settings -->
-                <div class="card card-panel">
-                    <div
-                        style="margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 15px;">
-                        <h3 style="margin: 0;">Profile Settings</h3>
-                    </div>
-                    <div style="display: flex; flex-direction: column; gap: 15px;">
-                        <button class="manage-btn" onclick="openProfileEdit()"><i class="fa-solid fa-user"></i> Edit My
-                            Profile</button>
-                    </div>
-                </div>
+<!-- Profile Settings -->
+                 <div class="card card-panel" style="padding: 12px;">
+                     <div
+                         style="margin-bottom: 10px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+                         <h3 style="margin: 0; font-size: 14px;">Profile Settings</h3>
+                     </div>
+                     <div style="display: flex; flex-direction: column; gap: 8px;">
+                         <button class="manage-btn" onclick="openProfileEdit()"><i class="fa-solid fa-user"></i> Edit My
+                             Profile</button>
+                     </div>
+                 </div>
 
-                <!-- System Management -->
-                <div class="card card-panel" id="systemManagementCard">
-                    <div
-                        style="margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 15px;">
-                        <h3 style="margin: 0;">System Management</h3>
-                    </div>
-                    <div style="display: flex; flex-direction: column; gap: 15px;">
-                        <!-- Visible to ALL -->
-                        <button class="manage-btn" onclick="openNodesManager()"
-                            style="background-color: var(--light-blue); color: var(--primary-blue); border-color: #bfdbfe;"><i
-                                class="fa-solid fa-satellite-dish"></i>
-                            View Network Elements</button>
+                 <!-- System Management -->
+                 <div class="card card-panel" id="systemManagementCard" style="padding: 12px;">
+                     <div
+                         style="margin-bottom: 10px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+                         <h3 style="margin: 0; font-size: 14px;">System Management</h3>
+                     </div>
+                     <div style="display: flex; flex-direction: column; gap: 8px;">
+                         <!-- Visible to ALL -->
+                         <button class="manage-btn" onclick="openNodesManager()"
+                             style="background-color: var(--light-blue); color: var(--primary-blue); border-color: rgba(165,180,252,0.3);"><i
+                                 class="fa-solid fa-satellite-dish"></i>
+                             View Network Elements</button>
 
-                        <!-- Visible to ADMIN ONLY -->
-                        <button class="success-btn admin-only-item" onclick="openModal('addNodeModal')">+ Add New
-                            Node</button>
-                        <button class="primary-btn admin-only-item" onclick="openModal('addUserModal')"><i
-                                class="fa-solid fa-shield-halved"></i> Add System
-                            User</button>
-                        <button class="manage-btn admin-only-item" onclick="openUsersManager()"><i
-                                class="fa-solid fa-users-gear"></i> Manage Users</button>
-                    </div>
-                </div>
+                         <!-- Visible to ADMIN ONLY -->
+                         <button class="success-btn admin-only-item" onclick="openModal('addNodeModal')">+ Add New
+                             Node</button>
+                         <button class="primary-btn admin-only-item" onclick="openModal('addUserModal')"><i
+                                 class="fa-solid fa-shield-halved"></i> Add System
+                             User</button>
+                         <button class="manage-btn admin-only-item" onclick="openUsersManager()"><i
+                                 class="fa-solid fa-users-gear"></i> Manage Users</button>
+                     </div>
+                 </div>
             </div>
         </div>
     </div>
@@ -1850,7 +1946,7 @@
                         let resDate = new Date(t.resolvedAt);
                         if (resDate >= today) resolvedTodayCount++;
                     }
-                    let btn = t.status === 'OPEN' ? `<button class="danger-btn" onclick="resolveTrap(${t.id}, event)">Resolve</button>` : `<span style="color:var(--text-muted); font-size:12px;"><i class="fa-solid fa-check"></i> Resolved</span>`;
+                    let btn = t.status === 'OPEN' ? `<button class="resolve-btn" onclick="resolveTrap(${t.id}, event)">Resolve</button>` : `<span style="color:var(--text-muted); font-size:12px;"><i class="fa-solid fa-check"></i> Resolved</span>`;
                     let name = nodesMap[t.sourceIp] || "Unknown Node";
                     let time = new Date(t.receivedAt).toLocaleString();
                     let resName = t.resolvedByUsername || "System";
@@ -1907,7 +2003,7 @@
                     let safeAiReason = escapeHtml(aiReason);
                     let safeCleanMsg = escapeHtml(cleanMsg);
 
-                    let alarmRowClass = t.status === 'OPEN' ? 'alarm-row alarm-open' : 'alarm-row';
+                    let alarmRowClass = t.status === 'OPEN' ? 'alarm-row status-open' : t.status === 'RESOLVED' ? 'alarm-row status-resolved' : 'alarm-row';
 
                     tBody.innerHTML += `<tr class="${rowClass} ${alarmRowClass}" onclick="showTrapDetails(${t.id}, '${escapeHtml(name)}', '${escapeHtml(t.sourceIp)}', '${safeCleanMsg}', '${t.status}', '${time}', '${escapeHtml(resName)}', '${resTime}', '${safeAiReason}', ${isAiOverridden})">
                         <td><div style="color:var(--primary-blue); font-weight:700;">${escapeHtml(name)}</div><div class="code-font" style="font-size:13px;">${escapeHtml(t.sourceIp)}</div></td>
@@ -1919,12 +2015,21 @@
                 filterTraps();
 
                 // Update stat cards
-                if (document.getElementById('statOpen')) {
-                    document.getElementById('statOpen').innerText = openCount;
-                    document.getElementById('statResolved').innerText = resolvedTodayCount;
-                    document.getElementById('statUnknown').innerText = unknownCount;
-                    document.getElementById('statNodes').innerText = `${nodesOnlineCount} / ${nodes.length}`;
-                }
+if (document.getElementById('statOpen')) {
+                     document.getElementById('statOpen').innerText = openCount;
+                     document.getElementById('statResolved').innerText = resolvedTodayCount;
+                     document.getElementById('statUnknown').innerText = unknownCount;
+                     let statNodesEl = document.getElementById('statNodes');
+                     statNodesEl.innerText = `${nodesOnlineCount} / ${nodes.length}`;
+                     let ratio = nodes.length > 0 ? nodesOnlineCount / nodes.length : 0;
+                     if (ratio >= 0.75) {
+                         statNodesEl.style.color = '#0d9488';
+                     } else if (ratio >= 0.5) {
+                         statNodesEl.style.color = '#d97706';
+                     } else {
+                         statNodesEl.style.color = '#dc2626';
+                     }
+                 }
 
             } catch (e) {
                 console.error("Sync Error:", e);
@@ -2730,7 +2835,7 @@
             localStorage.setItem('theme', newTheme);
             const toggleBtn = document.getElementById('themeToggleBtn');
             if (toggleBtn) {
-                toggleBtn.innerHTML = newTheme === 'dark' ? '<i class="fa-solid fa-sun"></i> Theme' : '<i class="fa-solid fa-moon"></i> Theme';
+                toggleBtn.innerHTML = newTheme === 'dark' ? '<i class="fa-solid fa-moon"></i>' : '<i class="fa-solid fa-sun"></i>';
             }
         }
 
@@ -2762,7 +2867,7 @@
             const savedTheme = localStorage.getItem('theme') || 'light';
             const toggleBtn = document.getElementById('themeToggleBtn');
             if (toggleBtn) {
-                toggleBtn.innerHTML = savedTheme === 'dark' ? '<i class="fa-solid fa-sun"></i> Theme' : '<i class="fa-solid fa-moon"></i> Theme';
+                toggleBtn.innerHTML = savedTheme === 'dark' ? '<i class="fa-solid fa-moon"></i>' : '<i class="fa-solid fa-sun"></i>';
             }
         });
     </script>
