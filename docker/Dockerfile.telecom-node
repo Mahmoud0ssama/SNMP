@@ -1,0 +1,28 @@
+# Base image: Alpine Linux (very lightweight, ~5MB)
+FROM alpine:3.19
+
+# Install required packages for Telecom Node simulation
+RUN apk add --no-cache \
+    net-snmp \
+    net-snmp-tools \
+    bash \
+    coreutils \
+    iproute2 \
+    stress-ng
+
+# Copy SNMP configuration
+COPY config/snmpd.conf /etc/snmp/snmpd.conf
+
+# Create directory for internal scripts and copy them
+RUN mkdir -p /usr/local/bin
+RUN mkdir -p /var/snmp
+COPY scripts/ /usr/local/bin/
+
+# Make all scripts executable
+RUN chmod +x /usr/local/bin/*.sh
+
+# Expose standard SNMP port
+EXPOSE 161/udp
+
+# Start snmpd agent in foreground mode
+CMD ["snmpd", "-f", "-Lo", "-C", "-c", "/etc/snmp/snmpd.conf"]
