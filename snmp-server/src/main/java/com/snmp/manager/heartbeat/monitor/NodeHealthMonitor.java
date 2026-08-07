@@ -86,22 +86,31 @@ public class NodeHealthMonitor implements AutoCloseable {
             Instant now = Instant.now();
 
             for (Node node : nodes) {
-                if (node.getStatus() == NodeStatus.DOWN) {
-                    continue; // already down; avoid redundant work
-                }
-                Instant last = lastSeen.get(node.getId());
-                if (last == null || Duration.between(last, now).compareTo(timeout) > 0) {
-                    markDown(node);
+                try {
+                    if (node.getStatus() == NodeStatus.DOWN) {
+                        continue; // already down; avoid redundant work
+                    }
+                    Instant last = lastSeen.get(node.getId());
+                    if (last == null || Duration.between(last, now).compareTo(timeout) > 0) {
+                        markDown(node);
+                    }
+                } catch (Exception e) {
+                    System.err.println("Error processing node " + node.getId() + " in health monitor: " + e.getMessage());
+                    e.printStackTrace();
                 }
             }
         } catch (SQLException e) {
             System.err.println("Health monitor DB error: " + e.getMessage());
+        } catch (Exception e) {
+            System.err.println("Unexpected error in NodeHealthMonitor scan: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
     private void markDown(Node node) {
         try {
             nodeDAO.updateStatus(node.getId(), NodeStatus.DOWN);
+            heartbeatService.notifyNodeDown(node.getId());
             System.out.println("Node " + node.getId() + " (" + node.getName() + ") marked DOWN (heartbeat timeout).");
         } catch (SQLException e) {
             System.err.println("Failed to mark node " + node.getId() + " DOWN: " + e.getMessage());

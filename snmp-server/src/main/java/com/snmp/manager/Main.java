@@ -83,6 +83,11 @@ public class Main {
         public List<TrapActionReq> trapActions;
     }
 
+    static class DiscoveryReq {
+        public String startIp;
+        public String endIp;
+    }
+
     public static void main(String[] args) {
         java.util.TimeZone.setDefault(java.util.TimeZone.getTimeZone("UTC"));
         System.out.println("SNMP Manager Started");
@@ -105,6 +110,9 @@ public class Main {
         NodeService nodeService = new NodeService(nodeDAO, trapActionDAO);
         AiAnalysisService aiService = new AiAnalysisService(db);
         TrapService trapService = new TrapService(nodeDAO, trapActionDAO, trapHistoryDAO, nodeService, db);
+        com.snmp.manager.snmp.poller.SnmpPoller snmpPoller = new com.snmp.manager.snmp.poller.SnmpPoller();
+        com.snmp.manager.service.DiscoveryService discoveryService = new com.snmp.manager.service.DiscoveryService(nodeDAO, snmpPoller);
+
 
         // Make sure pool is closed on shutdown
         Runtime.getRuntime().addShutdownHook(new Thread(db::close));
@@ -282,6 +290,17 @@ public class Main {
                 return;
             }
 
+            byte[] fileBytes = uploadedFile.content().readAllBytes();
+            String scriptContent = new String(fileBytes, java.nio.charset.StandardCharsets.UTF_8);
+
+            com.snmp.manager.service.AiAnalysisService aiGate = new com.snmp.manager.service.AiAnalysisService(db);
+            com.snmp.manager.service.AiAnalysisService.AiSafetyVerdict verdict = aiGate.evaluateScriptSafety(uploadedFile.filename(), scriptContent);
+
+            if (!verdict.isSafe()) {
+                ctx.status(400).result("AI Safety Violation: " + verdict.reason());
+                return;
+            }
+
             // Dynamic path resolution
             Path currentDir = Paths.get(System.getProperty("user.dir"));
             Path uploadDir;
@@ -299,13 +318,28 @@ public class Main {
             }
 
             Path destPath = uploadDir.resolve(uploadedFile.filename());
-            Files.copy(uploadedFile.content(), destPath, StandardCopyOption.REPLACE_EXISTING);
+            Files.write(destPath, fileBytes);
 
             // Return only the filename to be stored in the database
             ctx.json(Map.of("status", "success", "fileName", uploadedFile.filename()));
         });
 
         // --- NODE MANAGEMENT APIs ---
+        app.post("/api/discovery", ctx -> {
+            DecodedJWT jwt = ctx.attribute("jwt");
+            if (!"ADMIN".equals(jwt.getClaim("role").asString())) {
+                throw new UnauthorizedResponse("Admin access required");
+            }
+            DiscoveryReq req = ctx.bodyAsClass(DiscoveryReq.class);
+            
+            try {
+                List<Node> discoveredNodes = discoveryService.discoverAndRegister(req.startIp, req.endIp);
+                ctx.json(discoveredNodes);
+            } catch (Exception e) {
+                ctx.status(400).json(Map.of("error", e.getMessage()));
+            }
+        });
+
         app.post("/api/nodes", ctx -> {
             DecodedJWT jwt = ctx.attribute("jwt");
             if (!"ADMIN".equals(jwt.getClaim("role").asString())) {
@@ -374,15 +408,17 @@ public class Main {
             Long userId = jwt.getClaim("userId").asLong();
 
             try (java.sql.Connection conn = db.getConnection()) {
-                String sql = "SELECT trap_action_id, message FROM trap_history WHERE id = ?";
+                String sql = "SELECT trap_action_id, message, node_id FROM trap_history WHERE id = ?";
                 Long actionId = null;
                 String oldMessage = "";
+                Long nodeId = null;
                 try (java.sql.PreparedStatement ps = conn.prepareStatement(sql)) {
                     ps.setLong(1, trapId);
                     try (java.sql.ResultSet rs = ps.executeQuery()) {
                         if (rs.next()) {
                             actionId = rs.getLong("trap_action_id");
                             oldMessage = rs.getString("message");
+                            nodeId = rs.getLong("node_id");
                             if (rs.wasNull()) actionId = null;
                         } else {
                             ctx.status(404).result("Trap not found");
@@ -404,11 +440,18 @@ public class Main {
 
                 String scriptName = actionOpt.get().getTargetPayload();
                 
+                Optional<Node> nodeOpt = nodeDAO.findById(nodeId);
+                if (nodeOpt.isEmpty()) {
+                    ctx.status(400).result("Node not found");
+                    return;
+                }
+                String containerName = nodeOpt.get().getName().toLowerCase().replace("_", "-");
+                
                 Path currentDir = Paths.get(System.getProperty("user.dir"));
                 Path scriptDir = currentDir.getFileName().toString().equals("snmp-server") ? currentDir.resolveSibling("scripts") : currentDir.resolve("scripts");
                 Path fullPath = scriptDir.resolve(scriptName).normalize();
 
-                com.snmp.manager.util.ScriptExecutor.ExecutionResult result = com.snmp.manager.util.ScriptExecutor.execute(fullPath.toString());
+                com.snmp.manager.util.ScriptExecutor.ExecutionResult result = com.snmp.manager.util.ScriptExecutor.executeRemote(containerName, fullPath.toString());
 
                 if (result.success()) {
                     trapHistoryDAO.resolveTrap(trapId, userId); 
@@ -426,28 +469,27 @@ public class Main {
 
         app.start(8080);
 
-        // --- SNMP Receiver Setup ---
-        TrapReceiver receiver = new TrapReceiver();
-        receiver.addTrapListener(new PersistenceTrapListener(trapService));
-        try {
-            receiver.start();
-        } catch (IOException e) {
-            System.err.println("Failed to start SNMP Receiver: " + e.getMessage());
-        }
-
         // --- Heartbeat Monitoring Subsystem ---
+        // Must be initialized BEFORE the blocking TrapReceiver.start() call.
         // Receiver -> Parser -> Heartbeat -> HeartbeatService -> cache -> NodeHealthMonitor -> DB
+        System.out.println("========================================");
+        System.out.println("  HEARTBEAT SUBSYSTEM INITIALIZING...   ");
+        System.out.println("========================================");
+
         com.snmp.manager.heartbeat.service.HeartbeatService heartbeatService =
                 new com.snmp.manager.heartbeat.service.HeartbeatService(nodeDAO);
         try {
             heartbeatService.initializeFromDatabase();
+            System.out.println("[HEARTBEAT] Cache seeded from database OK.");
         } catch (Exception e) {
-            System.err.println("Failed to seed heartbeat cache: " + e.getMessage());
+            System.err.println("[HEARTBEAT] Failed to seed heartbeat cache: " + e.getMessage());
+            e.printStackTrace();
         }
 
         com.snmp.manager.heartbeat.monitor.NodeHealthMonitor healthMonitor =
                 new com.snmp.manager.heartbeat.monitor.NodeHealthMonitor(heartbeatService, nodeDAO);
         healthMonitor.start();
+        System.out.println("[HEARTBEAT] Health monitor started OK.");
 
         com.snmp.manager.heartbeat.receiver.HeartbeatReceiver heartbeatReceiver =
                 new com.snmp.manager.heartbeat.receiver.HeartbeatReceiver(
@@ -455,14 +497,30 @@ public class Main {
                         heartbeatService::process);
         try {
             heartbeatReceiver.start();
+            System.out.println("[HEARTBEAT] UDP receiver started OK on port 1162.");
         } catch (IOException e) {
-            System.err.println("Failed to start Heartbeat Receiver: " + e.getMessage());
+            System.err.println("[HEARTBEAT] FAILED to start UDP receiver: " + e.getMessage());
+            e.printStackTrace();
         }
+
+        System.out.println("========================================");
+        System.out.println("  HEARTBEAT SUBSYSTEM READY             ");
+        System.out.println("========================================");
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             heartbeatReceiver.close();
             healthMonitor.close();
         }));
+
+        // --- SNMP Receiver Setup ---
+        // TrapReceiver.start() blocks the main thread (by design), so it MUST be last.
+        TrapReceiver receiver = new TrapReceiver();
+        receiver.addTrapListener(new PersistenceTrapListener(trapService));
+        try {
+            receiver.start();
+        } catch (IOException e) {
+            System.err.println("Failed to start SNMP Receiver: " + e.getMessage());
+        }
     }
 
     private static class PersistenceTrapListener implements TrapListener {

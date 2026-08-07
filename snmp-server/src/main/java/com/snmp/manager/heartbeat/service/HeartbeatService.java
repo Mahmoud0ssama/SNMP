@@ -82,6 +82,14 @@ public class HeartbeatService {
     }
 
     /**
+     * Called by the health monitor to notify that a node has been marked DOWN.
+     * This ensures the internal cache is synchronized with the database.
+     */
+    public void notifyNodeDown(long id) {
+        cachedStatus.put(id, NodeStatus.DOWN);
+    }
+
+    /**
      * Resolves the node referenced by a heartbeat identifier. The identifier
      * may be a numeric database id or an IP address.
      */
