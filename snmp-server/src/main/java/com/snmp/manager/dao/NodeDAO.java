@@ -132,6 +132,26 @@ public class NodeDAO {
         return node;
     }
 
+    /**
+     * Updates only the operational status column of a node.
+     * Used by the heartbeat subsystem to persist status transitions without
+     * touching other columns.
+     *
+     * @param id     the node primary key
+     * @param status the new status
+     * @return number of rows updated
+     * @throws SQLException on database access error
+     */
+    public int updateStatus(long id, NodeStatus status) throws SQLException {
+        String sql = "UPDATE nodes SET status = ?::node_status WHERE id = ?";
+        try (Connection conn = databaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, status.name());
+            ps.setLong(2, id);
+            return ps.executeUpdate();
+        }
+    }
+
     private void setNullableString(PreparedStatement ps, int index, String value) throws SQLException {
         if (value == null) {
             ps.setNull(index, Types.VARCHAR);

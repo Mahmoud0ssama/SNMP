@@ -434,6 +434,35 @@ public class Main {
         } catch (IOException e) {
             System.err.println("Failed to start SNMP Receiver: " + e.getMessage());
         }
+
+        // --- Heartbeat Monitoring Subsystem ---
+        // Receiver -> Parser -> Heartbeat -> HeartbeatService -> cache -> NodeHealthMonitor -> DB
+        com.snmp.manager.heartbeat.service.HeartbeatService heartbeatService =
+                new com.snmp.manager.heartbeat.service.HeartbeatService(nodeDAO);
+        try {
+            heartbeatService.initializeFromDatabase();
+        } catch (Exception e) {
+            System.err.println("Failed to seed heartbeat cache: " + e.getMessage());
+        }
+
+        com.snmp.manager.heartbeat.monitor.NodeHealthMonitor healthMonitor =
+                new com.snmp.manager.heartbeat.monitor.NodeHealthMonitor(heartbeatService, nodeDAO);
+        healthMonitor.start();
+
+        com.snmp.manager.heartbeat.receiver.HeartbeatReceiver heartbeatReceiver =
+                new com.snmp.manager.heartbeat.receiver.HeartbeatReceiver(
+                        new com.snmp.manager.heartbeat.parser.HeartbeatParser(),
+                        heartbeatService::process);
+        try {
+            heartbeatReceiver.start();
+        } catch (IOException e) {
+            System.err.println("Failed to start Heartbeat Receiver: " + e.getMessage());
+        }
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            heartbeatReceiver.close();
+            healthMonitor.close();
+        }));
     }
 
     private static class PersistenceTrapListener implements TrapListener {

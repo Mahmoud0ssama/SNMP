@@ -33,6 +33,9 @@ public class EmulatorController {
 
     private boolean isDarkMode = true;
 
+    // Heartbeat sender lifecycle, independent from the SNMP trap sender.
+    private com.snmp.manager.heartbeat.sender.HeartbeatSender heartbeatSender;
+
     // This method runs automatically the moment the GUI appears on screen
     @FXML
     public void initialize() {
@@ -105,6 +108,10 @@ public class EmulatorController {
 
             logToConsole("SUCCESS: Trap sent to network interface.");
 
+            // Start (or restart) the heartbeat sender for this node. The node
+            // identifier is the simulated IP registered on the server.
+            startHeartbeat(nodeIp, targetIp);
+
             detailsField.clear();
 
         } catch (Exception e) {
@@ -129,5 +136,27 @@ public class EmulatorController {
     // Helper method to write messages to the GUI console box
     private void logToConsole(String logMessage) {
         consoleOutput.appendText(logMessage + "\n");
+    }
+
+    // Starts or restarts the heartbeat sender for the given node identifier.
+    private void startHeartbeat(String nodeIp, String targetIp) {
+        if (heartbeatSender != null) {
+            heartbeatSender.stop();
+        }
+        heartbeatSender = new com.snmp.manager.heartbeat.sender.HeartbeatSender(
+                nodeIp, targetIp,
+                com.snmp.manager.heartbeat.sender.HeartbeatSender.DEFAULT_SERVER_PORT,
+                com.snmp.manager.heartbeat.sender.HeartbeatSender.DEFAULT_INTERVAL_SECONDS);
+        heartbeatSender.start();
+        logToConsole("Heartbeat sender started for " + nodeIp + " -> " + targetIp + ".");
+    }
+
+    // Stops the heartbeat sender, simulating node failure for the server.
+    private void stopHeartbeat() {
+        if (heartbeatSender != null) {
+            heartbeatSender.stop();
+            heartbeatSender = null;
+            logToConsole("Heartbeat sender stopped (node will be marked DOWN by server).");
+        }
     }
 }
