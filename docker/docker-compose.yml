@@ -1,0 +1,55 @@
+version: '3.8'
+
+networks:
+  telecom_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.25.0.0/24
+          gateway: 172.25.0.1
+
+services:
+  cairo-bts-01:
+    build: 
+      context: .
+      dockerfile: Dockerfile.telecom-node
+    container_name: cairo-bts-01
+    networks:
+      telecom_net:
+        ipv4_address: 172.25.0.10
+    volumes:
+      - ./nodes/cairo-bts-01/hardware_specs.cfg:/etc/node/hardware_specs.cfg:ro
+    environment:
+      - NMS_SERVER_IP=172.25.0.1
+      - NODE_NAME=Cairo_BTS_01
+      - NODE_TYPE=BTS
+
+  giza-bsc-01:
+    build: 
+      context: .
+      dockerfile: Dockerfile.telecom-node
+    container_name: giza-bsc-01
+    networks:
+      telecom_net:
+        ipv4_address: 172.25.0.20
+    volumes:
+      - ./nodes/giza-bsc-01/hardware_specs.cfg:/etc/node/hardware_specs.cfg:ro
+    environment:
+      - NMS_SERVER_IP=172.25.0.1
+      - NODE_NAME=Giza_BSC_01
+      - NODE_TYPE=BSC
+
+  alex-msc:
+    build: 
+      context: .
+      dockerfile: Dockerfile.telecom-node
+    container_name: alex-msc
+    networks:
+      telecom_net:
+        ipv4_address: 172.25.0.30
+    volumes:
+      - ./nodes/alex-msc/hardware_specs.cfg:/etc/node/hardware_specs.cfg:ro
+    environment:
+      - NMS_SERVER_IP=172.25.0.1
+      - NODE_NAME=Alex_MSC
+      - NODE_TYPE=MSC
