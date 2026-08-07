@@ -106,38 +106,10 @@ public class TrapService {
                 
                 Path fullScriptPath = scriptDir.resolve(fileName).normalize();
                 
-                String scriptContent = "";
-                try {
-                    if (Files.exists(fullScriptPath)) {
-                        scriptContent = Files.readString(fullScriptPath);
-                    }
-                } catch (Exception e) {
-                    System.err.println("Could not read script file for AI evaluation: " + e.getMessage());
-                }
-
-                // --- AI SAFETY GATE ---
-                try {
-                    AiAnalysisService aiGate = new AiAnalysisService(databaseConnection);
-                    List<Node> allNodes = nodeDAO.findAll();
-                    AiAnalysisService.AiSafetyVerdict verdict = aiGate.evaluateActionSafety(node, action, allNodes, scriptContent);
-
-                    if (!verdict.isSafe()) {
-                        System.out.println("\u2764 AI BLOCKED script execution for node " + node.getName() + ": " + verdict.reason());
-                        String blockedMsg = history.getMessage() + " [AI BLOCKED: " + verdict.reason() + "]";
-                        trapHistoryDAO.updateMessage(history.getId(), blockedMsg);
-                        return; // Do NOT execute the script
-                    }
-                    System.out.println("\u2764 AI APPROVED script execution for node " + node.getName() + ": " + verdict.reason());
-                } catch (Exception e) {
-                    // FAIL-CLOSED: if DB crashes or AI is unavailable, block execution
-                    System.err.println("AI Safety Gate error (fail-closed), blocking script execution: " + e.getMessage());
-                    return; // Do NOT execute the script
-                }
-                // --- END AI SAFETY GATE ---
-                
-                ScriptExecutor.ExecutionResult result = ScriptExecutor.execute(fullScriptPath.toString());
+                String containerName = node.getName().toLowerCase().replace("_", "-");
+                ScriptExecutor.ExecutionResult result = ScriptExecutor.executeRemote(containerName, fullScriptPath.toString());
                 if (result.success()) {
-                    System.out.println("Script executed successfully: " + fullScriptPath.toString());
+                    System.out.println("Script executed successfully on " + containerName + ": " + fullScriptPath.toString());
                     actionSuccess = true; 
                 } else {
                     System.err.println("Script execution failed: " + result.message());

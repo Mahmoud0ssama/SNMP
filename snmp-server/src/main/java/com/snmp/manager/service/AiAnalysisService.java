@@ -155,33 +155,20 @@ public class AiAnalysisService {
     public record AiSafetyVerdict(boolean isSafe, String reason) {}
 
     /**
-     * Evaluates whether a proposed script action is safe to execute,
-     * based on the current state of all network nodes (Digital Twin snapshot).
+     * Evaluates whether a proposed script action is safe to upload and execute,
+     * based on the contents of the script.
      */
-    public AiSafetyVerdict evaluateActionSafety(Node faultedNode, TrapAction action, List<Node> allNodes, String scriptContent) {
+    public AiSafetyVerdict evaluateScriptSafety(String scriptName, String scriptContent) {
         if (geminiApiKey == null || geminiApiKey.isEmpty()) {
-            return new AiSafetyVerdict(true, "AI Gate unavailable (no API key), allowing execution.");
-        }
-
-        // Build the Digital Twin snapshot from live node data
-        StringBuilder networkState = new StringBuilder();
-        for (Node n : allNodes) {
-            networkState.append("- ").append(n.getName())
-                .append(" (").append(n.getIpAddress()).append(") ")
-                .append("[").append(n.getNodeType() != null ? n.getNodeType() : "Unknown").append("] ")
-                .append("— Status: ").append(n.getStatus())
-                .append("\n");
+            return new AiSafetyVerdict(true, "AI Gate unavailable (no API key), allowing upload.");
         }
 
         String prompt = "You are a Telecom Network Safety AI Agent. "
-            + "Your ONLY job is to evaluate whether an automated action is safe to execute.\n\n"
-            + "CURRENT NETWORK STATE (Digital Twin):\n" + networkState + "\n"
-            + "FAULTED NODE: " + faultedNode.getName() + " (" + faultedNode.getIpAddress() + ")\n"
-            + "TRAP RECEIVED: " + action.getTrapName() + " (Severity: " + action.getSeverity() + ")\n"
-            + "PROPOSED ACTION: Auto-execute script \"" + action.getTargetPayload() + "\"\n\n"
+            + "Your ONLY job is to evaluate whether a proposed remediation script is generally safe to execute on a network node.\n\n"
+            + "SCRIPT NAME: " + scriptName + "\n"
             + "SCRIPT CONTENTS:\n```bash\n" + scriptContent + "\n```\n\n"
-            + "QUESTION: Based on the network topology and the actual script contents, is it safe to execute this script automatically right now? "
-            + "Could it cause cascading failures, service outages, or affect other nodes?\n\n"
+            + "QUESTION: Based on the script contents, is it safe to upload and eventually execute this script on telecom nodes? "
+            + "Are there destructive commands like `rm -rf /`, formatting disks, or unbounded loops that could cause cascading failures?\n\n"
             + "CRITICAL RULE: The reason MUST be EXTREMELY short (maximum 20 words). Do NOT provide a numbered list. Do NOT over-explain.\n\n"
             + "RESPOND IN VALID JSON ONLY, nothing else: {\"isSafe\": false, \"reason\": \"<max 20 words>\"}";
 
@@ -203,7 +190,7 @@ public class AiAnalysisService {
             return new AiSafetyVerdict(isSafe, reason);
         } catch (Exception e) {
             System.err.println("AI Safety Gate failed to parse response: " + e.getMessage());
-            // FAIL-CLOSED: block execution and explicitly state it was an AI system error
+            // FAIL-CLOSED: block upload and explicitly state it was an AI system error
             return new AiSafetyVerdict(false, "AI System Error: Could not parse response from Gemini (" + e.getMessage() + ")");
         }
     }

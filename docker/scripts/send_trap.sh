@@ -25,7 +25,7 @@ fi
 # Node information from environment variables (passed from docker-compose)
 NODE_NAME=${NODE_NAME:-"Unknown_Node"}
 NODE_TYPE=${NODE_TYPE:-"Unknown_Type"}
-NODE_IP=$(ip -4 addr show eth0 | grep -oP '(?<=inet\s)\d+(\.\d+){3}')
+NODE_IP=$(ip -4 addr show eth0 | grep inet | awk '{print $2}' | cut -d/ -f1)
 
 # Execute snmptrap command
 snmptrap -v 2c -c public $NMS_SERVER_IP:162 '' $TRAP_OID \
