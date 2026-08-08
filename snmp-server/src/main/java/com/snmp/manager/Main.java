@@ -497,7 +497,7 @@ public class Main {
                         heartbeatService::process);
         try {
             heartbeatReceiver.start();
-            System.out.println("[HEARTBEAT] UDP receiver started OK on port 1162.");
+            System.out.println("[HEARTBEAT] UDP receiver started OK on port 161.");
         } catch (IOException e) {
             System.err.println("[HEARTBEAT] FAILED to start UDP receiver: " + e.getMessage());
             e.printStackTrace();

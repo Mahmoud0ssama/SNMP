@@ -23,7 +23,7 @@ import java.util.concurrent.Executors;
 public class HeartbeatReceiver implements AutoCloseable {
 
     /** Default UDP port the heartbeat server listens on. */
-    public static final int DEFAULT_PORT = 1162;
+    public static final int DEFAULT_PORT = 161;
 
     private static final int MAX_PACKET_SIZE = 512;
 

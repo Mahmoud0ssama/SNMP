@@ -1,9 +1,10 @@
 #!/bin/bash
-CONTAINER=$1
-if [ -z "$CONTAINER" ]; then 
-    echo "Usage: $0 <container_name>"
-    exit 1
-fi
-# Touch a flag file that check_disk.sh will interpret as 95% full
-docker exec "$CONTAINER" touch /var/snmp/disk_full.flag
-echo "⚠️ Simulated Disk Full (95%) on $CONTAINER. check_disk.sh will catch it!"
+# Target Node: giza-bsc-01
+# Action: Generates a massive 200MB log file to consume storage
+
+echo "Simulating log explosion on Huawei BSC (giza-bsc-01)..."
+
+# Create a 200MB dummy file inside the container's log directory
+docker exec -i giza-bsc-01 bash -c "mkdir -p /var/log/telecom && dd if=/dev/zero of=/var/log/telecom/error_flood.log bs=1M count=200 status=none"
+
+echo "Disk space consumed. Node storage is critically high!"

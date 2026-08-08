@@ -7,7 +7,7 @@ while true; do
     NODE_IP=$(ip -4 addr show eth0 | grep inet | awk '{print $2}' | cut -d/ -f1)
     if [ -n "$NODE_IP" ]; then
         # Payload format: NODE_IP|TIMESTAMP
-        echo "$NODE_IP|$(date +%s)" > /dev/udp/$NMS_SERVER_IP/1162
+        echo "$NODE_IP|$(date +%s)" > /dev/udp/$NMS_SERVER_IP/161
     fi
     sleep 10
 done

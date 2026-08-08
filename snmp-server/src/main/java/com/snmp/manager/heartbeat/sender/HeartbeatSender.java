@@ -30,7 +30,7 @@ public class HeartbeatSender implements AutoCloseable {
     public static final int DEFAULT_INTERVAL_SECONDS = 10;
 
     /** Default destination UDP port of the heartbeat server. */
-    public static final int DEFAULT_SERVER_PORT = 1162;
+    public static final int DEFAULT_SERVER_PORT = 161;
 
     /** Default destination host of the heartbeat server. */
     public static final String DEFAULT_SERVER_HOST = "127.0.0.1";
