@@ -1,5 +1,10 @@
 #!/bin/bash
 
+if [ ! -f /var/snmp/temperature.txt ]; then
+    mkdir -p /var/snmp
+    echo 45 > /var/snmp/temperature.txt
+fi
+
 TEMP=$(cat /var/snmp/temperature.txt)
 FLAG_FILE="/tmp/high_temp.flag"
 
@@ -13,3 +18,5 @@ else
         rm -f "$FLAG_FILE"
     fi
 fi
+
+echo "$TEMP"

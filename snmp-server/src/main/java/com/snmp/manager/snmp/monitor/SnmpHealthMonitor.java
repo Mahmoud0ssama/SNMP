@@ -79,6 +79,11 @@ public class SnmpHealthMonitor implements AutoCloseable {
                 if (node.getStatus() != NodeStatus.UP) {
                     System.out.println("Node " + node.getId() + " (" + node.getName() + ") marked UP via SNMP poll.");
                 }
+                
+                System.out.println(String.format(
+                    "[SNMP POLL] Node %d (%s) - Uptime: %d, CPU Load: %d, MemAvail: %d kB, Disk: %d MB, Temp: %d°C, Congested: %d",
+                    node.getId(), result.ipAddress(), result.uptime(), result.cpuLoad(), result.memAvail(), result.diskUsage(), result.temperature(), result.congestion()
+                ));
             } else {
                 int failures = failureCounts.computeIfAbsent(node.getId(), k -> new AtomicInteger(0)).incrementAndGet();
                 if (failures >= FAILURE_THRESHOLD && node.getStatus() != NodeStatus.DOWN) {

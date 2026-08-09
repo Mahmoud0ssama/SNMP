@@ -20,6 +20,12 @@ public class SnmpPoller {
     private static final String SYS_DESCR_OID = "1.3.6.1.2.1.1.1.0";
     private static final String SYS_NAME_OID = "1.3.6.1.2.1.1.5.0";
     private static final String NODE_INFO_EXACT_OID = "1.3.6.1.4.1.99999.1.1.3.1.2.8.110.111.100.101.73.110.102.111";
+    private static final String SYS_UPTIME_OID = "1.3.6.1.2.1.1.3.0";
+    private static final String CPU_LOAD_OID = "1.3.6.1.4.1.2021.10.1.5.1";
+    private static final String MEM_AVAIL_OID = "1.3.6.1.4.1.2021.4.6.0";
+    private static final String DISK_STATUS_OID = "1.3.6.1.4.1.99999.1.5.3.1.1.10.100.105.115.107.83.116.97.116.117.115";
+    private static final String TEMP_STATUS_OID = "1.3.6.1.4.1.99999.1.6.3.1.1.10.116.101.109.112.83.116.97.116.117.115";
+    private static final String CONGESTION_STATUS_OID = "1.3.6.1.4.1.99999.1.7.3.1.1.16.99.111.110.103.101.115.116.105.111.110.83.116.97.116.117.115";
 
     private final Snmp snmp;
 
@@ -60,31 +66,68 @@ public class SnmpPoller {
             getPdu.add(new VariableBinding(new OID(SYS_NAME_OID)));
             getPdu.add(new VariableBinding(new OID(SYS_DESCR_OID)));
             getPdu.add(new VariableBinding(new OID(NODE_INFO_EXACT_OID)));
+            getPdu.add(new VariableBinding(new OID(SYS_UPTIME_OID)));
+            getPdu.add(new VariableBinding(new OID(CPU_LOAD_OID)));
+            getPdu.add(new VariableBinding(new OID(MEM_AVAIL_OID)));
+            getPdu.add(new VariableBinding(new OID(DISK_STATUS_OID)));
+            getPdu.add(new VariableBinding(new OID(TEMP_STATUS_OID)));
+            getPdu.add(new VariableBinding(new OID(CONGESTION_STATUS_OID)));
             getPdu.setType(PDU.GET);
 
             ResponseEvent<Address> getResponse = snmp.send(getPdu, target);
             PDU responsePdu = getResponse.getResponse();
 
             if (responsePdu == null || responsePdu.getErrorStatus() != PDU.noError) {
-                return new SnmpGetResult(false, null, null, null, ipAddress);
+                return new SnmpGetResult(false, null, null, null, ipAddress, 0, 0, 0, 0, 0, 0);
             }
 
             String sysName = null;
             String sysDescr = null;
             String nodeInfo = null;
+            long uptime = 0;
+            int cpuLoad = 0;
+            long memAvail = 0;
+            int diskUsage = 0;
+            int temperature = 0;
+            int congestion = 0;
 
-            if (responsePdu.size() >= 3) {
+            if (responsePdu.size() >= 9) {
                 sysName = responsePdu.get(0).getVariable().toString();
                 sysDescr = responsePdu.get(1).getVariable().toString();
+                
                 if (!responsePdu.get(2).getVariable().isException()) {
                     nodeInfo = responsePdu.get(2).getVariable().toString();
                 }
+                
+                if (!responsePdu.get(3).getVariable().isException()) {
+                    uptime = responsePdu.get(3).getVariable().toLong();
+                }
+                
+                if (!responsePdu.get(4).getVariable().isException()) {
+                    cpuLoad = responsePdu.get(4).getVariable().toInt();
+                }
+                
+                if (!responsePdu.get(5).getVariable().isException()) {
+                    memAvail = responsePdu.get(5).getVariable().toLong();
+                }
+                
+                if (!responsePdu.get(6).getVariable().isException()) {
+                    try { diskUsage = Integer.parseInt(responsePdu.get(6).getVariable().toString().trim()); } catch(Exception ignored) {}
+                }
+                
+                if (!responsePdu.get(7).getVariable().isException()) {
+                    try { temperature = Integer.parseInt(responsePdu.get(7).getVariable().toString().trim()); } catch(Exception ignored) {}
+                }
+                
+                if (!responsePdu.get(8).getVariable().isException()) {
+                    try { congestion = Integer.parseInt(responsePdu.get(8).getVariable().toString().trim()); } catch(Exception ignored) {}
+                }
             }
 
-            return new SnmpGetResult(true, sysName, sysDescr, nodeInfo, ipAddress);
+            return new SnmpGetResult(true, sysName, sysDescr, nodeInfo, ipAddress, uptime, cpuLoad, memAvail, diskUsage, temperature, congestion);
 
         } catch (Exception e) {
-            return new SnmpGetResult(false, null, null, null, ipAddress);
+            return new SnmpGetResult(false, null, null, null, ipAddress, 0, 0, 0, 0, 0, 0);
         }
     }
 }

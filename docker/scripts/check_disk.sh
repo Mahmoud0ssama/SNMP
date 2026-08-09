@@ -19,3 +19,5 @@ else
         rm -f "$FLAG_FILE"
     fi
 fi
+
+echo "$DIR_SIZE"

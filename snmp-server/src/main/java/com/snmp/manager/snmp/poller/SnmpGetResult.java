@@ -14,5 +14,11 @@ public record SnmpGetResult(
     String sysName,
     String sysDescr,
     String nodeInfo,
-    String ipAddress
+    String ipAddress,
+    long uptime,
+    int cpuLoad,
+    long memAvail,
+    int diskUsage,
+    int temperature,
+    int congestion
 ) {}
