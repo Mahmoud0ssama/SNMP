@@ -72,15 +72,6 @@ public class EmulatorCLI {
         SnmpService snmp = new SnmpService();
         snmp.sendTrap(nodeName, nodeType, nodeIp, alarmType, details, targetIp, targetPort);
 
-        // Start the heartbeat sender so the server can monitor this node's liveness.
-        // The node identifier is the simulated node IP registered on the server.
-        com.snmp.manager.heartbeat.sender.HeartbeatSender heartbeat =
-                new com.snmp.manager.heartbeat.sender.HeartbeatSender(nodeIp, targetIp,
-                        com.snmp.manager.heartbeat.sender.HeartbeatSender.DEFAULT_SERVER_PORT,
-                        com.snmp.manager.heartbeat.sender.HeartbeatSender.DEFAULT_INTERVAL_SECONDS);
-        heartbeat.start();
-
-        System.out.println("Heartbeat sender running for node " + nodeIp
-                + ". Press Ctrl+C to stop (simulates node failure).");
+        System.out.println("Trap sent successfully. Node liveness is now monitored via standard SNMP polling.");
     }
 }
