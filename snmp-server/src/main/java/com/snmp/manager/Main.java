@@ -469,9 +469,9 @@ public class Main {
 
         app.start(8080);
 
-        // --- Heartbeat Monitoring Subsystem ---
-        // Must be initialized BEFORE the blocking TrapReceiver.start() call.
-        // Receiver -> Parser -> Heartbeat -> HeartbeatService -> cache -> NodeHealthMonitor -> DB
+        // --- Heartbeat Monitoring Subsystem (SNMP Standard) ---
+        // Uses SNMP polling instead of custom UDP heartbeats.
+        // SnmpHealthMonitor -> SnmpPoller -> snmpd agent on each node
         System.out.println("========================================");
         System.out.println("  HEARTBEAT SUBSYSTEM INITIALIZING...   ");
         System.out.println("========================================");
@@ -486,30 +486,17 @@ public class Main {
             e.printStackTrace();
         }
 
-        com.snmp.manager.heartbeat.monitor.NodeHealthMonitor healthMonitor =
-                new com.snmp.manager.heartbeat.monitor.NodeHealthMonitor(heartbeatService, nodeDAO);
-        healthMonitor.start();
-        System.out.println("[HEARTBEAT] Health monitor started OK.");
-
-        com.snmp.manager.heartbeat.receiver.HeartbeatReceiver heartbeatReceiver =
-                new com.snmp.manager.heartbeat.receiver.HeartbeatReceiver(
-                        new com.snmp.manager.heartbeat.parser.HeartbeatParser(),
-                        heartbeatService::process);
-        try {
-            heartbeatReceiver.start();
-            System.out.println("[HEARTBEAT] UDP receiver started OK on port 161.");
-        } catch (IOException e) {
-            System.err.println("[HEARTBEAT] FAILED to start UDP receiver: " + e.getMessage());
-            e.printStackTrace();
-        }
+        com.snmp.manager.snmp.monitor.SnmpHealthMonitor snmpHealthMonitor =
+                new com.snmp.manager.snmp.monitor.SnmpHealthMonitor(snmpPoller, nodeDAO, heartbeatService);
+        snmpHealthMonitor.start();
+        System.out.println("[HEARTBEAT] SNMP health monitor started OK.");
 
         System.out.println("========================================");
         System.out.println("  HEARTBEAT SUBSYSTEM READY             ");
         System.out.println("========================================");
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            heartbeatReceiver.close();
-            healthMonitor.close();
+            snmpHealthMonitor.close();
         }));
 
         // --- SNMP Receiver Setup ---
