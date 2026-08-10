@@ -8,7 +8,8 @@ RUN apk add --no-cache \
     bash \
     coreutils \
     iproute2 \
-    stress-ng
+    stress-ng \
+    lm-sensors
 
 # Copy SNMP configuration
 COPY config/snmpd.conf /etc/snmp/snmpd.conf

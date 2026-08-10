@@ -1719,6 +1719,40 @@
                 <h3 id="historyModalTitle">Node Trap History</h3><span class="close-btn"
                     onclick="closeModal('nodeTrapsHistoryModal')">&times;</span>
             </div>
+
+            <!-- NEW LIVE METRICS BANNER -->
+            <div id="liveMetricsBanner"
+                style="display: flex; gap: 15px; margin-bottom: 20px; background: var(--bg-raised-2); padding: 15px; border-radius: 12px; border: 1px solid var(--border-soft);">
+                <div style="flex:1; display:flex; align-items:center; gap:12px;">
+                    <i class="fa-solid fa-microchip" style="font-size:24px; color:var(--primary-blue);"></i>
+                    <div>
+                        <div class="stat-label" style="margin:0;">CPU Load</div>
+                        <div id="metricCpu" class="stat-value" style="font-size:18px;">--%</div>
+                    </div>
+                </div>
+                <div style="flex:1; display:flex; align-items:center; gap:12px;">
+                    <i class="fa-solid fa-memory" style="font-size:24px; color:var(--amber);"></i>
+                    <div>
+                        <div class="stat-label" style="margin:0;">RAM Avail</div>
+                        <div id="metricMem" class="stat-value" style="font-size:18px;">-- MB</div>
+                    </div>
+                </div>
+                <div style="flex:1; display:flex; align-items:center; gap:12px;">
+                    <i class="fa-solid fa-hard-drive" style="font-size:24px; color:var(--success-green);"></i>
+                    <div>
+                        <div class="stat-label" style="margin:0;">Log Size</div>
+                        <div id="metricDisk" class="stat-value" style="font-size:18px;">-- MB</div>
+                    </div>
+                </div>
+                <div style="flex:1; display:flex; align-items:center; gap:12px;">
+                    <i class="fa-solid fa-temperature-half" style="font-size:24px; color:var(--text-primary);"></i>
+                    <div>
+                        <div class="stat-label" style="margin:0;">Temp</div>
+                        <div id="metricTemp" class="stat-value" style="font-size:18px;">-- °C</div>
+                    </div>
+                </div>
+            </div>
+
             <div class="scrollable-list" style="max-height: 400px;">
                 <table>
                     <thead>
@@ -1951,6 +1985,7 @@
     <script>
         let jwtToken = localStorage.getItem('snmp_token');
         let refreshInterval = null;
+        let liveMetricsInterval = null; // NEW: Added for Live Metrics
         let nodesMap = {};
         let currentUser = null;
 
@@ -2030,6 +2065,10 @@
             if (refreshInterval) {
                 clearInterval(refreshInterval);
                 refreshInterval = null;
+            }
+            if (liveMetricsInterval) {
+                clearInterval(liveMetricsInterval);
+                liveMetricsInterval = null;
             }
 
             document.getElementById('dashboardScreen').style.display = 'none';
@@ -2130,7 +2169,7 @@
 
                     // Making the entire row clickable to show trap history for ALL roles
                     if (nBody) nBody.innerHTML += `
-                        <tr class="clickable-row" onclick="viewNodeHistory('${escapeHtml(n.ipAddress)}', '${escapeHtml(n.name)}', '${n.status}', '${badgeClass}')">
+                        <tr class="clickable-row" onclick="viewNodeHistory(${n.id}, '${escapeHtml(n.ipAddress)}', '${escapeHtml(n.name)}', '${n.status}', '${badgeClass}')">
                             <td style="color:var(--primary-blue); font-weight:700;">${escapeHtml(n.name)} <br><span style="font-size:13px; color:var(--text-muted);">${escapeHtml(n.nodeType)}</span></td>
                             <td class="code-font" style="font-size: 15px;">${escapeHtml(n.ipAddress)}</td>
                             <td><span class="status-badge ${badgeClass}">${n.status}</span></td>
@@ -2796,7 +2835,7 @@
             document.getElementById('dashboardScreen').style.display = 'block';
         }
 
-        async function viewNodeHistory(ipAddress, nodeName, nodeStatus, nodeBadgeClass) {
+        async function viewNodeHistory(nodeId, ipAddress, nodeName, nodeStatus, nodeBadgeClass) {
             showLoader('Loading history...');
             try {
                 let tRes = await fetchWithAuth('/api/traps');
@@ -2840,8 +2879,14 @@
                     });
                 }
 
-                document.getElementById('historyModalTitle').innerHTML = `Trap History: ${nodeName} (${ipAddress}) <span style="font-size:14px; font-weight:500; margin-left:10px; vertical-align:middle;">Node Status: ${nodeStatusBadge}</span>`;
+                document.getElementById('historyModalTitle').innerHTML = `Diagnostics: ${nodeName} (${ipAddress}) <span style="font-size:14px; font-weight:500; margin-left:10px; vertical-align:middle;">Node Status: ${nodeStatusBadge}</span>`;
                 openModal('nodeTrapsHistoryModal');
+
+                // --- NEW: Start Live Metrics Streaming ---
+                fetchLiveMetrics(nodeId); // Initial fetch
+                if (liveMetricsInterval) clearInterval(liveMetricsInterval);
+                liveMetricsInterval = setInterval(() => fetchLiveMetrics(nodeId), 3000); // Poll every 3 seconds
+
             } catch (e) {
                 console.error("Error fetching trap history", e);
                 alert("Failed to load trap history");
@@ -2849,6 +2894,38 @@
                 hideLoader();
             }
         }
+
+        // --- NEW: Fetch Live Metrics ---
+        async function fetchLiveMetrics(nodeId) {
+            try {
+                let res = await fetchWithAuth(`/api/nodes/${nodeId}/metrics`);
+                if (res.ok) {
+                    let data = await res.json();
+                    document.getElementById('metricCpu').innerText = data.cpuLoad + '%';
+                    document.getElementById('metricMem').innerText = Math.round(data.memAvail / 1024) + ' MB';
+                    document.getElementById('metricDisk').innerText = data.diskUsage + ' MB';
+                    document.getElementById('metricTemp').innerText = data.temperature + ' °C';
+
+                    // Highlight values in red if they exceed thresholds
+                    document.getElementById('metricTemp').style.color = data.temperature > 75 ? 'var(--danger-red)' : 'var(--text-primary)';
+                    document.getElementById('metricDisk').style.color = data.diskUsage > 100 ? 'var(--danger-red)' : 'var(--text-primary)';
+                    document.getElementById('metricCpu').style.color = data.congestion === 1 ? 'var(--danger-red)' : 'var(--text-primary)';
+                } else {
+                    // Reset to default if no metrics available yet
+                    document.getElementById('metricCpu').innerText = '--%';
+                    document.getElementById('metricMem').innerText = '-- MB';
+                    document.getElementById('metricDisk').innerText = '-- MB';
+                    document.getElementById('metricTemp').innerText = '-- °C';
+
+                    document.getElementById('metricTemp').style.color = 'var(--text-primary)';
+                    document.getElementById('metricDisk').style.color = 'var(--text-primary)';
+                    document.getElementById('metricCpu').style.color = 'var(--text-primary)';
+                }
+            } catch (e) {
+                console.error("Failed to fetch live metrics", e);
+            }
+        }
+
         function openModal(id) {
             if (id === 'addNodeModal') {
                 document.getElementById('addNodeTrapsContainer').innerHTML = '';
@@ -2861,6 +2938,12 @@
         function closeModal(id) {
             let el = document.getElementById(id);
             if (el) el.classList.remove('active');
+
+            // --- NEW: Stop Live Metrics Streaming when modal closes ---
+            if (id === 'nodeTrapsHistoryModal' && liveMetricsInterval) {
+                clearInterval(liveMetricsInterval);
+                liveMetricsInterval = null;
+            }
         }
 
         function filterTraps() {

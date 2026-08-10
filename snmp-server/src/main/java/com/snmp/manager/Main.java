@@ -105,6 +105,7 @@ public class Main {
         // Cache DAOs to reuse across all requests
         UserDAO userDAO = new UserDAO(db);
         NodeDAO nodeDAO = new NodeDAO(db);
+        com.snmp.manager.heartbeat.service.HeartbeatService heartbeatService = new com.snmp.manager.heartbeat.service.HeartbeatService(nodeDAO);
         TrapActionDAO trapActionDAO = new TrapActionDAO(db);
         TrapHistoryDAO trapHistoryDAO = new TrapHistoryDAO(db);
         NodeService nodeService = new NodeService(nodeDAO, trapActionDAO);
@@ -400,6 +401,18 @@ public class Main {
             nodeService.updateNode(targetId, req.name, req.ipAddress, req.nodeType, actions);
             ctx.json(Map.of("status", "success"));
         });
+
+        app.get("/api/nodes/{id}/metrics", ctx -> {
+            DecodedJWT jwt = ctx.attribute("jwt");
+            Long targetId = Long.parseLong(ctx.pathParam("id"));
+            
+            com.snmp.manager.snmp.poller.SnmpGetResult metrics = heartbeatService.getMetrics(targetId);
+            if (metrics != null) {
+                ctx.json(metrics);
+            } else {
+                ctx.status(404).json(Map.of("error", "No metrics available yet"));
+            }
+        });
         
         // --- FORCE EXECUTE API ---
         app.post("/api/traps/{id}/force-execute", ctx -> {
@@ -476,8 +489,6 @@ public class Main {
         System.out.println("  HEARTBEAT SUBSYSTEM INITIALIZING...   ");
         System.out.println("========================================");
 
-        com.snmp.manager.heartbeat.service.HeartbeatService heartbeatService =
-                new com.snmp.manager.heartbeat.service.HeartbeatService(nodeDAO);
         try {
             heartbeatService.initializeFromDatabase();
             System.out.println("[HEARTBEAT] Cache seeded from database OK.");

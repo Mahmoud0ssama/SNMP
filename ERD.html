@@ -4,442 +4,3283 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SNMP Platform - ERD & Database Schema</title>
+    <title>SNMP - Premium NOC</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        /* General Page Styling */
+        :root {
+            /* Default Dark Theme: Pure neutral dark black without warmth */
+            --bg: #09090b;
+            --bg-raised: #121215;
+            --bg-raised-2: #18181b;
+            --border: #27272a;
+            --border-soft: #1f1f23;
+
+            --text-primary: #f4f4f5;
+            --text-meta: #a1a1aa;
+            --text-faint: #71717a;
+
+            --green: #34d399;
+            --green-dim: #064e3b;
+            --amber: #fbbf24;
+            --amber-dim: #451a03;
+            --red: #f87171;
+            --red-dim: #450a0a;
+            --blue: #60a5fa;
+            --blue-dim: #1e3a8a;
+
+            --hover-bg: rgba(255, 255, 255, 0.09);
+
+            --mono: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", Menlo, Consolas, "Liberation Mono", monospace;
+            --sans: ui-sans-serif, -apple-system, "Segoe UI", Inter, Roboto, Helvetica, Arial, sans-serif;
+
+            /* Compatibility tokens */
+            --bg-body: var(--bg);
+            --card-bg: var(--bg-raised);
+            --primary-blue: var(--blue);
+            --primary-hover: #3b82f6;
+            --light-blue: var(--blue-dim);
+            --success-green: var(--green);
+            --danger-red: var(--red);
+            --warning-orange: var(--amber);
+            --text-dark: var(--text-primary);
+            --text-muted: var(--text-meta);
+            --border-color: var(--border);
+            --shadow-soft: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+            --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+        }
+
+        [data-theme="light"] {
+            --bg: #f8fafc;
+            --bg-raised: #ffffff;
+            --bg-raised-2: #f1f5f9;
+            --border: #e2e8f0;
+            --border-soft: #cbd5e1;
+
+            --text-primary: #0f172a;
+            --text-meta: #475569;
+            --text-faint: #94a3b8;
+
+            --green: #10b981;
+            --green-dim: #d1fae5;
+            --amber: #d97706;
+            --amber-dim: #fef3c7;
+            --red: #ef4444;
+            --red-dim: #fee2e2;
+            --blue: #2563eb;
+            --blue-dim: #dbeafe;
+
+            --hover-bg: rgba(0, 0, 0, 0.035);
+
+            --shadow-soft: 0 10px 30px -10px rgba(0, 0, 0, 0.08);
+            --shadow-card: 0 2px 8px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        /* ---- Custom Dark Scrollbars ---- */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-faint);
+        }
+
+        html {
+            scrollbar-color: var(--border) var(--bg);
+            scrollbar-width: thin;
+        }
+
+        .loader-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            color: white;
+            font-family: inherit;
+        }
+
+        .loader-spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid #ffffff;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .loader-text {
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f7f6;
-            color: #333;
+            background: var(--bg);
+            color: var(--text-primary);
+            font-family: var(--sans);
+            padding: 24px;
+            min-height: 100vh;
             margin: 0;
-            padding: 20px;
-            direction: ltr;
+            box-sizing: border-box;
         }
 
-        /* Main Container */
-        .container {
-            max-width: 1100px;
-            margin: auto;
-            background: #ffffff;
-            padding: 30px;
+        /* ---- HEADER ---- */
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            background: var(--bg-raised);
+            border: 1px solid var(--border-soft);
+            border-radius: 14px;
+            padding: 16px 22px;
+            margin-bottom: 22px;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--blue);
+            white-space: nowrap;
+            letter-spacing: 0.2px;
+        }
+
+        .live-pill {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            background: var(--green-dim);
+            color: var(--green);
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 12.5px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .live-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--green);
+            animation: pulse 1.8s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.55);
+            }
+
+            50% {
+                box-shadow: 0 0 0 5px rgba(52, 211, 153, 0);
+            }
+        }
+
+        /* ---- UNIFIED COMMAND BAR ---- */
+        .command-bar {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--bg-raised-2);
+            border: 1px solid var(--border);
             border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            padding: 9px 14px;
+            min-width: 0;
+            transition: border-color .15s ease, box-shadow .15s ease;
         }
 
-        /* Typography */
-        h1 {
+        .command-bar:focus-within {
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px var(--blue-dim);
+        }
+
+        .command-bar svg {
+            flex-shrink: 0;
+            color: var(--text-faint);
+        }
+
+        .command-bar input {
+            flex: 1;
+            min-width: 0;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--text-primary);
+            font-family: var(--sans);
+            font-size: 14px;
+        }
+
+        .command-bar input::placeholder {
+            color: var(--text-faint);
+        }
+
+        .command-filter {
+            background: transparent;
+            color: var(--text-meta);
+            border: none;
+            border-left: 1px solid var(--border);
+            padding: 0 10px 0 12px;
+            font-family: var(--sans);
+            font-size: 13px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .command-filter option {
+            background: var(--bg-raised);
+            color: var(--text-primary);
+        }
+
+        .command-action {
+            background: transparent;
+            border: none;
+            color: var(--text-meta);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            padding: 4px;
+            border-radius: 6px;
+            flex-shrink: 0;
+            transition: color .15s ease, background .15s ease;
+        }
+
+        .command-action:hover {
+            color: var(--blue);
+            background: var(--blue-dim);
+        }
+
+        .kbd-hint {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--text-faint);
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            padding: 2px 6px;
+            flex-shrink: 0;
+        }
+
+        .user-block {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            white-space: nowrap;
+        }
+
+        .welcome {
+            font-size: 13.5px;
+            color: var(--text-meta);
+        }
+
+        .welcome strong {
+            color: var(--text-primary);
+        }
+
+        .logout-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--bg-raised-2);
+            border: 1px solid var(--border);
+            color: var(--text-meta);
+            font-size: 13px;
+            font-weight: 600;
+            padding: 8px 14px;
+            border-radius: 9px;
+            cursor: pointer;
+            transition: color .15s ease, border-color .15s ease, background .15s ease;
+        }
+
+        .logout-btn:hover {
+            color: var(--text-primary);
+            border-color: var(--text-meta);
+            background: var(--bg-raised);
+        }
+
+        /* ---- STAT CARDS ---- */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 26px;
+        }
+
+        .stat-card {
+            background: var(--bg-raised);
+            border: 1px solid var(--border-soft);
+            border-radius: 12px;
+            padding: 18px 16px;
             text-align: center;
-            color: #2c3e50;
-            border-bottom: 2px solid #3498db;
-            padding-bottom: 10px;
-            margin-bottom: 30px;
         }
 
-        h2 {
-            color: #2980b9;
-            margin-top: 40px;
+        .stat-label {
+            font-size: 11px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--text-meta);
+            margin-bottom: 10px;
         }
 
-        /* Mermaid Diagram Wrapper */
-        .mermaid-wrapper {
-            background-color: #ecf0f1;
-            padding: 20px;
+        .stat-value {
+            font-family: var(--mono);
+            font-size: 30px;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .stat-value.neutral {
+            color: var(--text-primary);
+        }
+
+        .stat-value.ok {
+            color: var(--green);
+        }
+
+        .stat-value.warn {
+            color: var(--amber);
+        }
+
+        .stat-value.crit {
+            color: var(--red);
+        }
+
+        /* ---- ALARM ROW & SEVERITY ---- */
+        .section-title {
+            font-size: 19px;
+            font-weight: 700;
+            margin: 0 0 14px;
+            color: var(--text-primary);
+        }
+
+        .tip-banner {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--bg-raised);
+            border: 1px solid var(--border-soft);
+            color: var(--blue);
+            font-size: 13px;
+            font-weight: 600;
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-bottom: 16px;
+        }
+
+        .alarms {
+            background: var(--bg-raised);
+            border: 1px solid var(--border-soft);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .alarm-head {
+            display: grid;
+            grid-template-columns: 1.4fr 2.2fr 1fr 1fr;
+            padding: 14px 20px;
+            font-size: 11.5px;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--text-meta);
+            border-bottom: 1px solid var(--border-soft);
+        }
+
+        .alarm-row {
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+        }
+
+        .alarm-row:hover,
+        .clickable-row:hover {
+            background-color: var(--hover-bg) !important;
+        }
+
+        .alarm-row td:first-child {
+            position: relative;
+            padding-left: 20px;
+        }
+
+        .alarm-row td:first-child::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 6px;
+            bottom: 6px;
+            width: 4px;
+            border-radius: 2px;
+        }
+
+        .alarm-row.sev-critical td:first-child::before {
+            background: var(--red);
+        }
+
+        .alarm-row.sev-major td:first-child::before {
+            background: var(--amber);
+        }
+
+        .alarm-row.sev-warning td:first-child::before {
+            background: var(--amber);
+            opacity: 0.75;
+        }
+
+        .alarm-row.sev-resolved td:first-child::before {
+            background: var(--green);
+        }
+
+        .source-name {
+            font-family: var(--mono);
+            font-weight: 700;
+            font-size: 14px;
+            color: var(--blue);
+        }
+
+        .source-ip {
+            font-family: var(--mono);
+            font-size: 12px;
+            color: var(--text-meta);
+            margin-top: 2px;
+        }
+
+        .msg-title {
+            font-weight: 600;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .msg-time {
+            font-family: var(--mono);
+            font-size: 12px;
+            color: var(--text-meta);
+            margin-top: 3px;
+        }
+
+        .unknown-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: var(--blue-dim);
+            color: var(--blue);
+            font-size: 10.5px;
+            font-weight: 700;
+            letter-spacing: .03em;
+            padding: 2px 8px;
+            border-radius: 999px;
+        }
+
+        /* severity pill = shape + color, not color alone */
+        .sev-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-family: var(--mono);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: .04em;
+            padding: 5px 10px;
+            border-radius: 7px;
+            width: fit-content;
+        }
+
+        .sev-pill svg {
+            flex-shrink: 0;
+        }
+
+        .sev-pill.sev-critical {
+            background: var(--red-dim);
+            color: var(--red);
+        }
+
+        .sev-pill.sev-major {
+            background: var(--amber-dim);
+            color: var(--amber);
+        }
+
+        .sev-pill.sev-warning {
+            background: var(--amber-dim);
+            color: var(--amber);
+        }
+
+        .sev-pill.sev-resolved {
+            background: var(--green-dim);
+            color: var(--green);
+        }
+
+        .action-btn,
+        .resolve-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--blue-dim) !important;
+            color: var(--blue) !important;
+            border: 1px solid transparent !important;
+            font-family: var(--sans);
+            font-size: 12.5px;
+            font-weight: 700;
+            padding: 7px 12px;
             border-radius: 8px;
-            text-align: center;
-            margin-bottom: 40px;
-            overflow-x: auto;
+            cursor: pointer;
+            width: fit-content;
+            transition: background 0.15s ease, color 0.15s ease;
         }
 
-        /* Table Styling */
+        .action-btn:hover,
+        .resolve-btn:hover {
+            background: var(--blue) !important;
+            color: var(--bg) !important;
+            transform: none !important;
+        }
+
+        .action-done {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--green);
+            font-size: 12.5px;
+            font-weight: 700;
+        }
+
+        .side-card {
+            background: var(--bg-raised);
+            border: 1px solid var(--border-soft);
+            border-radius: 12px;
+            padding: 18px;
+            margin-bottom: 18px;
+        }
+
+        .side-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin: 0 0 12px;
+            color: var(--text-primary);
+        }
+
+        .side-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            background: var(--bg-raised-2);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            font-size: 13px;
+            font-weight: 600;
+            padding: 11px 14px;
+            border-radius: 9px;
+            cursor: pointer;
+            text-align: left;
+            transition: border-color 0.15s ease, color 0.15s ease;
+        }
+
+        .side-btn:hover {
+            border-color: var(--blue);
+            color: var(--blue);
+        }
+
+        .side-btn+.side-btn {
+            margin-top: 8px;
+        }
+
+        .login-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 80vh;
+        }
+
+        .login-card {
+            background-color: var(--card-bg);
+            padding: 45px 40px;
+            border-radius: 20px;
+            box-shadow: var(--shadow-card);
+            width: 340px;
+            text-align: center;
+        }
+
+        .login-card h2 {
+            color: var(--primary-blue);
+            margin-bottom: 5px;
+        }
+
+        .input-group {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .input-group input,
+        .form-group select,
+        .form-group input,
+        .search-box input,
+        .filter-select {
+            width: 100%;
+            padding: 12px 15px;
+            background-color: var(--bg-raised-2);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            outline: none;
+            box-sizing: border-box;
+            transition: all 0.2s ease;
+        }
+
+        .input-group input {
+            padding-left: 45px;
+            border-radius: 12px;
+        }
+
+        .input-group input:focus,
+        .form-group input:focus,
+        .form-group select:focus,
+        .search-box input:focus {
+            box-shadow: 0 0 0 3px var(--blue-dim);
+            border-color: var(--blue);
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .dashboard-container {
+            display: none;
+            max-width: 100%;
+            margin: 0 auto;
+        }
+
+        .card-panel {
+            background-color: var(--bg-raised);
+            border: 1px solid var(--border-soft);
+            border-radius: 12px;
+            box-shadow: var(--shadow-card);
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: 1fr 270px;
+            gap: 20px;
+            align-items: stretch;
+        }
+
+        .card {
+            padding: 24px;
+        }
+
+        .card-panel h3 {
+            font-size: 18px !important;
+        }
+
         table {
             width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 25px;
-            background-color: #fff;
-        }
-
-        th,
-        td {
-            padding: 15px;
-            border: 1px solid #e0e6ed;
-            text-align: left;
+            border-collapse: separate;
+            border-spacing: 0;
         }
 
         th {
-            background-color: #34495e;
-            color: #ffffff;
-            font-weight: bold;
+            color: var(--text-meta);
+            font-weight: 700;
+            font-size: 11.5px;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            background: var(--bg-raised);
+            z-index: 10;
         }
 
-        tr:nth-child(even) {
-            background-color: #f8fafc;
+        td {
+            padding: 14px 16px;
+            font-size: 13.5px;
+            border-bottom: 1px solid var(--border-soft);
+            color: var(--text-primary);
+            vertical-align: middle;
         }
 
-        /* Highlight Classes */
-        .primary-key {
-            color: #e74c3c;
-            font-weight: bold;
+        .clickable-row {
+            cursor: pointer;
+            transition: background-color 150ms ease;
         }
 
-        .foreign-key {
-            color: #d35400;
-            font-weight: bold;
+        .clickable-row:hover {
+            background-color: #f1f5f9;
         }
 
-        .badge {
+        .scrollable-list {
+            flex: 1;
+            max-height: 60vh;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .status-badge {
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 10px;
+            font-size: 11px;
+            border: 1px solid transparent;
             display: inline-block;
-            padding: 4px 8px;
+            text-align: center;
+            min-width: 55px;
+        }
+
+        .status-in {
+            color: #047857;
+            background-color: #d1fae5;
+            border-color: #a7f3d0;
+        }
+
+        .status-out {
+            color: #b91c1c;
+            background-color: #fee2e2;
+            border-color: #fecaca;
+        }
+
+        .status-warn {
+            color: var(--warning-orange);
+            background-color: #fef3c7;
+            border-color: #fde68a;
+        }
+
+        .status-unknown {
+            color: #4c1d95;
+            background-color: #ede9fe;
+            border-color: #a78bfa;
+        }
+
+        .unknown-trap-row,
+        .unknown-trap-row:hover {
+            background-color: transparent !important;
+        }
+
+        .primary-btn {
+            background-color: var(--primary-blue);
+            color: white;
+            border: none;
+            padding: 14px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            width: 100%;
+            transition: all 0.3s ease;
+            font-size: 15px;
+            box-shadow: 0 4px 6px -1px rgba(0, 86, 179, 0.2);
+        }
+
+        .primary-btn:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 86, 179, 0.3);
+        }
+
+        .success-btn {
+            background-color: var(--success-green);
+            color: white;
+            border: none;
+            padding: 14px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            width: 100%;
+            font-size: 15px;
+        }
+
+        .danger-btn {
+            background-color: transparent;
+            color: var(--danger-red);
+            border: 1px solid var(--danger-red);
             border-radius: 4px;
-            font-size: 12px;
-            font-weight: bold;
-            color: #fff;
-            margin-right: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
         }
 
-        .bg-primary {
-            background-color: #3498db;
+        .danger-btn:hover {
+            background-color: var(--red-dim);
+            color: var(--danger-red);
         }
 
-        .bg-danger {
-            background-color: #e74c3c;
+        .manage-btn {
+            background-color: #f8fafc;
+            color: var(--text-dark);
+            border: 1px solid var(--border-color);
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            width: 100%;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: 0.2s;
+            box-sizing: border-box;
+            font-size: 13px;
         }
 
-        .bg-warning {
-            background-color: #f39c12;
+        .manage-btn:hover {
+            background-color: var(--light-blue);
+            color: var(--primary-blue);
+            border-color: #bfdbfe;
+            transform: translateY(-1px);
+        }
+
+        .modal {
+            display: flex;
+            opacity: 0;
+            pointer-events: none;
+            visibility: hidden;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(15, 23, 42, 0.4);
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(5px);
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .modal.active {
+            opacity: 1;
+            pointer-events: auto;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background-color: var(--card-bg);
+            padding: 35px;
+            border-radius: 20px;
+            width: 400px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: scale(0.95);
+            transition: transform 0.3s ease;
+        }
+
+        .modal.active .modal-content {
+            transform: scale(1);
+        }
+
+        .modal-large {
+            width: 800px;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            color: var(--primary-blue);
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .close-btn {
+            color: var(--text-muted);
+            font-size: 26px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 13px;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .search-box {
+            position: relative;
+            width: 250px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px 12px 10px 35px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background-color: #f8fafc;
+            box-sizing: border-box;
+            outline: none;
+        }
+
+        .search-box span {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 14px;
+        }
+
+        .filter-select {
+            padding: 10px 30px 10px 10px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background-color: #f8fafc;
+            font-weight: 600;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .code-font {
+            color: var(--text-muted);
+            font-family: monospace;
+            font-size: 14px;
+        }
+
+        .flash-msg {
+            color: #dc2626;
+            background-color: #fef2f2;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-top: 20px;
+            display: none;
+            text-align: center;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .detail-row span:first-child {
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .detail-row span:last-child {
+            color: var(--text-dark);
+            font-weight: 700;
+        }
+
+        .icon-btn {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            transition: 0.2s;
+            padding: 5px;
+        }
+
+        .icon-btn:hover {
+            transform: scale(1.2);
+        }
+
+        .add-trap-btn {
+            background-color: var(--light-blue);
+            color: var(--primary-blue);
+            border: 1px dashed var(--primary-blue);
+            padding: 10px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            width: 100%;
+            margin-bottom: 15px;
+            transition: 0.2s;
+        }
+
+        .add-trap-btn:hover {
+            background-color: #bfdbfe;
+        }
+
+        .ai-blocked-row,
+        .ai-blocked-row:hover {
+            background-color: transparent !important;
+        }
+
+        .ai-warning-box {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #fffbeb;
+            border: 1px solid #fcd34d;
+            border-radius: 8px;
+        }
+
+        /* --- NOC Chat Assistant --- */
+        .chat-bubble-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #4f46e5, #3b82f6);
+            color: white;
+            font-size: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.5);
+            cursor: pointer;
+            z-index: 1000;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .chat-bubble-btn:hover {
+            transform: scale(1.1) rotate(-5deg);
+        }
+
+        .chat-panel {
+            position: fixed;
+            bottom: 100px;
+            right: 30px;
+            width: 400px;
+            height: 550px;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+            display: flex;
+            flex-direction: column;
+            z-index: 1000;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(20px) scale(0.95);
+            direction: rtl;
+
+            resize: both;
+            min-width: 320px;
+            min-height: 400px;
+            max-width: 1100px;
+            max-height: 90vh;
+
+            transition: opacity 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+                transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .chat-header,
+        .chat-body,
+        .chat-input-area {
+            direction: ltr;
+        }
+
+        .chat-panel.active {
+            opacity: 1;
+            pointer-events: all;
+            transform: translateY(0) scale(1);
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            padding: 15px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-header h3 {
+            margin: 0;
+            color: white;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chat-close {
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 20px;
+            transition: color 0.2s;
+        }
+
+        .chat-close:hover {
+            color: white;
+        }
+
+        .chat-body {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .chat-message {
+            max-width: 85%;
+            padding: 10px 14px;
+            border-radius: 14px;
+            font-size: 14px;
+            line-height: 1.4;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .chat-message.bot {
+            background-color: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            color: #1e293b;
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+
+        .chat-message.bot p {
+            margin-top: 0;
+            margin-bottom: 8px;
+        }
+
+        .chat-message.bot p:last-child {
+            margin-bottom: 0;
+        }
+
+        .chat-message.bot pre {
+            background: #1e293b;
+            padding: 8px;
+            border-radius: 6px;
+            overflow-x: auto;
+            color: #f8fafc;
+        }
+
+        .chat-message.bot code {
+            background: #e2e8f0;
+            padding: 2px 5px;
+            border-radius: 4px;
+            color: #b91c1c;
+            font-weight: 600;
+            font-family: monospace;
+        }
+
+        .chat-message.bot pre code {
+            background: transparent;
+            color: inherit;
+            padding: 0;
+            font-weight: normal;
+        }
+
+        .chat-message.user {
+            background: linear-gradient(135deg, #4f46e5, #3b82f6);
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+
+        .chat-input-area {
+            padding: 15px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            gap: 10px;
+            background: #ffffff;
+            border-bottom-left-radius: 20px;
+            border-bottom-right-radius: 20px;
+        }
+
+        .chat-input {
+            flex: 1;
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            color: #1e293b;
+            border-radius: 20px;
+            padding: 10px 15px;
+            outline: none;
+            font-family: inherit;
+        }
+
+        .chat-input::placeholder {
+            color: #64748b;
+        }
+
+        .chat-input:focus {
+            border-color: #3b82f6;
+            background: #ffffff;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .chat-send-btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .chat-send-btn:hover {
+            background: #2563eb;
+        }
+
+        .typing-indicator {
+            display: none;
+            align-self: flex-start;
+            background-color: rgba(255, 255, 255, 0.05);
+            padding: 12px 16px;
+            border-radius: 14px;
+            border-bottom-left-radius: 4px;
+            margin-bottom: 10px;
+        }
+
+        .typing-indicator span {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            background-color: var(--text-muted);
+            border-radius: 50%;
+            margin: 0 2px;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+
+        .typing-indicator span:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+
+        .typing-indicator span:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+
+        @keyframes bounce {
+
+            0%,
+            80%,
+            100% {
+                transform: scale(0);
+            }
+
+            40% {
+                transform: scale(1);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .quick-action-btn {
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            color: #3b82f6;
+            padding: 8px 14px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 12px;
+            transition: all 0.2s;
+        }
+
+        .quick-action-btn:hover {
+            background: #eff6ff;
+            border-color: #93c5fd;
+            transform: translateY(-1px);
+        }
+
+        .fa-solid,
+        .fa-regular {
+            margin-right: 5px;
+        }
+
+        .icon-btn .fa-solid,
+        .icon-btn .fa-regular {
+            margin-right: 0;
+        }
+
+        .input-icon .fa-solid,
+        .input-icon .fa-regular {
+            margin-right: 0;
+            color: var(--text-muted);
+        }
+
+        /* Overrides for hardcoded colors in dark mode */
+        [data-theme="dark"] .input-group input,
+        [data-theme="dark"] .form-group input,
+        [data-theme="dark"] .form-group select,
+        [data-theme="dark"] .search-box input,
+        [data-theme="dark"] .filter-select,
+        [data-theme="dark"] .header-action-btn,
+        [data-theme="dark"] .manage-btn,
+        [data-theme="dark"] .trap-action-row input,
+        [data-theme="dark"] .trap-action-row select {
+            background-color: #1a1a1a;
+            color: #cbd5e1;
+            border-color: var(--border-color);
+        }
+
+        [data-theme="dark"] .header-action-btn i,
+        [data-theme="dark"] .manage-btn i {
+            font-size: 14px;
+        }
+
+        [data-theme="dark"] .logout-btn {
+            background-color: #4c0519;
+            color: #fda4af;
+            border-color: #881337;
+        }
+
+        [data-theme="dark"] .logout-btn:hover {
+            background-color: #881337;
+            color: #ffffff;
+        }
+
+
+
+        [data-theme="dark"] .status-badge {
+            border-color: transparent;
+        }
+
+        [data-theme="dark"] .status-in {
+            color: #6ee7b7;
+            background-color: rgba(16, 185, 129, 0.15);
+        }
+
+        [data-theme="dark"] .status-out {
+            color: #fca5a5;
+            background-color: rgba(239, 68, 68, 0.18);
+        }
+
+        [data-theme="dark"] .status-warn {
+            color: #fcd34d;
+            background-color: rgba(245, 158, 11, 0.18);
+        }
+
+        [data-theme="dark"] .status-unknown {
+            color: #c4b5fd;
+            background-color: rgba(167, 139, 250, 0.18);
+        }
+
+        [data-theme="dark"] .unknown-trap-row {
+            background-color: transparent !important;
+        }
+
+        [data-theme="dark"] .unknown-trap-row:hover {
+            background-color: var(--hover-bg) !important;
+        }
+
+        [data-theme="dark"] .modal {
+            background-color: rgba(0, 0, 0, 0.65);
+        }
+
+        [data-theme="dark"] .chat-input-area {
+            background: var(--bg-raised);
+        }
+
+        [data-theme="dark"] .chat-input {
+            background: var(--bg-raised-2);
+            color: var(--text-primary);
+            border-color: var(--border);
+        }
+
+        [data-theme="dark"] .chat-message.bot {
+            background-color: var(--bg-raised-2);
+            border-color: var(--border);
+            color: var(--text-primary);
+        }
+
+        [data-theme="dark"] .chat-message.bot p {
+            color: var(--text-primary);
+        }
+
+        [data-theme="dark"] .chat-message.user {
+            background: var(--blue-dim);
+            color: var(--blue);
+        }
+
+        [data-theme="dark"] .quick-action-btn {
+            background: var(--bg-raised-2);
+            border-color: var(--border);
+            color: var(--text-meta);
+        }
+
+        [data-theme="dark"] .quick-action-btn:hover {
+            background: var(--blue-dim);
+            color: var(--blue);
         }
     </style>
 
-    <!-- Include Mermaid.js for rendering the ERD -->
-    <script type="module">
-        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
-        mermaid.initialize({ startOnLoad: true, theme: 'default' });
+    <script>
+        (function () {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
     </script>
 </head>
 
 <body>
 
-    <div class="container">
-        <h1>SNMP Platform - ERD & Database Schema</h1>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="login-wrapper">
+        <div class="login-card">
+            <h2>DT NOC</h2>
+            <p style="color: var(--text-muted); margin-bottom: 30px;">Network Management Platform</p>
+            <form id="loginForm" onsubmit="performLogin(event)">
+                <div class="input-group">
+                    <span class="input-icon"><i class="fa-solid fa-user"></i> </span>
+                    <input type="text" id="username" placeholder="Username" required>
+                </div>
+                <div class="input-group">
+                    <span class="input-icon"><i class="fa-solid fa-lock"></i> </span>
+                    <input type="password" id="password" placeholder="Password" required>
+                </div>
+                <button type="submit" class="primary-btn">Secure Login</button>
+            </form>
+            <div id="loginError" class="flash-msg"></div>
+        </div>
+    </div>
 
-        <h2>1. ERD Diagram</h2>
-        <!-- Mermaid code for Entity-Relationship Diagram -->
-        <div class="mermaid-wrapper">
-            <div class="mermaid">
-                %%{init: {'theme':'default', 'er': {'layoutDirection': 'LR'}}}%%
-                erDiagram
-                NODES ||--o{ TRAP_ACTIONS : "Configures"
-                NODES ||--o{ TRAP_HISTORY : "Generates"
-                TRAP_ACTIONS ||--o{ TRAP_HISTORY : "Triggers"
-                USERS ||--o{ TRAP_HISTORY : "Resolves"
+    <!-- Dashboard Screen -->
+    <div id="dashboardScreen" class="dashboard-container">
+        <div class="header">
+            <div class="logo">DT NOC Dashboard</div>
+            <div class="live-pill"><span class="live-dot"></span>System Live</div>
 
-                USERS {
-                bigint id PK
-                string username
-                string password_hash
-                string role
-                timestamp created_at
-                }
+            <div class="command-bar" id="commandBar">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="7" />
+                    <path d="M21 21l-4.35-4.35" />
+                </svg>
+                <input type="text" id="searchTraps" onkeyup="filterTraps()"
+                    placeholder="Search alarms, IP, or message…">
+                <select id="statusFilter" class="command-filter" onchange="filterTraps()">
+                    <option value="ALL">All Statuses</option>
+                    <option value="OPEN">Open Only</option>
+                    <option value="RESOLVED">Resolved</option>
+                </select>
+                <button class="command-action" title="Refresh" onclick="manualRefresh()">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M23 4v6h-6" />
+                        <path d="M1 20v-6h6" />
+                        <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" />
+                    </svg>
+                </button>
+                <button class="command-action" title="Toggle Theme" id="themeToggleBtn" onclick="toggleTheme()">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3" />
+                        <path
+                            d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9c.23.5.7.83 1.25 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" />
+                    </svg>
+                </button>
+                <span class="kbd-hint">⌘K</span>
+            </div>
 
-                NODES {
-                bigint id PK
-                string name
-                string ip_address
-                int port
-                string location
-                string description
-                string status
-                timestamp created_at
-                string node_type
-                }
-
-                TRAP_HISTORY {
-                bigint id PK
-                bigint node_id FK
-                bigint trap_action_id FK
-                string trap_oid
-                string source_ip
-                string message
-                string status
-                timestamp received_at
-                timestamp resolved_at
-                bigint resolved_by FK
-                }
-
-                TRAP_ACTIONS {
-                bigint id PK
-                string trap_oid
-                string trap_name
-                string severity
-                string action_name
-                string description
-                boolean auto_resolve
-                timestamp created_at
-                timestamp updated_at
-                string action_type
-                string target_payload
-                bigint node_id FK
-                }
+            <div class="user-block">
+                <span class="welcome">Welcome, <strong id="userDisplay">User</strong></span>
+                <button class="logout-btn" onclick="logout()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+                        <polyline points="16 17 21 12 16 7" />
+                        <line x1="21" y1="12" x2="9" y2="12" />
+                    </svg>
+                    Logout
+                </button>
             </div>
         </div>
 
-        <h2>2. Database Schema Details</h2>
+        <div class="grid-container">
+            <!-- Left: Traps Table -->
+            <div class="card card-panel" style="display: flex; flex-direction: column;">
 
-        <!-- Users Table -->
-        <h3><span class="badge bg-primary">Table</span> Users</h3>
-        <table>
-            <tr>
-                <th>Column</th>
-                <th>Data Type</th>
-                <th>Constraints</th>
-                <th>Description</th>
-            </tr>
-            <tr>
-                <td>id</td>
-                <td>BIGSERIAL</td>
-                <td><span class="primary-key">PK</span>, Auto Increment</td>
-                <td>Unique identifier for the user.</td>
-            </tr>
-            <tr>
-                <td>username</td>
-                <td>VARCHAR(50)</td>
-                <td>UNIQUE, NOT NULL</td>
-                <td>Username for system login.</td>
-            </tr>
-            <tr>
-                <td>password_hash</td>
-                <td>VARCHAR(255)</td>
-                <td>NOT NULL</td>
-                <td>Hashed password to ensure security.</td>
-            </tr>
-            <tr>
-                <td>role</td>
-                <td>VARCHAR(20)</td>
-                <td>DEFAULT 'SUPPORT', NOT NULL</td>
-                <td>Defines user privileges and access levels (e.g., ADMIN, SUPPORT).</td>
-            </tr>
-            <tr>
-                <td>created_at</td>
-                <td>TIMESTAMP</td>
-                <td>DEFAULT CURRENT_TIMESTAMP, NOT NULL</td>
-                <td>Record creation timestamp.</td>
-            </tr>
-        </table>
+                <!-- Summary Stat Cards -->
+                <div id="statsRow" class="stats">
+                    <div class="stat-card">
+                        <div class="stat-label">Open Alarms</div>
+                        <div id="statOpen" class="stat-value crit">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Resolved (24h)</div>
+                        <div id="statResolved" class="stat-value ok">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Unknown Sources</div>
+                        <div id="statUnknown" class="stat-value neutral">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Nodes Online</div>
+                        <div id="statNodes" class="stat-value ok">0 / 0</div>
+                    </div>
+                </div>
 
-        <!-- Nodes Table -->
-        <h3><span class="badge bg-primary">Table</span> Nodes</h3>
-        <table>
-            <tr>
-                <th>Column</th>
-                <th>Data Type</th>
-                <th>Constraints</th>
-                <th>Description</th>
-            </tr>
-            <tr>
-                <td>id</td>
-                <td>BIGSERIAL</td>
-                <td><span class="primary-key">PK</span>, Auto Increment</td>
-                <td>Unique identifier for the network node.</td>
-            </tr>
-            <tr>
-                <td>name</td>
-                <td>VARCHAR(100)</td>
-                <td>NOT NULL</td>
-                <td>Alias for the node (e.g., BTS_Dandy_Mall).</td>
-            </tr>
-            <tr>
-                <td>ip_address</td>
-                <td>VARCHAR(45)</td>
-                <td>UNIQUE, NOT NULL</td>
-                <td>IP address of the server or telecom element.</td>
-            </tr>
-            <tr>
-                <td>port</td>
-                <td>INTEGER</td>
-                <td>DEFAULT 162, NOT NULL</td>
-                <td>Listening port for SNMP traps.</td>
-            </tr>
-            <tr>
-                <td>location</td>
-                <td>VARCHAR(255)</td>
-                <td>NULL</td>
-                <td>Physical location of the node.</td>
-            </tr>
-            <tr>
-                <td>description</td>
-                <td>TEXT</td>
-                <td>NULL</td>
-                <td>Optional extra details about the node.</td>
-            </tr>
-            <tr>
-                <td>status</td>
-                <td>node_status (ENUM)</td>
-                <td>DEFAULT 'UP', NOT NULL</td>
-                <td>Current operational status of the node (UP, DOWN, WARNING, UNKNOWN).</td>
-            </tr>
-            <tr>
-                <td>node_type</td>
-                <td>VARCHAR(50)</td>
-                <td>NULL</td>
-                <td>The category/type of the telecom node (e.g., BTS, MSC).</td>
-            </tr>
-            <tr>
-                <td>created_at</td>
-                <td>TIMESTAMP</td>
-                <td>DEFAULT CURRENT_TIMESTAMP, NOT NULL</td>
-                <td>Record creation timestamp.</td>
-            </tr>
-        </table>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <h3 class="section-title">Recent Alarms (Traps Logs)</h3>
+                </div>
+                <div class="tip-banner">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="12" y1="16" x2="12" y2="12" />
+                        <line x1="12" y1="8" x2="12.01" y2="8" />
+                    </svg>
+                    Tip: Click on any alarm row to view resolution details.
+                </div>
+                <div class="scrollable-list">
+                    <table style="table-layout: fixed; width: 100%;">
+                        <thead>
+                            <tr>
+                                <th style="width: 25%;">Source (Name & IP)</th>
+                                <th style="width: 45%;">Message</th>
+                                <th style="width: 15%;">Status</th>
+                                <th style="width: 15%;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="trapsTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
 
-        <!-- Trap Actions Table -->
-        <h3><span class="badge bg-warning">Table</span> Trap_Actions</h3>
-        <table>
-            <tr>
-                <th>Column</th>
-                <th>Data Type</th>
-                <th>Constraints</th>
-                <th>Description</th>
-            </tr>
-            <tr>
-                <td>id</td>
-                <td>BIGSERIAL</td>
-                <td><span class="primary-key">PK</span>, Auto Increment</td>
-                <td>Unique identifier for the configured action.</td>
-            </tr>
-            <tr>
-                <td>node_id</td>
-                <td>BIGINT</td>
-                <td><span class="foreign-key">FK</span> (nodes.id), NOT NULL</td>
-                <td>The specific node associated with this automated action.</td>
-            </tr>
-            <tr>
-                <td>trap_oid</td>
-                <td>VARCHAR(150)</td>
-                <td>NOT NULL</td>
-                <td>The SNMP Object Identifier triggering the action.</td>
-            </tr>
-            <tr>
-                <td>trap_name</td>
-                <td>VARCHAR(100)</td>
-                <td>NOT NULL</td>
-                <td>Human-readable name for the trap.</td>
-            </tr>
-            <tr>
-                <td>severity</td>
-                <td>trap_severity (ENUM)</td>
-                <td>NOT NULL</td>
-                <td>Severity level (INFO, MINOR, MAJOR, CRITICAL).</td>
-            </tr>
-            <tr>
-                <td>action_name</td>
-                <td>VARCHAR(100)</td>
-                <td>NOT NULL</td>
-                <td>Name of the action to execute.</td>
-            </tr>
-            <tr>
-                <td>action_type</td>
-                <td>VARCHAR(20)</td>
-                <td>NOT NULL</td>
-                <td>The type of automated response to execute ('SMS', 'EMAIL', 'SCRIPT').</td>
-            </tr>
-            <tr>
-                <td>target_payload</td>
-                <td>VARCHAR(255)</td>
-                <td>NULL</td>
-                <td>The target destination (Phone number, Email, or Script path).</td>
-            </tr>
-            <tr>
-                <td>auto_resolve</td>
-                <td>BOOLEAN</td>
-                <td>DEFAULT FALSE, NOT NULL</td>
-                <td>Flag to indicate if the trap auto-resolves.</td>
-            </tr>
-            <tr>
-                <td>description</td>
-                <td>TEXT</td>
-                <td>NULL</td>
-                <td>Details about the action.</td>
-            </tr>
-            <tr>
-                <td colspan="4" style="background-color:#fff3cd;">
-                    <strong>Composite Constraint:</strong> <code>UNIQUE(node_id, trap_oid)</code> - Prevents defining
-                    duplicate actions for the exact same trap OID on the same Node.
-                </td>
-            </tr>
-        </table>
+            <!-- Right: Panels -->
+            <div style="display: flex; flex-direction: column; gap: 25px;">
 
-        <!-- Trap History Table -->
-        <h3><span class="badge bg-danger">Table</span> Trap_History</h3>
-        <table>
-            <tr>
-                <th>Column</th>
-                <th>Data Type</th>
-                <th>Constraints</th>
-                <th>Description</th>
-            </tr>
-            <tr>
-                <td>id</td>
-                <td>BIGSERIAL</td>
-                <td><span class="primary-key">PK</span>, Auto Increment</td>
-                <td>Unique identifier for the received SNMP trap history record.</td>
-            </tr>
-            <tr>
-                <td>node_id</td>
-                <td>BIGINT</td>
-                <td><span class="foreign-key">FK</span> (nodes.id), NOT NULL</td>
-                <td>The node that generated and sent the trap.</td>
-            </tr>
-            <tr>
-                <td>trap_action_id</td>
-                <td>BIGINT</td>
-                <td><span class="foreign-key">FK</span> (trap_actions.id), NULL</td>
-                <td>Reference to the specific action triggered (if any).</td>
-            </tr>
-            <tr>
-                <td>trap_oid</td>
-                <td>VARCHAR(150)</td>
-                <td>NOT NULL</td>
-                <td>The OID payload of the received trap.</td>
-            </tr>
-            <tr>
-                <td>source_ip</td>
-                <td>VARCHAR(45)</td>
-                <td>NOT NULL</td>
-                <td>IP address from where the trap originated.</td>
-            </tr>
-            <tr>
-                <td>message</td>
-                <td>TEXT</td>
-                <td>NULL</td>
-                <td>Details of the error or the constructed log message.</td>
-            </tr>
-            <tr>
-                <td>status</td>
-                <td>trap_status (ENUM)</td>
-                <td>DEFAULT 'OPEN', NOT NULL</td>
-                <td>Lifecycle status (OPEN, ACKNOWLEDGED, RESOLVED).</td>
-            </tr>
-            <tr>
-                <td>received_at</td>
-                <td>TIMESTAMP</td>
-                <td>DEFAULT CURRENT_TIMESTAMP, NOT NULL</td>
-                <td>Timestamp marking when the trap was captured.</td>
-            </tr>
-            <tr>
-                <td>resolved_at</td>
-                <td>TIMESTAMP</td>
-                <td>NULL</td>
-                <td>Timestamp marking when the issue was resolved.</td>
-            </tr>
-            <tr>
-                <td>resolved_by</td>
-                <td>BIGINT</td>
-                <td><span class="foreign-key">FK</span> (users.id), NULL</td>
-                <td>Tracks which user marked the issue as resolved.</td>
-            </tr>
-        </table>
+                <!-- Profile Settings -->
+                <div class="card card-panel" style="padding: 12px;">
+                    <div
+                        style="margin-bottom: 10px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+                        <h3 style="margin: 0; font-size: 14px;">Profile Settings</h3>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <button class="manage-btn" onclick="openProfileEdit()"><i class="fa-solid fa-user"></i> Edit My
+                            Profile</button>
+                    </div>
+                </div>
 
+                <!-- System Management -->
+                <div class="card card-panel" id="systemManagementCard" style="padding: 12px;">
+                    <div
+                        style="margin-bottom: 10px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+                        <h3 style="margin: 0; font-size: 14px;">System Management</h3>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <!-- Visible to ALL -->
+                        <button class="manage-btn" onclick="openNodesManager()"
+                            style="background-color: var(--light-blue); color: var(--primary-blue); border-color: rgba(165,180,252,0.3);"><i
+                                class="fa-solid fa-satellite-dish"></i>
+                            View Network Elements</button>
+
+                        <!-- Visible to ADMIN ONLY -->
+                        <button class="manage-btn admin-only-item" onclick="openModal('discoverModal')"
+                            style="background-color: var(--light-blue); color: var(--primary-blue); border-color: rgba(165,180,252,0.3);"><i
+                                class="fa-solid fa-network-wired"></i> Discover Network</button>
+                        <button class="success-btn admin-only-item" onclick="openModal('addNodeModal')">+ Add New
+                            Node</button>
+                        <button class="primary-btn admin-only-item" onclick="openModal('addUserModal')"><i
+                                class="fa-solid fa-shield-halved"></i> Add System
+                            User</button>
+                        <button class="manage-btn admin-only-item" onclick="openUsersManager()"><i
+                                class="fa-solid fa-users-gear"></i> Manage Users</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
+    <!-- NOC Chat Assistant -->
+    <div class="chat-bubble-btn" id="chatBtn" onclick="toggleChat()" title="Ask AI Assistant" style="display:none">
+        <i class="fa-solid fa-wand-magic-sparkles"></i>
+    </div>
+
+    <div class="chat-panel" id="chatPanel">
+        <div class="chat-header">
+            <h3><span><i class="fa-solid fa-wand-magic-sparkles"></i> </span> NOC AI Assistant</h3>
+            <span class="chat-close" onclick="toggleChat()">&times;</span>
+        </div>
+        <div class="chat-body" id="chatBody">
+            <div class="chat-message bot">
+                Hello! I'm your NOC AI Assistant. I have access to the live network state and alarm history. How can I
+                help you today?
+                <div>
+                    <button class="quick-action-btn" onclick="requestAiInsights()">
+                        <i class="fa-solid fa-chart-simple"></i> Generate Root Cause Analysis
+                    </button>
+                </div>
+            </div>
+            <div class="typing-indicator" id="typingIndicator">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="chat-input-area">
+            <input type="text" class="chat-input" id="chatInput" placeholder="Ask about network status..."
+                onkeypress="handleChatKeyPress(event)">
+            <button class="chat-send-btn" onclick="sendChatMessage()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="trapDetailsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Alarm Details</h3><span class="close-btn" onclick="closeModal('trapDetailsModal')">&times;</span>
+            </div>
+            <div id="trapDetailsBody" style="font-size: 14px;"></div>
+        </div>
+    </div>
+
+    <!-- Nodes Screen -->
+    <div id="nodesScreen" class="dashboard-container" style="display:none;">
+        <div class="header card-panel">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <button class="manage-btn" style="display:inline-flex; width:auto; align-items:center; gap:8px;"
+                    onclick="backToDashboard()"><i class="fa-solid fa-arrow-left"></i>
+                    Back to Dashboard</button>
+                <h2>Network Elements</h2>
+            </div>
+            <div class="search-box" style="width: 300px;">
+                <span><i class="fa-solid fa-magnifying-glass"></i> </span><input type="text" id="searchNodesList"
+                    onkeyup="filterTable('searchNodesList', 'nodesListBody')"
+                    placeholder="Search Nodes by Name or IP...">
+            </div>
+        </div>
+
+        <div class="card card-panel">
+            <div class="scrollable-list" style="max-height: 70vh;">
+                <table>
+                    <thead id="nodesListHead">
+                        <tr>
+                            <th>Node Name & Type</th>
+                            <th>IP Address</th>
+                            <th>Status</th>
+                            <th>Last Update</th>
+                            <th class="admin-node-col" style="display:none;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="nodesListBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Node Traps History Modal -->
+    <div id="nodeTrapsHistoryModal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3 id="historyModalTitle">Node Trap History</h3><span class="close-btn"
+                    onclick="closeModal('nodeTrapsHistoryModal')">&times;</span>
+            </div>
+            <div id="liveMetricsBanner"
+                style="display: flex; gap: 15px; margin-bottom: 20px; background: var(--bg-raised-2); padding: 15px; border-radius: 12px; border: 1px solid var(--border-soft);">
+                <div style="flex:1; display:flex; align-items:center; gap:12px;">
+                    <i class="fa-solid fa-microchip" style="font-size:24px; color:var(--primary-blue);"></i>
+                    <div>
+                        <div class="stat-label" style="margin:0;">CPU Load</div>
+                        <div id="metricCpu" class="stat-value" style="font-size:18px;">--%</div>
+                    </div>
+                </div>
+                <div style="flex:1; display:flex; align-items:center; gap:12px;">
+                    <i class="fa-solid fa-memory" style="font-size:24px; color:var(--amber);"></i>
+                    <div>
+                        <div class="stat-label" style="margin:0;">RAM Avail</div>
+                        <div id="metricMem" class="stat-value" style="font-size:18px;">-- MB</div>
+                    </div>
+                </div>
+                <div style="flex:1; display:flex; align-items:center; gap:12px;">
+                    <i class="fa-solid fa-hard-drive" style="font-size:24px; color:var(--success-green);"></i>
+                    <div>
+                        <div class="stat-label" style="margin:0;">Log Size</div>
+                        <div id="metricDisk" class="stat-value" style="font-size:18px;">-- MB</div>
+                    </div>
+                </div>
+                <div style="flex:1; display:flex; align-items:center; gap:12px;">
+                    <i class="fa-solid fa-temperature-half" style="font-size:24px; color:var(--text-primary);"></i>
+                    <div>
+                        <div class="stat-label" style="margin:0;">Temp</div>
+                        <div id="metricTemp" class="stat-value" style="font-size:18px;">-- °C</div>
+                    </div>
+                </div>
+            </div>
+            <div class="scrollable-list" style="max-height: 400px;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Message</th>
+                            <th>Status</th>
+                            <th>Received At</th>
+                            <th>Resolved At</th>
+                        </tr>
+                    </thead>
+                    <tbody id="nodeTrapsHistoryBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Discover Network Modal -->
+    <div id="discoverModal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3>Discover Network</h3><span class="close-btn" onclick="closeModal('discoverModal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p style="color: var(--text-secondary); margin-bottom: 20px;">
+                    Scan a range of IP addresses to automatically find and register new nodes.
+                </p>
+                <div class="form-group">
+                    <label>Start IP Address</label>
+                    <input type="text" id="discoverStartIp" placeholder="e.g. 172.25.0.10" />
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label>End IP Address</label>
+                    <input type="text" id="discoverEndIp" placeholder="e.g. 172.25.0.50" />
+                </div>
+                <div id="discoverResults"
+                    style="margin-top: 15px; font-size: 0.9em; max-height: 200px; overflow-y: auto; background: var(--bg-darker); padding: 10px; border-radius: 4px; display: none;">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="primary-btn" onclick="submitDiscovery()" style="width: 100%;">Start Scan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Node Modal -->
+    <div id="addNodeModal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3>Add New Node</h3><span class="close-btn" onclick="closeModal('addNodeModal')">&times;</span>
+            </div>
+            <form onsubmit="submitAddNode(event)">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group"><label>Node Name</label><input type="text" id="newNodeName"
+                            placeholder="e.g. Cairo_BTS" required></div>
+                    <div class="form-group"><label>IP Address</label><input type="text" id="newNodeIp"
+                            placeholder="e.g. 10.0.0.5" required></div>
+                    <div class="form-group">
+                        <label>Node Type</label>
+                        <select id="newNodeType" required>
+                            <option value="BTS">BTS</option>
+                            <option value="MSC">MSC</option>
+                            <option value="BSC">BSC</option>
+                            <option value="SGSN">SGSN</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="margin-top: 15px; border-top: 1px solid var(--border-color); padding-top: 15px;">
+                    <h4 style="margin-top: 0; color: var(--primary-blue);">Trap Actions (Solutions Rules)</h4>
+                    <div id="addNodeTrapsContainer"
+                        style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 15px;"></div>
+                    <button type="button" class="add-trap-btn" onclick="addTrapRow('addNodeTrapsContainer')"><i
+                            class="fa-solid fa-plus"></i> Add
+                        Action Rule</button>
+                </div>
+
+                <button type="submit" class="success-btn">Register Node</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Node Modal -->
+    <div id="editNodeModal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3>Edit Node</h3><span class="close-btn" onclick="closeModal('editNodeModal')">&times;</span>
+            </div>
+            <form onsubmit="submitEditNode(event)">
+                <input type="hidden" id="editNodeId">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group"><label>Node Name</label><input type="text" id="editNodeName" required></div>
+                    <div class="form-group"><label>IP Address</label><input type="text" id="editNodeIp" required></div>
+                    <div class="form-group">
+                        <label>Node Type</label>
+                        <select id="editNodeType" required>
+                            <option value="BTS">BTS</option>
+                            <option value="MSC">MSC</option>
+                            <option value="BSC">BSC</option>
+                            <option value="SGSN">SGSN</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="margin-top: 15px; border-top: 1px solid var(--border-color); padding-top: 15px;">
+                    <h4 style="margin-top: 0; color: var(--primary-blue);">Trap Actions (Solutions Rules)</h4>
+                    <div id="editNodeTrapsContainer"
+                        style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 15px;"></div>
+                    <button type="button" class="add-trap-btn" onclick="addTrapRow('editNodeTrapsContainer')"><i
+                            class="fa-solid fa-plus"></i> Add
+                        Action Rule</button>
+                </div>
+
+                <button type="submit" class="success-btn">Save Changes</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Users Manager -->
+    <div id="usersListModal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3>Manage System Users</h3><span class="close-btn"
+                    onclick="closeModal('usersListModal')">&times;</span>
+            </div>
+            <div class="search-box" style="margin-bottom: 15px; width: 100%;"><span><i
+                        class="fa-solid fa-magnifying-glass"></i> </span><input type="text" id="searchUsersList"
+                    onkeyup="filterTable('searchUsersList', 'usersListBody')" placeholder="Search Users..."></div>
+            <div class="scrollable-list">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Username</th>
+                            <th>Role</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersListBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="addUserModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add User</h3><span class="close-btn" onclick="closeModal('addUserModal')">&times;</span>
+            </div>
+            <form onsubmit="submitAddUser(event)">
+                <div id="addUserError" class="flash-msg"></div>
+                <div class="input-group" style="margin-bottom: 20px;">
+                    <label
+                        style="font-size:14px; font-weight:600; color:var(--text-dark); display:block; margin-bottom:8px;">Username</label>
+                    <div style="position:relative;">
+                        <i class="fa-solid fa-user input-icon" style="color:var(--text-muted)"></i>
+                        <input type="text" id="newUserName" placeholder="Enter username" required>
+                    </div>
+                </div>
+                <div class="input-group" style="margin-bottom: 20px;">
+                    <label
+                        style="font-size:14px; font-weight:600; color:var(--text-dark); display:block; margin-bottom:8px;">Password</label>
+                    <div style="position:relative;">
+                        <i class="fa-solid fa-lock input-icon" style="color:var(--text-muted)"></i>
+                        <input type="password" id="newUserPass" placeholder="••••••••" required>
+                    </div>
+                </div>
+                <div class="input-group" style="margin-bottom: 25px;">
+                    <label
+                        style="font-size:14px; font-weight:600; color:var(--text-dark); display:block; margin-bottom:8px;">Role</label>
+                    <div style="position:relative;">
+                        <i class="fa-solid fa-user-shield input-icon" style="color:var(--text-muted); z-index:1;"></i>
+                        <select id="newUserRole" required
+                            style="width: 100%; padding: 15px 15px 15px 45px; background-color: #f8fafc; border: 1px solid var(--border-color); border-radius: 12px; outline: none; transition: all 0.2s ease;">
+                            <option value="SUPPORT">Support User (View Only)</option>
+                            <option value="ADMIN">System Admin</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="primary-btn"><i class="fa-solid fa-plus"
+                        style="margin-right: 8px;"></i>Create User</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit User Modal -->
+    <div id="editUserModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Edit User</h3><span class="close-btn" onclick="closeModal('editUserModal')">&times;</span>
+            </div>
+            <form onsubmit="submitEditUser(event)">
+                <input type="hidden" id="editUserId">
+                <div id="editUserError" class="flash-msg"></div>
+                <div class="input-group" style="margin-bottom: 20px;">
+                    <label
+                        style="font-size:14px; font-weight:600; color:var(--text-dark); display:block; margin-bottom:8px;">Username</label>
+                    <div style="position:relative;">
+                        <i class="fa-solid fa-user input-icon" style="color:var(--text-muted)"></i>
+                        <input type="text" id="editUserName" placeholder="Enter username" required>
+                    </div>
+                </div>
+                <div class="input-group" style="margin-bottom: 20px;">
+                    <label
+                        style="font-size:14px; font-weight:600; color:var(--text-dark); display:block; margin-bottom:8px;">New
+                        Password <span style="font-weight:400; font-size: 12px; color: var(--text-muted);">(Leave empty
+                            to keep current)</span></label>
+                    <div style="position:relative;">
+                        <i class="fa-solid fa-lock input-icon" style="color:var(--text-muted)"></i>
+                        <input type="password" id="editUserPass" placeholder="••••••••">
+                    </div>
+                </div>
+                <div class="input-group" id="editUserRoleWrapper" style="margin-bottom: 25px;">
+                    <label
+                        style="font-size:14px; font-weight:600; color:var(--text-dark); display:block; margin-bottom:8px;">Role</label>
+                    <div style="position:relative;">
+                        <i class="fa-solid fa-user-shield input-icon" style="color:var(--text-muted); z-index:1;"></i>
+                        <select id="editUserRole" required
+                            style="width: 100%; padding: 15px 15px 15px 45px; background-color: #f8fafc; border: 1px solid var(--border-color); border-radius: 12px; outline: none; transition: all 0.2s ease;">
+                            <option value="SUPPORT">Support User (View Only)</option>
+                            <option value="ADMIN">System Admin</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="primary-btn"><i class="fa-solid fa-check"
+                        style="margin-right: 8px;"></i>Save Changes</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let jwtToken = localStorage.getItem('snmp_token');
+        let refreshInterval = null;
+        let liveMetricsInterval = null; // NEW: Added for Live Metrics
+        let nodesMap = {};
+        let currentUser = null;
+
+        // Hardcoded standard Emulator Traps so admin doesn't memorize OIDs
+        const EMULATOR_TRAPS = [
+            { oid: '1.3.6.1.4.1.99999.0.1', name: 'Disk Full' },
+            { oid: '1.3.6.1.4.1.99999.0.2', name: 'Power Failure' },
+            { oid: '1.3.6.1.4.1.99999.0.3', name: 'Link Down' },
+            { oid: '1.3.6.1.4.1.99999.0.4', name: 'Congestion' },
+            { oid: '1.3.6.1.4.1.99999.0.5', name: 'High Temperature' },
+            { oid: '1.3.6.1.4.1.99999.0.6', name: 'Memory Exhaustion' },
+            { oid: '1.3.6.1.4.1.99999.0.7', name: 'Configuration Error' }
+        ];
+
+        if (jwtToken)
+            showDashboard();
+
+        // 1. JWT Parser Fix - Handle Base64URL encoding safely to prevent crashes
+        function parseJwt(token) {
+            try {
+                let base64Url = token.split('.')[1];
+                let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                let jsonPayload = decodeURIComponent(atob(base64).split('').map(function (c) {
+                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                }).join(''));
+                return JSON.parse(jsonPayload);
+            } catch (e) {
+                console.error("JWT Parse Error", e);
+                return null;
+            }
+        }
+
+        // Helper to escape HTML characters before injecting into DOM elements or onclick events
+        function escapeHtml(str) {
+            if (!str) return "";
+            return String(str).replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;")
+                .replace(/[\n\r]/g, " ");
+        }
+
+        async function performLogin(e) {
+            e.preventDefault();
+            const user = document.getElementById('username').value;
+            const pass = document.getElementById('password').value;
+            showLoader('Authenticating...');
+            try {
+                let res = await fetch('/api/login', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: user, password: pass })
+                });
+                if (res.ok) {
+                    let data = await res.json();
+                    jwtToken = data.token;
+                    localStorage.setItem('snmp_token', jwtToken);
+                    document.getElementById('loginError').style.display = 'none';
+                    document.getElementById('password').value = '';
+                    showDashboard();
+                } else {
+                    document.getElementById('loginError').innerText = "Invalid username or password";
+                    document.getElementById('loginError').style.display = 'block';
+                }
+            } catch (error) {
+                console.error(error);
+            } finally {
+                hideLoader();
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('snmp_token');
+            jwtToken = null;
+            currentUser = null;
+
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+                refreshInterval = null;
+            }
+            if (liveMetricsInterval) {
+                clearInterval(liveMetricsInterval);
+                liveMetricsInterval = null;
+            }
+
+            document.getElementById('dashboardScreen').style.display = 'none';
+            document.getElementById('nodesScreen').style.display = 'none';
+            document.getElementById('chatBtn').style.display = 'none';
+            document.getElementById('chatPanel').classList.remove('active');
+            document.querySelectorAll('.modal').forEach(m => {
+                m.classList.remove('active');
+                m.style.display = '';
+            });
+
+            document.getElementById('loginScreen').style.display = 'flex';
+        }
+
+        function showDashboard() {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('dashboardScreen').style.display = 'block';
+            document.getElementById('chatBtn').style.display = 'flex';
+
+            currentUser = parseJwt(jwtToken);
+            if (currentUser) {
+                document.getElementById('userDisplay').innerText = currentUser.username;
+                let isAdmin = currentUser.role === 'ADMIN';
+
+                document.querySelectorAll('.admin-only-item').forEach(el => {
+                    if (el.tagName.toLowerCase() === 'button' && el.classList.contains('manage-btn')) {
+                        el.style.display = isAdmin ? 'flex' : 'none';
+                    } else {
+                        el.style.display = isAdmin ? 'block' : 'none';
+                    }
+                });
+
+                let adminNodeCol = document.querySelector('.admin-node-col');
+                if (adminNodeCol)
+                    adminNodeCol.style.display = isAdmin ? 'table-cell' : 'none';
+            }
+
+            // Clean up old interval before assigning new one
+            if (refreshInterval) clearInterval(refreshInterval);
+            syncAll();
+            refreshInterval = setInterval(syncAll, 3000);
+        }
+
+        async function fetchWithAuth(url, options = {}) {
+            let headers = options.headers || {};
+            headers['Authorization'] = 'Bearer ' + jwtToken;
+            if (!headers['Content-Type'] && options.body && !(options.body instanceof FormData))
+                headers['Content-Type'] = 'application/json';
+            options.headers = headers;
+            let response = await fetch(url, options);
+            if (response.status === 401) {
+                logout();
+                throw new Error("Token Expired");
+            }
+            return response;
+        }
+
+        async function manualRefresh() {
+            showLoader('Syncing data...');
+            try {
+                await syncAll();
+            } finally {
+                hideLoader();
+            }
+        }
+
+        async function syncAll() {
+            if (!jwtToken) return;
+            try {
+                // 1. Fetch and render Nodes
+                let nRes = await fetchWithAuth('/api/nodes');
+                let nodes = await nRes.json();
+                let nBody = document.getElementById('nodesListBody');
+                if (nBody) nBody.innerHTML = '';
+                nodesMap = {};
+                let nodesOnlineCount = 0;
+
+                nodes.forEach(n => {
+                    if (n.status === 'UP') nodesOnlineCount++;
+                    nodesMap[n.ipAddress] = n.name;
+                    let actionBtns = '';
+                    if (currentUser && currentUser.role === 'ADMIN') {
+                        // Keep Edit action isolated from row click propagation
+                        actionBtns = `<td onclick="event.stopPropagation();">
+                            <button class="icon-btn" style="color:var(--primary-blue);" title="Edit Node" onclick="openEditNode(${n.id}, '${escapeHtml(n.name)}', '${escapeHtml(n.ipAddress)}', '${escapeHtml(n.nodeType)}')"><i class="fa-solid fa-pen"></i> Edit</button>
+                        </td>`;
+                    }
+                    let formattedDate = new Date(n.createdAt).toLocaleString();
+
+                    let badgeClass = 'status-in';
+                    if (n.status === 'DOWN') {
+                        badgeClass = 'status-out';
+                    } else if (n.status === 'WARNING') {
+                        badgeClass = 'status-warn';
+                    } else if (n.status === 'UNKNOWN') {
+                        badgeClass = 'status-unknown';
+                    }
+
+                    // Making the entire row clickable to show trap history for ALL roles
+                    if (nBody) nBody.innerHTML += `
+                        <tr class="clickable-row" onclick="viewNodeHistory(${n.id}, '${escapeHtml(n.ipAddress)}', '${escapeHtml(n.name)}', '${n.status}', '${badgeClass}')">
+                            <td style="color:var(--primary-blue); font-weight:700;">${escapeHtml(n.name)} <br><span style="font-size:13px; color:var(--text-muted);">${escapeHtml(n.nodeType)}</span></td>
+                            <td class="code-font" style="font-size: 15px;">${escapeHtml(n.ipAddress)}</td>
+                            <td><span class="status-badge ${badgeClass}">${n.status}</span></td>
+                            <td style="font-size:13px; color:var(--text-muted)">${formattedDate}</td>
+                            ${actionBtns}
+                        </tr>`;
+                });
+
+                if (document.getElementById('searchNodesList')) {
+                    filterTable('searchNodesList', 'nodesListBody');
+                }
+
+                // 2. Fetch and render Traps
+                let tRes = await fetchWithAuth('/api/traps');
+                let traps = await tRes.json();
+                let tBody = document.getElementById('trapsTableBody');
+                tBody.innerHTML = '';
+
+                let openCount = 0;
+                let resolvedTodayCount = 0;
+                let unknownCount = 0;
+                let today = new Date();
+                today.setHours(0, 0, 0, 0);
+
+                if (traps.length === 0) tBody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No alarms.</td></tr>';
+
+                traps.forEach(t => {
+                    if (t.status === 'OPEN') openCount++;
+                    if (t.status === 'RESOLVED' && t.resolvedAt) {
+                        let resDate = new Date(t.resolvedAt);
+                        if (resDate >= today) resolvedTodayCount++;
+                    }
+                    let btn = t.status === 'OPEN'
+                        ? `<button class="action-btn resolve-btn" onclick="resolveTrap(${t.id}, event)">Resolve</button>`
+                        : `<span class="action-done"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> Resolved</span>`;
+                    let name = nodesMap[t.sourceIp] || "Unknown Node";
+                    let time = new Date(t.receivedAt).toLocaleString();
+                    let resName = t.resolvedByUsername || "System";
+                    let resTime = t.resolvedAt ? new Date(t.resolvedAt).toLocaleString() : "";
+
+                    // --- AI SAFETY & UNKNOWN UI LOGIC ---
+                    let rawMsg = t.message || t.trapOid;
+                    let cleanMsg = rawMsg;
+                    let displayMsg = rawMsg;
+
+                    let isAiBlocked = rawMsg.includes('[AI BLOCKED:');
+                    let isAiOverridden = rawMsg.includes('[AI OVERRIDDEN');
+                    let isUnrecognized = rawMsg.includes('Unrecognized trap');
+                    let aiReason = "";
+                    let rowClass = "clickable-row";
+
+                    if (isUnrecognized) {
+                        unknownCount++;
+                        rowClass += " unknown-trap-row";
+
+                        let extractedOid = cleanMsg.replace('Unrecognized trap:', '').trim();
+
+                        let knownTrap = EMULATOR_TRAPS.find(t => t.oid === extractedOid);
+                        let niceName = knownTrap ? knownTrap.name : "System Alarm (" + extractedOid + ")";
+
+                        displayMsg = `<span style="color: var(--text-primary); font-size: 14px;">${niceName}</span> <span class="unknown-tag"><i class="fa-solid fa-circle-question"></i> UNKNOWN</span>`;
+                    }
+                    else if (isAiBlocked || isAiOverridden) {
+                        let startIndex = rawMsg.indexOf('[AI BLOCKED:');
+                        if (startIndex === -1) startIndex = rawMsg.indexOf('[AI OVERRIDDEN');
+
+                        cleanMsg = rawMsg.substring(0, startIndex).trim();
+
+                        let colonIndex = rawMsg.indexOf(':', startIndex);
+                        if (colonIndex !== -1) {
+                            aiReason = rawMsg.substring(colonIndex + 1, rawMsg.lastIndexOf(']')).trim();
+                        }
+
+                        if (t.status === 'OPEN' && isAiBlocked) {
+                            displayMsg = escapeHtml(cleanMsg) + '<br><span style="color:var(--amber); font-weight:800; font-size:13px;"><i class="fa-solid fa-robot"></i> AI Execution Paused</span>';
+                            rowClass += " ai-blocked-row";
+                        } else if (isAiOverridden) {
+                            displayMsg = escapeHtml(cleanMsg) + ' <br><span style="font-size:12px; color:var(--green); font-weight:bold;" title="Human engineer bypassed AI warning"><i class="fa-solid fa-check"></i> AI Overridden (Forced Execution)</span>';
+                        } else {
+                            displayMsg = escapeHtml(cleanMsg) + ' <br><span style="font-size:12px; color:var(--text-meta);" title="Auto-execution was prevented by AI"><i class="fa-solid fa-robot"></i> (Previously AI Blocked)</span>';
+                        }
+                    } else {
+                        displayMsg = escapeHtml(cleanMsg);
+                    }
+
+                    // Severity shape + color logic
+                    let sevLevel = 'warning';
+                    if (t.status === 'RESOLVED') {
+                        sevLevel = 'resolved';
+                    } else if (t.severity) {
+                        let s = String(t.severity).toLowerCase();
+                        if (s === 'critical') sevLevel = 'critical';
+                        else if (s === 'major') sevLevel = 'major';
+                        else if (s === 'warning' || s === 'minor' || s === 'info') sevLevel = 'warning';
+                    } else {
+                        let lowerMsg = (cleanMsg || '').toLowerCase();
+                        if (lowerMsg.includes('power') || lowerMsg.includes('critical') || lowerMsg.includes('link down') || lowerMsg.includes('down') || lowerMsg.includes('failure')) {
+                            sevLevel = 'critical';
+                        } else if (lowerMsg.includes('congestion') || lowerMsg.includes('memory') || lowerMsg.includes('major')) {
+                            sevLevel = 'major';
+                        } else {
+                            sevLevel = 'warning';
+                        }
+                    }
+
+                    let sevPillHtml = '';
+                    if (sevLevel === 'critical') {
+                        sevPillHtml = `<span class="sev-pill sev-critical"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L1 21h22L12 2z"/></svg><span class="trap-status-text">CRITICAL</span></span>`;
+                    } else if (sevLevel === 'major') {
+                        sevPillHtml = `<span class="sev-pill sev-major"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/></svg><span class="trap-status-text">MAJOR</span></span>`;
+                    } else if (sevLevel === 'warning') {
+                        sevPillHtml = `<span class="sev-pill sev-warning"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><polygon points="12,2 22,12 12,22 2,12"/></svg><span class="trap-status-text">WARNING</span></span>`;
+                    } else {
+                        sevPillHtml = `<span class="sev-pill sev-resolved"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg><span class="trap-status-text">RESOLVED</span></span>`;
+                    }
+
+                    // Use proper escaping to prevent onclick execution failures
+                    let safeAiReason = escapeHtml(aiReason);
+                    let safeCleanMsg = escapeHtml(cleanMsg);
+                    let alarmRowClass = 'alarm-row sev-' + sevLevel;
+
+                    tBody.innerHTML += `<tr class="${rowClass} ${alarmRowClass}" onclick="showTrapDetails(${t.id}, '${escapeHtml(name)}', '${escapeHtml(t.sourceIp)}', '${safeCleanMsg}', '${t.status}', '${time}', '${escapeHtml(resName)}', '${resTime}', '${safeAiReason}', ${isAiOverridden}, '${sevLevel}')">
+                        <td><div class="source-name">${escapeHtml(name)}</div><div class="source-ip">${escapeHtml(t.sourceIp)}</div></td>
+                        <td><div class="msg-title">${displayMsg}</div><div class="msg-time">${time}</div></td>
+                        <td>${sevPillHtml}</td>
+                        <td onclick="event.stopPropagation();">${btn}</td></tr>`;
+                });
+
+                filterTraps();
+
+                // Update stat cards
+                if (document.getElementById('statOpen')) {
+                    document.getElementById('statOpen').innerText = openCount;
+                    document.getElementById('statResolved').innerText = resolvedTodayCount;
+                    document.getElementById('statUnknown').innerText = unknownCount;
+                    let statNodesEl = document.getElementById('statNodes');
+                    statNodesEl.innerText = `${nodesOnlineCount} / ${nodes.length}`;
+                    let ratio = nodes.length > 0 ? nodesOnlineCount / nodes.length : 0;
+                    if (ratio >= 0.75) {
+                        statNodesEl.className = 'stat-value ok';
+                        statNodesEl.style.color = 'var(--green)';
+                    } else if (ratio >= 0.5) {
+                        statNodesEl.className = 'stat-value warn';
+                        statNodesEl.style.color = 'var(--amber)';
+                    } else {
+                        statNodesEl.className = 'stat-value crit';
+                        statNodesEl.style.color = 'var(--red)';
+                    }
+                }
+
+            } catch (e) {
+                console.error("Sync Error:", e);
+            }
+        }
+
+        async function resolveTrap(id, e) {
+            if (e)
+                e.stopPropagation();
+            showLoader('Resolving trap...');
+            try {
+                await fetchWithAuth(`/api/traps/${id}/resolve`, { method: 'PUT' });
+                syncAll();
+            } finally {
+                hideLoader();
+            }
+        }
+
+        // --- Dynamic Trap Row Construction ---
+        function addTrapRow(containerId, data = null) {
+            let container = document.getElementById(containerId);
+            let row = document.createElement('div');
+            row.className = 'trap-action-row';
+            row.style.cssText = 'display: flex; flex-direction: column; gap: 15px; border: 1px solid var(--border-color); padding: 15px; background: var(--bg-body); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);'; let oid = data ? data.trapOid : '';
+            let name = data ? data.trapName : '';
+            let severity = data ? data.severity : 'INFO';
+            let actionType = data ? data.actionType : ''; let payload = data ? (data.targetPayload || '') : '';
+            let autoResolve = data ? data.autoResolve : false;
+            // Determine if it's a known Emulator Trap or Custom
+            let isCustom = true;
+            let trapSelectValue = 'CUSTOM';
+            if (oid) {
+                let found = EMULATOR_TRAPS.find(t => t.oid === oid);
+                if (found) {
+                    isCustom = false;
+                    trapSelectValue = oid + '|' + name;
+                }
+            }
+
+            // Build Options
+            let trapOptions = `<option value="">-- Select Hardware Alarm --</option>`;
+            EMULATOR_TRAPS.forEach(t => {
+                let val = t.oid + '|' + t.name;
+                let selected = (trapSelectValue === val) ? 'selected' : '';
+                trapOptions += `<option value="${val}" ${selected}>${t.name}</option>`;
+            });
+            trapOptions += `<option value="CUSTOM" ${trapSelectValue === 'CUSTOM' ? 'selected' : ''}><i class="fa-solid fa-plus"></i> Add Custom Hardware Trap</option>`;
+            row.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; font-weight: bold; color: var(--primary-blue); font-size: 14px;">
+                        <span><i class="fa-solid fa-gear"></i> Alarm Rule Definition</span>
+                        <button type="button" class="danger-btn" style="padding: 4px 10px; font-size: 12px; height: 26px;" onclick="this.closest('.trap-action-row').remove()"><i class="fa-solid fa-trash"></i> Remove</button>
+                    </div>
+
+                    <!-- 1. Trap Selection -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div>
+                            <label>Hardware Alarm (Trap)</label>
+                            <select class="t-trap-select" onchange="toggleCustomTrap(this)" required style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border-color);">
+                                ${trapOptions}
+                            </select>
+                        </div>
+                        <div>
+                            <label>Severity</label>
+                            <select class="t-sev" required style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border-color);">
+                                <option value="INFO" ${severity === 'INFO' ? 'selected' : ''}>INFO</option>
+                                <option value="MINOR" ${severity === 'MINOR' ? 'selected' : ''}>MINOR</option>
+                                <option value="MAJOR" ${severity === 'MAJOR' ? 'selected' : ''}>MAJOR</option>
+                                <option value="CRITICAL" ${severity === 'CRITICAL' ? 'selected' : ''}>CRITICAL</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Custom Trap Inputs -->
+                    <div class="custom-trap-inputs" style="display: ${isCustom && data ? 'grid' : 'none'}; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div>
+                            <label>Custom OID (From Vendor Manual)</label>
+                            <input type="text" class="t-oid" placeholder="e.g. 1.3.6.1.4.1..." value="${isCustom ? escapeHtml(oid) : ''}" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border-color); box-sizing: border-box;">
+                        </div>
+                        <div>
+                            <label>Custom Alarm Name</label>
+                            <input type="text" class="t-name" placeholder="e.g. Fiber Cut" value="${isCustom ? escapeHtml(name) : ''}" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border-color); box-sizing: border-box;">
+                        </div>
+                    </div>
+
+                    <!-- 2. Action Selection -->
+                    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 15px; align-items: start;">
+                        <div>
+                            <label>Automated Action</label>
+                            <select class="t-atype" onchange="toggleActionInputs(this)" required style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border-color);">
+                                <option value="">-- Select Action --</option>
+                                <option value="SMS" ${actionType === 'SMS' ? 'selected' : ''}><i class="fa-solid fa-mobile-screen"></i> Send SMS</option>
+                                <option value="EMAIL" ${actionType === 'EMAIL' ? 'selected' : ''}><i class="fa-solid fa-envelope"></i> Send Email</option>
+                                <option value="SCRIPT" ${actionType === 'SCRIPT' ? 'selected' : ''}><i class="fa-solid fa-screwdriver-wrench"></i> Run Server Script</option>
+                            </select>
+                        </div>
+
+                        <!-- Dynamic Input Area -->
+                        <div class="action-dynamic-area">
+                            <!-- Shown for SMS / EMAIL -->
+                            <div class="target-input-wrapper" style="display: ${['SMS', 'EMAIL'].includes(actionType) ? 'block' : 'none'};">
+                                <label class="target-label">${actionType === 'EMAIL' ? 'Target Email Address' : 'Target Phone Number'}</label>
+                                <input type="text" class="t-payload-text" placeholder="Enter recipient..." value="${['SMS', 'EMAIL'].includes(actionType) ? escapeHtml(payload) : ''}" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border-color); box-sizing: border-box;">
+                            </div>
+
+                            <!-- Shown for SCRIPT -->
+                            <div class="script-upload-wrapper" style="display: ${actionType === 'SCRIPT' ? 'block' : 'none'};">
+                                <label>Script File (.sh, .py, etc.)</label>
+                                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                                    <input type="text" class="t-payload-script" placeholder="No file selected..." value="${actionType === 'SCRIPT' ? escapeHtml(payload) : ''}" readonly style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border-color); box-sizing: border-box;">
+                                    <button type="button" class="primary-btn t-upload-btn" style="width: auto; padding: 10px 15px;" onclick="this.nextElementSibling.click()">Browse</button>
+                                    <input type="file" style="display: none;" onchange="uploadScriptFile(this)">
+                                </div>
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--primary-blue); font-weight: 700; font-size: 13px;">
+                                    <input type="checkbox" class="t-autoresolve" style="width: 16px; height: 16px;" ${autoResolve ? 'checked' : ''}>
+                                    Auto-Resolve Alarm on Success
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            container.appendChild(row);
+        }
+
+        function toggleCustomTrap(selectElem) {
+            let row = selectElem.closest('.trap-action-row');
+            let customInputs = row.querySelector('.custom-trap-inputs');
+            let oidInput = row.querySelector('.t-oid');
+            let nameInput = row.querySelector('.t-name');
+            if (selectElem.value === 'CUSTOM') {
+                customInputs.style.display = 'grid';
+                oidInput.required = true;
+                nameInput.required = true;
+            } else {
+                customInputs.style.display = 'none';
+                oidInput.required = false;
+                nameInput.required = false;
+            }
+        }
+
+        function toggleActionInputs(selectElem) {
+            let row = selectElem.closest('.trap-action-row');
+            let actionType = selectElem.value;
+            let textWrapper = row.querySelector('.target-input-wrapper');
+            let scriptWrapper = row.querySelector('.script-upload-wrapper');
+            let targetLabel = row.querySelector('.target-label');
+            let textInput = row.querySelector('.t-payload-text');
+            let scriptInput = row.querySelector('.t-payload-script');
+
+            if (actionType === 'SMS') {
+                textWrapper.style.display = 'block';
+                scriptWrapper.style.display = 'none';
+                targetLabel.innerText = 'Target Phone Number';
+                textInput.required = true;
+                scriptInput.required = false;
+            } else if (actionType === 'EMAIL') {
+                textWrapper.style.display = 'block';
+                scriptWrapper.style.display = 'none';
+                targetLabel.innerText = 'Target Email Address';
+                textInput.required = true;
+                scriptInput.required = false;
+            } else if (actionType === 'SCRIPT') {
+                textWrapper.style.display = 'none';
+                scriptWrapper.style.display = 'block';
+                textInput.required = false;
+                scriptInput.required = true;
+            } else {
+                textWrapper.style.display = 'none';
+                scriptWrapper.style.display = 'none';
+                textInput.required = false;
+                scriptInput.required = false;
+            }
+        }
+
+        async function uploadScriptFile(fileInput) {
+            if (!fileInput.files.length) return;
+            let formData = new FormData();
+            formData.append("file", fileInput.files[0]);
+
+            let row = fileInput.closest('.trap-action-row');
+            let payloadInput = row.querySelector('.t-payload-script');
+            let uploadBtn = row.querySelector('.t-upload-btn');
+            uploadBtn.innerText = 'Uploading...';
+
+            try {
+                let res = await fetchWithAuth('/api/upload-script', {
+                    method: 'POST',
+                    body: formData // Let browser set multipart/form-data content type
+                });
+                if (res.ok) {
+                    let data = await res.json();
+                    // Server returns just the filename now
+                    payloadInput.value = data.fileName;
+                    uploadBtn.innerHTML = 'Uploaded <i class="fa-solid fa-check"></i>';
+                    setTimeout(() => uploadBtn.innerText = 'Browse', 2000);
+                } else {
+                    let errorText = await res.text();
+                    alert(errorText || "File upload failed!");
+                    uploadBtn.innerText = 'Browse';
+                }
+            } catch (e) {
+                alert("Error uploading script.");
+                uploadBtn.innerText = 'Browse';
+            }
+        }
+
+        function getTrapActions(containerId) {
+            let container = document.getElementById(containerId);
+            let rows = container.getElementsByClassName('trap-action-row');
+            let actions = [];
+
+            for (let row of rows) {
+                let trapSelect = row.querySelector('.t-trap-select').value;
+                let oid, name;
+
+                if (trapSelect === 'CUSTOM') {
+                    oid = row.querySelector('.t-oid').value.trim();
+                    name = row.querySelector('.t-name').value.trim();
+
+                    let oidRegex = /^\d+(\.\d+)+$/;
+                    if (!oid || !oidRegex.test(oid)) {
+                        alert(`❌ Validation Error: Please add a hardware trap.`);
+                        return null;
+                    }
+                    if (!name) {
+                        alert(`❌ Validation Error: Please enter a valid Alarm Name for the custom trap.`);
+                        return null;
+                    }
+                }
+                else if (trapSelect !== '') {
+                    let parts = trapSelect.split('|');
+                    oid = parts[0];
+                    name = parts[1];
+                }
+                else {
+                    alert(`❌ Validation Error: Please select a Hardware Alarm (Trap) from the dropdown for all rules.`);
+                    return null;
+                }
+                // ----------------------------------------
+
+                let severity = row.querySelector('.t-sev').value;
+                let actionType = row.querySelector('.t-atype').value;
+                let targetPayload = '';
+                let autoResolve = false;
+
+                // --- Strict Validation ---
+                if (actionType === 'SCRIPT') {
+                    targetPayload = row.querySelector('.t-payload-script').value;
+                    autoResolve = row.querySelector('.t-autoresolve').checked;
+
+                    if (!targetPayload || targetPayload.trim() === '') {
+                        alert(`Validation Error: Please select a script file for the [${name}] alarm.`);
+                        return null; // Stop and return null
+                    }
+                }
+                else if (actionType === 'SMS') {
+                    targetPayload = row.querySelector('.t-payload-text').value;
+                    // Regex for E.164 Twilio format (+ followed by 10 to 14 digits)
+                    let phoneRegex = /^\+[1-9]\d{9,14}$/;
+
+                    if (!targetPayload || !phoneRegex.test(targetPayload)) {
+                        alert(`Validation Error: Please enter a valid international phone number for the [${name}] alarm.\nFormat must be: +[CountryCode][Number] (e.g., +201012345678)`);
+                        return null;
+                    }
+                }
+                else if (actionType === 'EMAIL') {
+                    targetPayload = row.querySelector('.t-payload-text').value;
+                    // Regex for standard Email format
+                    let emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+
+                    if (!targetPayload || !emailRegex.test(targetPayload)) {
+                        alert(`Validation Error: Please enter a valid Email Address for the [${name}] alarm.`);
+                        return null;
+                    }
+                }
+                else {
+                    // User forgot to select an Action Type
+                    alert(`Validation Error: Please select an Automated Action for the [${name}] alarm.`);
+                    return null;
+                }
+                // --- End Validation ---
+
+                actions.push({
+                    trapOid: oid,
+                    trapName: name,
+                    severity: severity,
+                    actionType: actionType,
+                    targetPayload: targetPayload,
+                    autoResolve: autoResolve
+                });
+            }
+            return actions;
+        }
+        // --- Node APIs ---
+        function isValidIP(ip) {
+            const ipRegex = /^(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}$/;
+            return ipRegex.test(ip);
+        }
+
+        async function submitAddNode(e) {
+            e.preventDefault();
+            let nodeName = document.getElementById('newNodeName').value.trim();
+            let nodeIp = document.getElementById('newNodeIp').value.trim();
+
+            if (!nodeName) { alert("❌ Please enter a valid Node Name."); return; }
+            if (!isValidIP(nodeIp)) { alert("❌ Please enter a valid IPv4 Address (e.g., 10.0.0.5)."); return; }
+
+            let actions = getTrapActions('addNodeTrapsContainer');
+            if (actions === null) return;
+
+            let body = {
+                name: nodeName,
+                ipAddress: nodeIp,
+                nodeType: document.getElementById('newNodeType').value,
+                trapActions: actions
+            };
+            showLoader('Provisioning Node...');
+            try {
+                await fetchWithAuth('/api/nodes', { method: 'POST', body: JSON.stringify(body) });
+                closeModal('addNodeModal');
+                openNodesManager();
+            } finally {
+                hideLoader();
+            }
+        }
+
+        async function submitEditNode(e) {
+            e.preventDefault();
+            let id = document.getElementById('editNodeId').value;
+            let nodeName = document.getElementById('editNodeName').value.trim();
+            let nodeIp = document.getElementById('editNodeIp').value.trim();
+
+            if (!nodeName) { alert("❌ Please enter a valid Node Name."); return; }
+            if (!isValidIP(nodeIp)) { alert("❌ Please enter a valid IPv4 Address (e.g., 10.0.0.5)."); return; }
+
+            let actions = getTrapActions('editNodeTrapsContainer');
+            if (actions === null) return;
+
+            let body = {
+                name: nodeName,
+                ipAddress: nodeIp,
+                nodeType: document.getElementById('editNodeType').value,
+                trapActions: actions
+            };
+
+            showLoader('Saving changes...');
+            try {
+                let res = await fetchWithAuth(`/api/nodes/${id}`, { method: 'PUT', body: JSON.stringify(body) });
+                if (res.ok) {
+                    closeModal('editNodeModal');
+                    openNodesManager();
+                } else {
+                    alert("❌ Server Error: Failed to save changes. Make sure you don't have duplicate rules for the same hardware alarm.");
+                }
+            } catch (err) {
+                alert("❌ Network Error: Could not reach the server.");
+            } finally {
+                hideLoader();
+            }
+        }
+        async function openEditNode(id, name, ip, type) {
+            document.getElementById('editNodeId').value = id;
+            document.getElementById('editNodeName').value = name;
+            document.getElementById('editNodeIp').value = ip;
+            document.getElementById('editNodeType').value = type || 'BTS';
+
+            document.getElementById('editNodeTrapsContainer').innerHTML = '';
+            try {
+                let res = await fetchWithAuth(`/api/nodes/${id}/trapActions`);
+                let actions = await res.json();
+                actions.forEach(a => addTrapRow('editNodeTrapsContainer', a));
+            } catch (e) { console.error("Error fetching trap actions", e); }
+
+            openModal('editNodeModal');
+        }
+
+        // --- User APIs ---
+        async function openUsersManager() {
+            showLoader('Loading Users...');
+            try {
+                let res = await fetchWithAuth('/api/users');
+                let users = await res.json();
+                let body = document.getElementById('usersListBody');
+                body.innerHTML = '';
+                users.forEach(u => {
+                    let badge = u.role === 'ADMIN' ? 'status-warn' : 'status-in';
+                    let isMe = u.id === currentUser.userId;
+
+                    let actions = `<button class="icon-btn" style="color:var(--primary-blue);" onclick="openAdminEditUser(${u.id}, '${escapeHtml(u.username)}', '${u.role}')"><i class="fa-solid fa-pen"></i> </button>`;
+                    if (!isMe) actions += `<button class="icon-btn" style="color:var(--danger-red);" onclick="deleteUser(${u.id})"><i class="fa-solid fa-trash"></i> </button>`;
+
+                    body.innerHTML += `<tr><td class="code-font">#${u.id}</td><td style="font-weight:700;">${escapeHtml(u.username)} ${isMe ? '<span style="color:var(--success-green); font-size:11px;">(You)</span>' : ''}</td><td><span class="status-badge ${badge}">${u.role}</span></td><td>${actions}</td></tr>`;
+                });
+                openModal('usersListModal');
+            } finally {
+                hideLoader();
+            }
+        }
+
+        async function submitAddUser(e) {
+            e.preventDefault();
+            let errDiv = document.getElementById('addUserError');
+            if (errDiv) errDiv.style.display = 'none';
+
+            let body = { username: document.getElementById('newUserName').value, password: document.getElementById('newUserPass').value, role: document.getElementById('newUserRole').value };
+            let pass = document.getElementById('newUserPass').value;
+            if (pass.length < 4) {
+                if (errDiv) { errDiv.innerText = "Password must be at least 4 characters long."; errDiv.style.display = 'block'; }
+                return;
+            }
+
+            showLoader('Creating user...');
+            try {
+                let res = await fetchWithAuth('/api/users', { method: 'POST', body: JSON.stringify(body) });
+
+                if (res.ok) {
+                    document.getElementById('newUserName').value = '';
+                    document.getElementById('newUserPass').value = '';
+                    closeModal('addUserModal');
+                    openUsersManager();
+                } else {
+                    let data = await res.json().catch(() => ({ error: "Failed to create user." }));
+                    if (errDiv) { errDiv.innerText = data.error; errDiv.style.display = 'block'; }
+                }
+            } finally {
+                hideLoader();
+            }
+        }
+
+        async function deleteUser(id) {
+            if (confirm('Delete this user?')) {
+                showLoader('Deleting user...');
+                try {
+                    await fetchWithAuth(`/api/users/${id}`, { method: 'DELETE' });
+                    openUsersManager();
+                } finally {
+                    hideLoader();
+                }
+            }
+        }
+
+        function openAdminEditUser(id, username, role) {
+            document.getElementById('editUserId').value = id;
+            document.getElementById('editUserName').value = username;
+            document.getElementById('editUserPass').value = '';
+            document.getElementById('editUserRole').value = role;
+            document.getElementById('editUserRoleWrapper').style.display = 'block';
+
+            closeModal('usersListModal');
+            openModal('editUserModal');
+        }
+
+        function openProfileEdit() {
+            document.getElementById('editUserId').value = currentUser.userId;
+            document.getElementById('editUserName').value = currentUser.username;
+            document.getElementById('editUserPass').value = '';
+            document.getElementById('editUserRole').value = currentUser.role;
+
+            if (currentUser.role !== 'ADMIN') {
+                document.getElementById('editUserRoleWrapper').style.display = 'none';
+            } else {
+                document.getElementById('editUserRoleWrapper').style.display = 'block';
+            }
+            openModal('editUserModal');
+        }
+
+        async function submitEditUser(e) {
+            e.preventDefault();
+            let errDiv = document.getElementById('editUserError');
+            if (errDiv) errDiv.style.display = 'none';
+
+            let id = document.getElementById('editUserId').value;
+            let body = {
+                username: document.getElementById('editUserName').value,
+                password: document.getElementById('editUserPass').value,
+                role: document.getElementById('editUserRole').value
+            };
+            let pass = document.getElementById('editUserPass').value;
+            if (pass && pass.length < 4) {
+                if (errDiv) { errDiv.innerText = "New password must be at least 4 characters long."; errDiv.style.display = 'block'; }
+                return;
+            }
+            showLoader('Saving user...');
+            try {
+                let res = await fetchWithAuth(`/api/users/${id}`, { method: 'PUT', body: JSON.stringify(body) });
+
+                if (res.ok) {
+                    closeModal('editUserModal');
+                    if (id == currentUser.userId && (body.username !== currentUser.username || body.password)) {
+                        alert('Your profile was updated. Please login again.');
+                        logout();
+                    } else {
+                        if (currentUser.role === 'ADMIN') openUsersManager();
+                    }
+                } else {
+                    let data = await res.json().catch(() => ({ error: "Failed to update user." }));
+                    if (errDiv) { errDiv.innerText = data.error; errDiv.style.display = 'block'; }
+                }
+            } finally {
+                hideLoader();
+            }
+        }
+
+        // Helpers
+        function openNodesManager() {
+            showLoader('Loading Network Elements...');
+            syncAll().then(() => {
+                document.getElementById('dashboardScreen').style.display = 'none';
+                document.getElementById('nodesScreen').style.display = 'block';
+                hideLoader();
+            }).catch(() => { hideLoader(); });
+        }
+        function backToDashboard() {
+            document.getElementById('nodesScreen').style.display = 'none';
+            document.getElementById('dashboardScreen').style.display = 'block';
+        }
+
+        async function viewNodeHistory(nodeId, ipAddress, nodeName, nodeStatus, nodeBadgeClass) {
+            showLoader('Loading history...');
+            try {
+                let tRes = await fetchWithAuth('/api/traps');
+                let allTraps = await tRes.json();
+                let nodeTraps = allTraps.filter(t => t.sourceIp === ipAddress);
+
+                let hBody = document.getElementById('nodeTrapsHistoryBody');
+                hBody.innerHTML = '';
+
+                let nodeStatusBadge = `<span class="status-badge ${nodeBadgeClass || 'status-in'}">${nodeStatus || 'UNKNOWN'}</span>`;
+
+                if (nodeTraps.length === 0) {
+                    hBody.innerHTML = `<tr><td colspan="4" style="text-align:center;">No history available for this node.</td></tr>`;
+                } else {
+                    // Sort traps by receivedAt descending
+                    nodeTraps.sort((a, b) => new Date(b.receivedAt) - new Date(a.receivedAt));
+
+                    nodeTraps.forEach(t => {
+                        let recTime = new Date(t.receivedAt).toLocaleString();
+                        let resTime = t.resolvedAt ? new Date(t.resolvedAt).toLocaleString() : '-';
+                        let badgeHtml = `<span class="status-badge ${t.status === 'OPEN' ? 'status-out' : 'status-in'} trap-status-text">${t.status}</span>`;
+
+                        let msg = t.message || t.trapOid;
+                        let iconHtml = '';
+
+                        // Clean AI blocks/overrides from message display for history if present
+                        if (msg.includes('[AI BLOCKED:')) {
+                            msg = msg.substring(0, msg.indexOf('[AI BLOCKED:')).trim();
+                            iconHtml = ' <i class="fa-solid fa-robot" style="color: var(--warning-orange);" title="AI Blocked"></i>';
+                        } else if (msg.includes('[AI OVERRIDDEN')) {
+                            msg = msg.substring(0, msg.indexOf('[AI OVERRIDDEN')).trim();
+                            iconHtml = ' <i class="fa-solid fa-user-gear" style="color: var(--success-green);" title="AI Overridden"></i>';
+                        }
+
+                        hBody.innerHTML += `<tr>
+                            <td style="font-size:14px; max-width: 300px; word-wrap: break-word;">${escapeHtml(msg)}${iconHtml}</td>
+                            <td>${badgeHtml}</td>
+                            <td style="font-size:13px; color:var(--text-muted)">${recTime}</td>
+                            <td style="font-size:13px; color:var(--text-muted)">${resTime}</td>
+                        </tr>`;
+                    });
+                }
+
+                document.getElementById('historyModalTitle').innerHTML = `Diagnostics: ${nodeName} (${ipAddress}) <span style="font-size:14px; font-weight:500; margin-left:10px; vertical-align:middle;">Node Status: ${nodeStatusBadge}</span>`;
+                openModal('nodeTrapsHistoryModal');
+
+                // --- NEW: Start Live Metrics Streaming ---
+                fetchLiveMetrics(nodeId); // Initial fetch
+                if (liveMetricsInterval) clearInterval(liveMetricsInterval);
+                liveMetricsInterval = setInterval(() => fetchLiveMetrics(nodeId), 3000); // Poll every 3 seconds
+
+            } catch (e) {
+                console.error("Error fetching trap history", e);
+                alert("Failed to load trap history");
+            } finally {
+                hideLoader();
+            }
+        }
+
+        // --- NEW: Fetch Live Metrics ---
+        async function fetchLiveMetrics(nodeId) {
+            try {
+                let res = await fetchWithAuth(`/api/nodes/${nodeId}/metrics`);
+                if (res.ok) {
+                    let data = await res.json();
+                    document.getElementById('metricCpu').innerText = data.cpuLoad + '%';
+                    document.getElementById('metricMem').innerText = Math.round(data.memAvail / 1024) + ' MB';
+                    document.getElementById('metricDisk').innerText = data.diskUsage + ' MB';
+                    document.getElementById('metricTemp').innerText = data.temperature + ' °C';
+
+                    // Highlight values in red if they exceed thresholds
+                    document.getElementById('metricTemp').style.color = data.temperature > 75 ? 'var(--danger-red)' : 'var(--text-primary)';
+                    document.getElementById('metricDisk').style.color = data.diskUsage > 100 ? 'var(--danger-red)' : 'var(--text-primary)';
+                    document.getElementById('metricCpu').style.color = data.congestion === 1 ? 'var(--danger-red)' : 'var(--text-primary)';
+                } else {
+                    // Reset to default if no metrics available yet
+                    document.getElementById('metricCpu').innerText = '--%';
+                    document.getElementById('metricMem').innerText = '-- MB';
+                    document.getElementById('metricDisk').innerText = '-- MB';
+                    document.getElementById('metricTemp').innerText = '-- °C';
+
+                    document.getElementById('metricTemp').style.color = 'var(--text-primary)';
+                    document.getElementById('metricDisk').style.color = 'var(--text-primary)';
+                    document.getElementById('metricCpu').style.color = 'var(--text-primary)';
+                }
+            } catch (e) {
+                console.error("Failed to fetch live metrics", e);
+            }
+        }
+
+        function openModal(id) {
+            if (id === 'addNodeModal') {
+                document.getElementById('addNodeTrapsContainer').innerHTML = '';
+                document.getElementById('newNodeName').value = '';
+                document.getElementById('newNodeIp').value = '';
+            }
+            let el = document.getElementById(id);
+            if (el) el.classList.add('active');
+        }
+        function closeModal(id) {
+            let el = document.getElementById(id);
+            if (el) el.classList.remove('active');
+
+            // --- NEW: Stop Live Metrics Streaming when modal closes ---
+            if (id === 'nodeTrapsHistoryModal' && liveMetricsInterval) {
+                clearInterval(liveMetricsInterval);
+                liveMetricsInterval = null;
+            }
+        }
+
+        function filterTraps() {
+            let txt = document.getElementById('searchTraps').value.toLowerCase();
+            let status = document.getElementById('statusFilter').value;
+            let trs = document.getElementById('trapsTableBody').getElementsByTagName('tr');
+            for (let i = 0; i < trs.length; i++) {
+                if (trs[i].getElementsByTagName('td').length === 1) continue;
+                let matchSearch = trs[i].textContent.toLowerCase().includes(txt);
+                let matchStatus = (status === 'ALL' || trs[i].querySelector('.trap-status-text').textContent === status);
+                trs[i].style.display = (matchSearch && matchStatus) ? "" : "none";
+            }
+        }
+        function filterTable(input, tableBody) {
+            let txt = document.getElementById(input).value.toLowerCase();
+            let trs = document.getElementById(tableBody).getElementsByTagName('tr');
+            for (let i = 0; i < trs.length; i++)
+                trs[i].style.display = trs[i].textContent.toLowerCase().includes(txt) ? "" : "none";
+        }
+        function showTrapDetails(id, nName, ip, msg, status, tRec, rName, tRes, aiReason = "", isOverridden = false, sevLevel = 'warning') {
+            let bd = document.getElementById('trapDetailsBody');
+
+            let h = `<div class="detail-row"><span>Node Name:</span><span>${nName}</span></div>
+                     <div class="detail-row"><span>IP Address:</span><span class="code-font">${ip}</span></div>
+                     <div class="detail-row"><span>Alarm:</span><span>${msg}</span></div>`;
+
+            if (aiReason && status === 'OPEN') {
+                // Ensure button is ONLY visible for Admins (Check role)
+                let overrideBtnHtml = '';
+                if (currentUser && currentUser.role === 'ADMIN') {
+                    overrideBtnHtml = `<button class="danger-btn" style="margin-top:15px; width:100%; border-color:#d97706; color:#b45309;" onclick="forceExecute(${id}, event)"><i class="fa-solid fa-triangle-exclamation"></i> Force Execute Script (Override AI)</button>`;
+                }
+
+                h += `<div class="ai-warning-box">
+                        <h4 style="margin:0 0 10px 0; color:#d97706; display:flex; align-items:center; gap:8px;"><i class="fa-solid fa-robot"></i> AI Safety Warning</h4>
+                        <p style="margin:0; font-size:13px; color:#92400e; font-weight:600;">${aiReason}</p>
+                        ${overrideBtnHtml}
+                      </div>`;
+            } else if (isOverridden) {
+                h += `<div class="ai-warning-box" style="background-color:var(--green-dim); border-color:var(--success-green);">
+                        <h4 style="margin:0 0 10px 0; color:var(--success-green); display:flex; align-items:center; gap:8px;"><i class="fa-solid fa-check"></i> AI Overridden</h4>
+                        <p style="margin:0; font-size:13px; color:#065f46; font-weight:600;">A human engineer bypassed the AI warning and forced execution.</p>
+                      </div>`;
+            }
+
+            let cardSevPill = '';
+            if (sevLevel === 'critical') {
+                cardSevPill = `<span class="sev-pill sev-critical"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L1 21h22L12 2z"/></svg><span class="trap-status-text">CRITICAL</span></span>`;
+            } else if (sevLevel === 'major') {
+                cardSevPill = `<span class="sev-pill sev-major"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/></svg><span class="trap-status-text">MAJOR</span></span>`;
+            } else if (sevLevel === 'warning') {
+                cardSevPill = `<span class="sev-pill sev-warning"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><polygon points="12,2 22,12 12,22 2,12"/></svg><span class="trap-status-text">WARNING</span></span>`;
+            } else {
+                cardSevPill = `<span class="sev-pill sev-resolved"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg><span class="trap-status-text">RESOLVED</span></span>`;
+            }
+
+            h += `<div class="detail-row"><span>Status:</span>${cardSevPill}</div>
+                  <div class="detail-row"><span>Time Received:</span><span>${tRec}</span></div>`;
+
+            if (status === 'RESOLVED') {
+                h += `<div style="margin-top:15px; padding:10px; background:var(--green-dim); border:1px dashed var(--success-green); border-radius:8px;">
+                        <div class="detail-row" style="border:none; padding-bottom:5px;"><span>Resolved By:</span><span style="color:var(--success-green); font-size:15px;"><i class="fa-solid fa-user-gear"></i> ${rName}</span></div>
+                        <div class="detail-row" style="border:none; padding-top:0;"><span>Time Resolved:</span><span><i class="fa-regular fa-clock"></i> ${tRes}</span></div>
+                      </div>`;
+            }
+            bd.innerHTML = h;
+            openModal('trapDetailsModal');
+        }
+
+        async function forceExecute(id, event) {
+            if (event) event.stopPropagation();
+            if (!confirm('⚠️ WARNING: You are overriding the AI Safety Gate. Are you sure you want to FORCE execute this script?')) return;
+
+            let btn = event.target;
+            let originalText = btn.innerHTML;
+            btn.innerHTML = 'Executing... <i class="fa-solid fa-hourglass-half"></i> ';
+            btn.disabled = true;
+
+            try {
+                let res = await fetchWithAuth(`/api/traps/${id}/force-execute`, { method: 'POST' });
+                if (res.ok) {
+                    closeModal('trapDetailsModal');
+                    syncAll();
+                } else {
+                    let data = await res.json();
+                    alert("Execution Failed: " + (data.error || 'Unknown error'));
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }
+            } catch (e) {
+                alert("Error connecting to server.");
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        // --- NOC Chat Assistant JS ---
+        let chatHistory = [];
+
+        function toggleChat() {
+            document.getElementById('chatPanel').classList.toggle('active');
+            if (document.getElementById('chatPanel').classList.contains('active')) {
+                document.getElementById('chatInput').focus();
+            }
+        }
+
+        function handleChatKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendChatMessage();
+            }
+        }
+
+        async function sendChatMessage() {
+            let input = document.getElementById('chatInput');
+            let msg = input.value.trim();
+            if (!msg) return;
+
+            input.value = '';
+
+            appendMessage('user', escapeHtml(msg));
+
+            document.getElementById('typingIndicator').style.display = 'block';
+            scrollToBottom();
+
+            try {
+                let res = await fetchWithAuth('/api/ai/chat', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        message: msg,
+                        history: chatHistory
+                    })
+                });
+
+                document.getElementById('typingIndicator').style.display = 'none';
+
+                if (res.ok) {
+                    let data = await res.json();
+
+                    chatHistory.push({ role: 'user', content: msg });
+                    chatHistory.push({ role: 'assistant', content: data.response });
+
+                    streamBotMessage(data.response);
+                } else {
+                    appendMessage('bot', 'Sorry, I encountered an error communicating with the server.');
+                }
+            } catch (e) {
+                document.getElementById('typingIndicator').style.display = 'none';
+                appendMessage('bot', 'Network error. Please try again later.');
+            }
+        }
+
+        async function requestAiInsights() {
+            let msg = "Please generate a Root Cause Analysis report for recent network alarms.";
+            appendMessage('user', escapeHtml(msg));
+            chatHistory.push({ role: 'user', content: msg });
+
+            document.getElementById('typingIndicator').style.display = 'block';
+            scrollToBottom();
+
+            try {
+                let res = await fetchWithAuth('/api/ai/insights', { method: 'GET' });
+                document.getElementById('typingIndicator').style.display = 'none';
+
+                if (res.ok) {
+                    let data = await res.json();
+                    chatHistory.push({ role: 'assistant', content: data.markdown });
+                    streamBotMessage(data.markdown);
+                } else {
+                    appendMessage('bot', 'Sorry, I failed to generate the insights report.');
+                }
+            } catch (e) {
+                document.getElementById('typingIndicator').style.display = 'none';
+                appendMessage('bot', 'Network error. Please try again later.');
+            }
+        }
+
+        function streamBotMessage(fullText) {
+            let body = document.getElementById('chatBody');
+            let typing = document.getElementById('typingIndicator');
+
+            let div = document.createElement('div');
+            div.className = 'chat-message bot';
+            body.insertBefore(div, typing);
+
+            let words = fullText.split(/(\s+)/); // split but keep whitespace
+            let current = '';
+            let i = 0;
+            let speed = 20; // ms per word
+
+            let interval = setInterval(() => {
+                if (i < words.length) {
+                    current += words[i];
+                    div.innerHTML = marked.parse(current);
+                    scrollToBottom();
+                    i++;
+                } else {
+                    clearInterval(interval);
+                }
+            }, speed);
+        }
+
+        function appendMessage(role, content, isHtml = false) {
+            let body = document.getElementById('chatBody');
+            let typing = document.getElementById('typingIndicator');
+
+            let div = document.createElement('div');
+            div.className = `chat-message ${role}`;
+
+            if (isHtml) {
+                div.innerHTML = content;
+            } else {
+                div.textContent = content;
+            }
+
+            body.insertBefore(div, typing);
+            scrollToBottom();
+        }
+
+        function scrollToBottom() {
+            let body = document.getElementById('chatBody');
+            body.scrollTop = body.scrollHeight;
+        }
+        function showLoader(message = 'Loading...') {
+            document.getElementById('globalLoaderText').innerText = message;
+            document.getElementById('globalLoader').style.display = 'flex';
+        }
+        function hideLoader() {
+            document.getElementById('globalLoader').style.display = 'none';
+        }
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            const toggleBtn = document.getElementById('themeToggleBtn');
+            if (toggleBtn) {
+                toggleBtn.innerHTML = newTheme === 'dark' ? '<i class="fa-solid fa-moon"></i>' : '<i class="fa-solid fa-sun"></i>';
+            }
+        }
+
+        function showCustomAlert(message) {
+            let iconDiv = document.getElementById('customAlertIcon');
+
+            if (message.includes('❌') || message.toLowerCase().includes('error') || message.toLowerCase().includes('fail')) {
+                iconDiv.innerHTML = '<i class="fa-solid fa-circle-xmark"></i>';
+                iconDiv.style.color = 'var(--danger-red)';
+            } else if (message.includes('✅') || message.toLowerCase().includes('success') || message.toLowerCase().includes('updated')) {
+                iconDiv.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
+                iconDiv.style.color = 'var(--success-green)';
+            } else {
+                iconDiv.innerHTML = '<i class="fa-solid fa-circle-info"></i>';
+                iconDiv.style.color = 'var(--primary-blue)';
+            }
+
+            let cleanMessage = message.replace(/[❌✅]/g, '').trim();
+            document.getElementById('customAlertMessage').innerText = cleanMessage;
+
+            openModal('customAlertModal');
+        }
+
+        window.alert = function (msg) {
+            showCustomAlert(msg);
+        };
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            const toggleBtn = document.getElementById('themeToggleBtn');
+            if (toggleBtn) {
+                toggleBtn.innerHTML = savedTheme === 'dark' ? '<i class="fa-solid fa-moon"></i>' : '<i class="fa-solid fa-sun"></i>';
+            }
+        });
+
+        window.addEventListener('keydown', (e) => {
+            if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+                e.preventDefault();
+                const searchInput = document.getElementById('searchTraps');
+                if (searchInput) searchInput.focus();
+            }
+        });
+        async function submitDiscovery() {
+            const startIp = document.getElementById('discoverStartIp').value.trim();
+            const endIp = document.getElementById('discoverEndIp').value.trim();
+            if (!startIp || !endIp) {
+                alert("Please enter both Start IP and End IP.");
+                return;
+            }
+
+            const resultsDiv = document.getElementById('discoverResults');
+            resultsDiv.style.display = 'block';
+            resultsDiv.innerHTML = '<div style="color: var(--primary-blue);"><i class="fa-solid fa-spinner fa-spin"></i> Scanning network... please wait.</div>';
+
+            try {
+                const response = await fetch('/api/discovery', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + jwtToken },
+                    body: JSON.stringify({ startIp, endIp })
+                });
+
+                if (response.ok) {
+                    const nodes = await response.json();
+                    if (nodes.length === 0) {
+                        resultsDiv.innerHTML = '<div style="color: var(--text-secondary);">Scan completed. No nodes found in this range.</div>';
+                    } else {
+                        let html = `<div style="color: var(--success-green); margin-bottom: 12px; font-weight: 600; display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-circle-check"></i> Found ${nodes.length} node(s):</div><ul style="margin: 0; padding-left: 28px; list-style-type: disc;">`;
+                        nodes.forEach(n => {
+                            html += `<li style="margin-bottom: 6px; color: var(--text-primary);"><strong style="color: var(--primary-blue);">${n.ipAddress}</strong> - ${n.name} <span style="color: var(--text-secondary);">(${n.nodeType || 'Unknown'})</span></li>`;
+                        });
+                        html += '</ul>';
+                        resultsDiv.innerHTML = html;
+                        syncAll(); // Refresh dashboard
+                    }
+                } else {
+                    const data = await response.json();
+                    resultsDiv.innerHTML = `<div style="color: var(--danger-red);">❌ Error: ${data.error || 'Scan failed'}</div>`;
+                }
+            } catch (err) {
+                resultsDiv.innerHTML = `<div style="color: var(--danger-red);">❌ Error: ${err.message}</div>`;
+            }
+        }
+    </script>
+    <!-- Global Loader -->
+    <div id="globalLoader" class="loader-overlay" style="display: none;">
+        <div class="loader-spinner"></div>
+        <div id="globalLoaderText" class="loader-text">Loading...</div>
+    </div>
+    <!-- Custom Alert Modal -->
+    <div id="customAlertModal" class="modal" style="z-index: 10000;">
+        <div class="modal-content" style="max-width: 400px; text-align: center; padding: 40px 30px;">
+            <div id="customAlertIcon" style="font-size: 50px; margin-bottom: 20px;">
+                <i class="fa-solid fa-circle-exclamation"></i>
+            </div>
+            <h3 style="margin-top: 0; margin-bottom: 15px; font-size: 22px;">Notification</h3>
+            <p id="customAlertMessage"
+                style="color: var(--text-muted); line-height: 1.6; margin-bottom: 30px; font-size: 15px;"></p>
+            <button class="primary-btn" onclick="closeModal('customAlertModal')"
+                style="width: 100%; padding: 12px; font-size: 15px;">OK</button>
+        </div>
+    </div>
 </body>
 
 </html>
