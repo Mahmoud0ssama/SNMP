@@ -1,5 +1,5 @@
 package com.snmp.manager.heartbeat.service;
-
+import com.snmp.manager.snmp.poller.SnmpGetResult;
 import com.snmp.manager.dao.NodeDAO;
 import com.snmp.manager.model.Node;
 import com.snmp.manager.model.NodeStatus;
@@ -14,6 +14,16 @@ import java.util.concurrent.ConcurrentHashMap;
 public class HeartbeatService {
 
     private final Map<Long, NodeStatus> cachedStatus = new ConcurrentHashMap<>();
+    // Cache for Live Metrics
+    private final Map<Long, SnmpGetResult> cachedMetrics = new ConcurrentHashMap<>();
+
+    public void updateMetrics(long nodeId, SnmpGetResult metrics) {
+        cachedMetrics.put(nodeId, metrics);
+    }
+
+    public SnmpGetResult getMetrics(long nodeId) {
+        return cachedMetrics.get(nodeId);
+    }
 
     private final NodeDAO nodeDAO;
 

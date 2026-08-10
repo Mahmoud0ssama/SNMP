@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class SnmpHealthMonitor implements AutoCloseable {
 
-    private static final int POLL_INTERVAL_SECONDS = 10;
+    private static final int POLL_INTERVAL_SECONDS = 3;
     private static final int FAILURE_THRESHOLD = 3;
     private static final String COMMUNITY_STRING = "public";
     private static final int SNMP_PORT = 161;
@@ -76,6 +76,7 @@ public class SnmpHealthMonitor implements AutoCloseable {
             if (result.reachable()) {
                 failureCounts.remove(node.getId());
                 heartbeatService.onNodeSeen(node.getId(), Instant.now());
+                heartbeatService.updateMetrics(node.getId(), result);
                 if (node.getStatus() != NodeStatus.UP) {
                     System.out.println("Node " + node.getId() + " (" + node.getName() + ") marked UP via SNMP poll.");
                 }
