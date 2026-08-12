@@ -3247,15 +3247,35 @@
                 if (response.ok) {
                     const nodes = await response.json();
                     if (nodes.length === 0) {
-                        resultsDiv.innerHTML = '<div style="color: var(--text-secondary);">Scan completed. No nodes found in this range.</div>';
+                        resultsDiv.innerHTML = '<div style="color: var(--text-secondary);">Scan completed. No active SNMP nodes found in this range.</div>';
                     } else {
-                        let html = `<div style="color: var(--success-green); margin-bottom: 12px; font-weight: 600; display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-circle-check"></i> Found ${nodes.length} node(s):</div><ul style="margin: 0; padding-left: 28px; list-style-type: disc;">`;
+                        let html = `<div style="color: var(--success-green); margin-bottom: 12px; font-weight: 600; display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-circle-check"></i> Found ${nodes.length} node(s):</div>`;
+                        html += `<table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                                    <tr style="border-bottom: 1px solid var(--border-color); color: var(--text-muted); text-align: left;">
+                                        <th style="padding: 8px;">IP Address</th>
+                                        <th style="padding: 8px;">Node Name</th>
+                                        <th style="padding: 8px;">Action</th>
+                                    </tr>`;
+                        
                         nodes.forEach(n => {
-                            html += `<li style="margin-bottom: 6px; color: var(--text-primary);"><strong style="color: var(--primary-blue);">${n.ipAddress}</strong> - ${n.name} <span style="color: var(--text-secondary);">(${n.nodeType || 'Unknown'})</span></li>`;
+                            let actionHtml = '';
+                            if (n.id) {
+                                actionHtml = `<span style="color: var(--text-muted); font-size: 12px;"><i class="fa-solid fa-check"></i> Already Added</span>`;
+                            } else {
+                                let safeName = escapeHtml(n.name || 'Unknown');
+                                let safeIp = escapeHtml(n.ipAddress);
+                                let safeType = escapeHtml(n.nodeType || 'BTS');
+                                actionHtml = `<button type="button" class="quick-action-btn" style="margin:0; padding:4px 10px; font-size: 12px;" onclick="quickAddDiscoveredNode('${safeIp}', '${safeName}', '${safeType}', this)"><i class="fa-solid fa-plus"></i> Add</button>`;
+                            }
+                            
+                            html += `<tr style="border-bottom: 1px solid var(--border-soft);">
+                                        <td style="padding: 8px; font-family: monospace; color: var(--primary-blue);">${n.ipAddress}</td>
+                                        <td style="padding: 8px; color: var(--text-primary);">${n.name} <span style="color: var(--text-muted); font-size: 11px;">(${n.nodeType || 'Unknown'})</span></td>
+                                        <td style="padding: 8px;">${actionHtml}</td>
+                                    </tr>`;
                         });
-                        html += '</ul>';
+                        html += `</table>`;
                         resultsDiv.innerHTML = html;
-                        syncAll(); // Refresh dashboard
                     }
                 } else {
                     const data = await response.json();
@@ -3265,6 +3285,33 @@
                 resultsDiv.innerHTML = `<div style="color: var(--danger-red);">❌ Error: ${err.message}</div>`;
             }
         }
+        async function quickAddDiscoveredNode(ip, name, type, btnElement) {
+            btnElement.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Adding...';
+            btnElement.disabled = true;
+            
+            let body = {
+                name: name,
+                ipAddress: ip,
+                nodeType: type,
+                trapActions: []
+            };
+            
+            try {
+                let res = await fetchWithAuth('/api/nodes', { method: 'POST', body: JSON.stringify(body) });
+                if (res.ok) {
+                    btnElement.parentElement.innerHTML = `<span style="color: var(--success-green); font-weight: bold; font-size: 12px;"><i class="fa-solid fa-check-double"></i> Added Successfully</span>`;
+                    syncAll();
+                } else {
+                    alert("❌ Failed to add node.");
+                    btnElement.innerHTML = '<i class="fa-solid fa-plus"></i> Add';
+                    btnElement.disabled = false;
+                }
+            } catch (e) {
+                alert("❌ Error adding node.");
+                btnElement.innerHTML = '<i class="fa-solid fa-plus"></i> Add';
+                btnElement.disabled = false;
+            }
+        }       
     </script>
     <!-- Global Loader -->
     <div id="globalLoader" class="loader-overlay" style="display: none;">

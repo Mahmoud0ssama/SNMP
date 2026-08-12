@@ -53,3 +53,18 @@ services:
       - NMS_SERVER_IP=172.25.0.1
       - NODE_NAME=Alex_MSC
       - NODE_TYPE=MSC
+
+  tanta-bsc-01:
+    build: 
+      context: .
+      dockerfile: Dockerfile.telecom-node
+    container_name: tanta-bsc-01
+    networks:
+      telecom_net:
+        ipv4_address: 172.25.0.40
+    volumes:
+      - ./nodes/tanta-bsc-01/hardware_specs.cfg:/etc/node/hardware_specs.cfg:ro
+    environment:
+      - NMS_SERVER_IP=172.25.0.1
+      - NODE_NAME=Tanta_BSC_01
+      - NODE_TYPE=BSC
