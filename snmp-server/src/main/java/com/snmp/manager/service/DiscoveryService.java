@@ -51,9 +51,6 @@ public class DiscoveryService {
                 if (existingNode.isPresent()) {
                     Node node = existingNode.get();
                     node.setDescription(result.sysDescr());
-                    if (node.getStatus() != NodeStatus.UP) {
-                        node.setStatus(NodeStatus.UP);
-                    }
                     if (result.nodeInfo() != null) {
                         String[] lines = result.nodeInfo().split("\n");
                         for (String line : lines) {
@@ -64,7 +61,6 @@ public class DiscoveryService {
                             }
                         }
                     }
-                    nodeDAO.update(node);
                     processedNodes.add(node);
                 } else {
                     Node node = new Node();
@@ -95,17 +91,15 @@ public class DiscoveryService {
                     node.setNodeType(nodeType);
                     node.setDescription(result.sysDescr());
                     
-                    nodeDAO.save(node);
                     processedNodes.add(node);
                 }
             } catch (SQLException e) {
-                System.err.println("Persistence failure during discovery for IP " + result.ipAddress() + ": " + e.getMessage());
+                System.err.println("Database error checking IP " + result.ipAddress() + ": " + e.getMessage());
             }
         }
         
         return processedNodes;
     }
-
     /**
      * Performs a multi-threaded SNMP scan across the specified IP range.
      * 
