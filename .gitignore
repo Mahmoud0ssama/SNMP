@@ -35,3 +35,4 @@ TestLoad.*
 # ---------------------
 
 **/dependency-reduced-pom.xml
+snmp-server/src/main/resources/*_api_key.txt
