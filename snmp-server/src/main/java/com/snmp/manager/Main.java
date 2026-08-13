@@ -110,10 +110,11 @@ public class Main {
         TrapHistoryDAO trapHistoryDAO = new TrapHistoryDAO(db);
         NodeService nodeService = new NodeService(nodeDAO, trapActionDAO);
         AiAnalysisService aiService = new AiAnalysisService(db);
-        TrapService trapService = new TrapService(nodeDAO, trapActionDAO, trapHistoryDAO, nodeService, db);
+        TrapService trapService = new TrapService(nodeDAO, trapActionDAO, trapHistoryDAO, nodeService, db, heartbeatService);
         com.snmp.manager.snmp.poller.SnmpPoller snmpPoller = new com.snmp.manager.snmp.poller.SnmpPoller();
         com.snmp.manager.service.DiscoveryService discoveryService = new com.snmp.manager.service.DiscoveryService(nodeDAO, snmpPoller);
 
+        heartbeatService.setOnNodeRecovered(nodeId -> trapService.recalculateNodeStatus(nodeId));
 
         // Make sure pool is closed on shutdown
         Runtime.getRuntime().addShutdownHook(new Thread(db::close));
@@ -173,6 +174,10 @@ public class Main {
             Long trapId = Long.parseLong(ctx.pathParam("id"));
             boolean success = trapHistoryDAO.resolveTrap(trapId, jwt.getClaim("userId").asLong());
             if (success) {
+                Long nodeId = trapHistoryDAO.getNodeIdForTrap(trapId);
+                if (nodeId != null) {
+                    trapService.recalculateNodeStatus(nodeId);
+                }
                 ctx.json(Map.of("status", "success"));
             } else {
                 ctx.status(400).result("Error resolving trap");
@@ -477,6 +482,10 @@ public class Main {
                     
                     String newMsg = oldMessage.replace("[AI BLOCKED:", "[AI OVERRIDDEN (Forced):");
                     trapHistoryDAO.updateMessage(trapId, newMsg);
+
+                    if (nodeId != null) {
+                        trapService.recalculateNodeStatus(nodeId);
+                    }
 
                     ctx.json(Map.of("status", "success", "message", "Script force-executed successfully"));
                 } else {

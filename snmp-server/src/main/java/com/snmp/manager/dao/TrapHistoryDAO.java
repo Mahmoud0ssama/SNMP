@@ -118,6 +118,58 @@ public java.util.List<TrapHistory> findAll() throws SQLException {
         }
     }
 
+    public Long getNodeIdForTrap(long trapId) throws SQLException {
+        String sql = "SELECT node_id FROM trap_history WHERE id = ?";
+        try (Connection conn = databaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, trapId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getLong("node_id");
+                }
+            }
+        }
+        return null;
+    }
+
+    public java.util.List<TrapHistory> findOpenTrapsForNode(long nodeId) throws SQLException {
+        String sql = "SELECT t.id, t.node_id, t.trap_action_id, t.trap_oid, t.source_ip, t.message, t.status, t.received_at, t.resolved_at "
+                   + "FROM trap_history t "
+                   + "WHERE t.node_id = ? AND t.status = 'OPEN'::trap_status "
+                   + "ORDER BY t.received_at DESC";
+        
+        java.util.List<TrapHistory> traps = new java.util.ArrayList<>();
+        
+        try (Connection conn = databaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, nodeId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    TrapHistory history = new TrapHistory();
+                    history.setId(rs.getLong("id"));
+                    history.setNodeId(rs.getLong("node_id"));
+                    
+                    long actionId = rs.getLong("trap_action_id");
+                    if (!rs.wasNull()) history.setTrapActionId(actionId);
+                    
+                    history.setTrapOid(rs.getString("trap_oid"));
+                    history.setSourceIp(rs.getString("source_ip"));
+                    history.setMessage(rs.getString("message"));
+                    history.setStatus(com.snmp.manager.model.TrapStatus.valueOf(rs.getString("status")));
+                    history.setReceivedAt(rs.getTimestamp("received_at").toInstant());
+                    
+                    java.sql.Timestamp resolvedAt = rs.getTimestamp("resolved_at");
+                    if (resolvedAt != null) {
+                        history.setResolvedAt(resolvedAt.toInstant());
+                    }
+                    
+                    traps.add(history);
+                }
+            }
+        }
+        return traps;
+    }
+
     /**
      * Updates the message text of a trap history record.
      * Used by the AI Safety Gate to tag blocked actions with the AI's reasoning.

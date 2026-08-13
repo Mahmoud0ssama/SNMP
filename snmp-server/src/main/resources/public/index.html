@@ -1210,6 +1210,7 @@
             color: white;
             align-self: flex-end;
             border-bottom-right-radius: 4px;
+            white-space: pre-wrap;
         }
 
         .chat-input-area {
@@ -1259,6 +1260,79 @@
 
         .chat-send-btn:hover {
             background: #2563eb;
+        }
+
+        .prompt-menu-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+            margin-right: 8px;
+        }
+        
+        .prompt-menu-btn {
+            background: transparent;
+            color: var(--text-muted);
+            border: 1px solid var(--border-soft);
+            border-radius: 50%;
+            width: 38px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .prompt-menu-btn:hover {
+            background: var(--bg-hover);
+            color: var(--primary-blue);
+        }
+
+        .prompt-menu {
+            position: absolute;
+            bottom: 45px;
+            left: 0;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            width: 250px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            z-index: 100;
+            opacity: 0;
+            transform: translateY(10px) scale(0.95);
+            pointer-events: none;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform-origin: bottom left;
+        }
+        
+        .prompt-menu.active {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            pointer-events: all;
+        }
+
+        .prompt-menu-item {
+            padding: 12px 15px;
+            font-size: 13px;
+            color: var(--text-primary);
+            cursor: pointer;
+            border-bottom: 1px solid var(--border-soft);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: background 0.2s;
+        }
+        
+        .prompt-menu-item:last-child {
+            border-bottom: none;
+        }
+
+        .prompt-menu-item:hover {
+            background: var(--bg-hover);
+            color: var(--primary-blue);
         }
 
         .typing-indicator {
@@ -1547,7 +1621,7 @@
                         <div id="statOpen" class="stat-value crit">0</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-label">Resolved (24h)</div>
+                        <div class="stat-label">Total Resolved</div>
                         <div id="statResolved" class="stat-value ok">0</div>
                     </div>
                     <div class="stat-card">
@@ -1575,10 +1649,10 @@
                     <table style="table-layout: fixed; width: 100%;">
                         <thead>
                             <tr>
-                                <th style="width: 25%;">Source (Name & IP)</th>
-                                <th style="width: 45%;">Message</th>
-                                <th style="width: 15%;">Status</th>
-                                <th style="width: 15%;">Action</th>
+                                <th style="width: 25%; position: sticky; top: 0; background-color: var(--card-bg); z-index: 10;">Source (Name & IP)</th>
+                                <th style="width: 45%; position: sticky; top: 0; background-color: var(--card-bg); z-index: 10;">Message</th>
+                                <th style="width: 15%; position: sticky; top: 0; background-color: var(--card-bg); z-index: 10;">Status</th>
+                                <th style="width: 15%; position: sticky; top: 0; background-color: var(--card-bg); z-index: 10;">Action</th>
                             </tr>
                         </thead>
                         <tbody id="trapsTableBody"></tbody>
@@ -1645,17 +1719,34 @@
             <div class="chat-message bot">
                 Hello! I'm your NOC AI Assistant. I have access to the live network state and alarm history. How can I
                 help you today?
-                <div>
-                    <button class="quick-action-btn" onclick="requestAiInsights()">
-                        <i class="fa-solid fa-chart-simple"></i> Generate Root Cause Analysis
-                    </button>
-                </div>
             </div>
             <div class="typing-indicator" id="typingIndicator">
                 <span></span><span></span><span></span>
             </div>
         </div>
-        <div class="chat-input-area">
+        <div class="chat-input-area" style="position: relative;">
+            <div class="prompt-menu-container">
+                <button id="promptMenuBtn" class="prompt-menu-btn" onclick="togglePromptMenu()" title="Quick Prompts">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                </button>
+                <div id="promptMenu" class="prompt-menu">
+                    <div class="prompt-menu-item" onclick="requestAiInsights(); togglePromptMenu();">
+                        <i class="fa-solid fa-chart-simple"></i> Root Cause Analysis
+                    </div>
+                    <div class="prompt-menu-item" onclick="sendQuickAiPrompt('Can you give me a brief, high-level summary of the current network health, including the ratio of online nodes and a breakdown of open alarms?'); togglePromptMenu();">
+                        <i class="fa-solid fa-heart-pulse"></i> Network Health Summary
+                    </div>
+                    <div class="prompt-menu-item" onclick="sendQuickAiPrompt('Analyze the currently OPEN alarms and suggest a step-by-step remediation plan to resolve the most critical ones first.'); togglePromptMenu();">
+                        <i class="fa-solid fa-wrench"></i> Remediation Plan
+                    </div>
+                    <div class="prompt-menu-item" onclick="sendQuickAiPrompt('Look at the recent traps history. Are there any recurring patterns, such as a specific node failing frequently or a specific type of alarm repeating?'); togglePromptMenu();">
+                        <i class="fa-solid fa-magnifying-glass-chart"></i> Find Alarm Patterns
+                    </div>
+                    <div class="prompt-menu-item" onclick="sendQuickAiPrompt('Do you see any alarms or patterns in the network that indicate a potential security threat or unusual anomaly?'); togglePromptMenu();">
+                        <i class="fa-solid fa-shield-halved"></i> Security Check
+                    </div>
+                </div>
+            </div>
             <input type="text" class="chat-input" id="chatInput" placeholder="Ask about network status..."
                 onkeypress="handleChatKeyPress(event)">
             <button class="chat-send-btn" onclick="sendChatMessage()">
@@ -2212,7 +2303,7 @@
                 tBody.innerHTML = '';
 
                 let openCount = 0;
-                let resolvedTodayCount = 0;
+                let totalResolvedCount = 0;
                 let unknownCount = 0;
                 let today = new Date();
                 today.setHours(0, 0, 0, 0);
@@ -2221,9 +2312,8 @@
 
                 traps.forEach(t => {
                     if (t.status === 'OPEN') openCount++;
-                    if (t.status === 'RESOLVED' && t.resolvedAt) {
-                        let resDate = new Date(t.resolvedAt);
-                        if (resDate >= today) resolvedTodayCount++;
+                    if (t.status === 'RESOLVED') {
+                        totalResolvedCount++;
                     }
                     let btn = t.status === 'OPEN'
                         ? `<button class="action-btn resolve-btn" onclick="resolveTrap(${t.id}, event)">Resolve</button>`
@@ -2342,7 +2432,7 @@
                 // Update stat cards
                 if (document.getElementById('statOpen')) {
                     document.getElementById('statOpen').innerText = openCount;
-                    document.getElementById('statResolved').innerText = resolvedTodayCount;
+                    document.getElementById('statResolved').innerText = totalResolvedCount;
                     document.getElementById('statUnknown').innerText = unknownCount;
                     let statNodesEl = document.getElementById('statNodes');
                     statNodesEl.innerText = `${nodesOnlineCount} / ${nodes.length}`;
@@ -2996,7 +3086,8 @@
             for (let i = 0; i < trs.length; i++) {
                 if (trs[i].getElementsByTagName('td').length === 1) continue;
                 let matchSearch = trs[i].textContent.toLowerCase().includes(txt);
-                let matchStatus = (status === 'ALL' || trs[i].querySelector('.trap-status-text').textContent === status);
+                let trapStatus = trs[i].querySelector('.trap-status-text').textContent;
+                let matchStatus = (status === 'ALL') || (status === 'OPEN' && trapStatus !== 'RESOLVED') || (status === trapStatus);
                 trs[i].style.display = (matchSearch && matchStatus) ? "" : "none";
             }
         }
@@ -3093,20 +3184,39 @@
             }
         }
 
+        function togglePromptMenu() {
+            const menu = document.getElementById('promptMenu');
+            menu.classList.toggle('active');
+        }
+        
+        document.addEventListener('click', function(event) {
+            const container = document.querySelector('.prompt-menu-container');
+            if (container && !container.contains(event.target)) {
+                const menu = document.getElementById('promptMenu');
+                if (menu) menu.classList.remove('active');
+            }
+        });
+
         function handleChatKeyPress(event) {
             if (event.key === 'Enter') {
                 sendChatMessage();
             }
         }
 
-        async function sendChatMessage() {
+        async function sendQuickAiPrompt(msg) {
+            await sendChatMessage(msg);
+        }
+
+        async function sendChatMessage(directMsg = null) {
             let input = document.getElementById('chatInput');
-            let msg = input.value.trim();
+            let msg = directMsg || input.value.trim();
             if (!msg) return;
 
-            input.value = '';
+            if (!directMsg) {
+                input.value = '';
+            }
 
-            appendMessage('user', escapeHtml(msg));
+            appendMessage('user', msg);
 
             document.getElementById('typingIndicator').style.display = 'block';
             scrollToBottom();
@@ -3140,7 +3250,7 @@
 
         async function requestAiInsights() {
             let msg = "Please generate a Root Cause Analysis report for recent network alarms.";
-            appendMessage('user', escapeHtml(msg));
+            appendMessage('user', msg);
             chatHistory.push({ role: 'user', content: msg });
 
             document.getElementById('typingIndicator').style.display = 'block';
@@ -3178,10 +3288,8 @@ Please structure it as follows:
 3. For any other minor or non-recurring alarms, just list them briefly without deep details.
 Keep the overall report concise and straight to the point.`;
             
-            // 3. Inject the prompt into the chat input and trigger send
-            let input = document.getElementById('chatInput');
-            input.value = msg;
-            await sendChatMessage();
+            // 3. Send the prompt directly to preserve newlines
+            await sendChatMessage(msg);
         }
 
         function streamBotMessage(fullText) {
@@ -3314,11 +3422,11 @@ Keep the overall report concise and straight to the point.`;
                         resultsDiv.innerHTML = '<div style="color: var(--text-secondary);">Scan completed. No active SNMP nodes found in this range.</div>';
                     } else {
                         let html = `<div style="color: var(--success-green); margin-bottom: 12px; font-weight: 600; display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-circle-check"></i> Found ${nodes.length} node(s):</div>`;
-                        html += `<table style="width: 100%; border-collapse: collapse; font-size: 13px;">
-                                    <tr style="border-bottom: 1px solid var(--border-color); color: var(--text-muted); text-align: left;">
-                                        <th style="padding: 8px;">IP Address</th>
-                                        <th style="padding: 8px;">Node Name</th>
-                                        <th style="padding: 8px;">Action</th>
+                        html += `<table style="width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px;">
+                                    <tr style="color: var(--text-muted); text-align: left;">
+                                        <th style="padding: 8px; position: sticky; top: -10px; background-color: var(--card-bg); z-index: 10; border-bottom: 1px solid var(--border-color);">IP Address</th>
+                                        <th style="padding: 8px; position: sticky; top: -10px; background-color: var(--card-bg); z-index: 10; border-bottom: 1px solid var(--border-color);">Node Name</th>
+                                        <th style="padding: 8px; position: sticky; top: -10px; background-color: var(--card-bg); z-index: 10; border-bottom: 1px solid var(--border-color);">Action</th>
                                     </tr>`;
                         
                         nodes.forEach(n => {
@@ -3332,10 +3440,10 @@ Keep the overall report concise and straight to the point.`;
                                 actionHtml = `<button type="button" class="quick-action-btn" style="margin:0; padding:4px 10px; font-size: 12px;" onclick="quickAddDiscoveredNode('${safeIp}', '${safeName}', '${safeType}', this)"><i class="fa-solid fa-plus"></i> Add</button>`;
                             }
                             
-                            html += `<tr style="border-bottom: 1px solid var(--border-soft);">
-                                        <td style="padding: 8px; font-family: monospace; color: var(--primary-blue);">${n.ipAddress}</td>
-                                        <td style="padding: 8px; color: var(--text-primary);">${n.name} <span style="color: var(--text-muted); font-size: 11px;">(${n.nodeType || 'Unknown'})</span></td>
-                                        <td style="padding: 8px;">${actionHtml}</td>
+                            html += `<tr>
+                                        <td style="padding: 8px; font-family: monospace; color: var(--primary-blue); border-bottom: 1px solid var(--border-soft);">${n.ipAddress}</td>
+                                        <td style="padding: 8px; color: var(--text-primary); border-bottom: 1px solid var(--border-soft);">${n.name} <span style="color: var(--text-muted); font-size: 11px;">(${n.nodeType || 'Unknown'})</span></td>
+                                        <td style="padding: 8px; border-bottom: 1px solid var(--border-soft);">${actionHtml}</td>
                                     </tr>`;
                         });
                         html += `</table>`;
