@@ -26,7 +26,7 @@ public class TrapHistoryDAO {
                 + "message, status) VALUES (?, ?, ?, ?, ?, ?::trap_status)";
         try (Connection conn = databaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            ps.setLong(1, history.getNodeId());
+            setNullableLong(ps, 1, history.getNodeId());
             setNullableLong(ps, 2, history.getTrapActionId());
             ps.setString(3, history.getTrapOid());
             ps.setString(4, history.getSourceIp());
@@ -63,7 +63,9 @@ public java.util.List<TrapHistory> findAll() throws SQLException {
             while (rs.next()) {
                 TrapHistory history = new TrapHistory();
                 history.setId(rs.getLong("id"));
-                history.setNodeId(rs.getLong("node_id"));
+                long nodeId = rs.getLong("node_id");
+                if (!rs.wasNull()) history.setNodeId(nodeId);
+                else history.setNodeId(null);
                 
                 long actionId = rs.getLong("trap_action_id");
                 if (!rs.wasNull()) history.setTrapActionId(actionId);
@@ -130,6 +132,17 @@ public java.util.List<TrapHistory> findAll() throws SQLException {
             }
         }
         return null;
+    }
+
+    public void linkOrphanedTraps(String ipAddress, long newNodeId) throws SQLException {
+        String sql = "UPDATE trap_history SET node_id = ? WHERE source_ip = ? AND node_id IS NULL";
+        try (Connection conn = databaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, newNodeId);
+            ps.setString(2, ipAddress);
+            int updated = ps.executeUpdate();
+            System.out.println("Linked " + updated + " orphaned traps to new node " + newNodeId);
+        }
     }
 
     public java.util.List<TrapHistory> findOpenTrapsForNode(long nodeId) throws SQLException {
