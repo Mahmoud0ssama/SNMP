@@ -278,6 +278,12 @@ public class Main {
         });
 
         // --- TRAP CONFIGURATION APIs ---
+        // Fetch unique trap templates from the database to populate frontend dropdowns dynamically
+        app.get("/api/trap-templates", ctx -> {
+            DecodedJWT jwt = ctx.attribute("jwt"); // Requires authentication
+            ctx.json(trapActionDAO.getDistinctTrapTemplates());
+        });
+
         app.get("/api/nodes/{id}/trapActions", ctx -> {
             Long targetId = Long.parseLong(ctx.pathParam("id"));
             ctx.json(trapActionDAO.findByNodeId(targetId));

@@ -9,7 +9,43 @@ networks:
           gateway: 172.25.0.1
 
 services:
-  cairo-bts-01:
+  # ==========================================
+  # 1. CORE NETWORK
+  # ==========================================
+  core-hlr:
+    build: 
+      context: .
+      dockerfile: Dockerfile.telecom-node
+    container_name: core-hlr
+    networks:
+      telecom_net:
+        ipv4_address: 172.25.0.5
+    volumes:
+      - ./nodes/core-hlr/hardware_specs.cfg:/etc/node/hardware_specs.cfg:ro
+    environment:
+      - NMS_SERVER_IP=172.25.0.1
+      - NODE_NAME=Core_HLR
+      - NODE_TYPE=HLR
+
+  core-sgsn:
+    build: 
+      context: .
+      dockerfile: Dockerfile.telecom-node
+    container_name: core-sgsn
+    networks:
+      telecom_net:
+        ipv4_address: 172.25.0.6
+    volumes:
+      - ./nodes/core-sgsn/hardware_specs.cfg:/etc/node/hardware_specs.cfg:ro
+    environment:
+      - NMS_SERVER_IP=172.25.0.1
+      - NODE_NAME=Core_SGSN
+      - NODE_TYPE=SGSN
+
+  # ==========================================
+  # 2. CAIRO REGION (172.25.0.10 -> 172.25.0.19)
+  # ==========================================
+  cairo-bts-01: # (Old Node - Kept as is)
     build: 
       context: .
       dockerfile: Dockerfile.telecom-node
@@ -24,7 +60,55 @@ services:
       - NODE_NAME=Cairo_BTS_01
       - NODE_TYPE=BTS
 
-  giza-bsc-01:
+  cairo-bsc-01:
+    build: 
+      context: .
+      dockerfile: Dockerfile.telecom-node
+    container_name: cairo-bsc-01
+    networks:
+      telecom_net:
+        ipv4_address: 172.25.0.11
+    volumes:
+      - ./nodes/cairo-bsc-01/hardware_specs.cfg:/etc/node/hardware_specs.cfg:ro
+    environment:
+      - NMS_SERVER_IP=172.25.0.1
+      - NODE_NAME=Cairo_BSC_01
+      - NODE_TYPE=BSC
+
+  cairo-msc-01:
+    build: 
+      context: .
+      dockerfile: Dockerfile.telecom-node
+    container_name: cairo-msc-01
+    networks:
+      telecom_net:
+        ipv4_address: 172.25.0.12
+    volumes:
+      - ./nodes/cairo-msc-01/hardware_specs.cfg:/etc/node/hardware_specs.cfg:ro
+    environment:
+      - NMS_SERVER_IP=172.25.0.1
+      - NODE_NAME=Cairo_MSC_01
+      - NODE_TYPE=MSC
+
+  cairo-bts-02:
+    build: 
+      context: .
+      dockerfile: Dockerfile.telecom-node
+    container_name: cairo-bts-02
+    networks:
+      telecom_net:
+        ipv4_address: 172.25.0.13
+    volumes:
+      - ./nodes/cairo-bts-02/hardware_specs.cfg:/etc/node/hardware_specs.cfg:ro
+    environment:
+      - NMS_SERVER_IP=172.25.0.1
+      - NODE_NAME=Cairo_BTS_02
+      - NODE_TYPE=BTS
+
+  # ==========================================
+  # 3. GIZA REGION (172.25.0.20 -> 172.25.0.29)
+  # ==========================================
+  giza-bsc-01: # (Old Node - Kept as is)
     build: 
       context: .
       dockerfile: Dockerfile.telecom-node
@@ -39,7 +123,55 @@ services:
       - NODE_NAME=Giza_BSC_01
       - NODE_TYPE=BSC
 
-  alex-msc:
+  giza-bts-01:
+    build: 
+      context: .
+      dockerfile: Dockerfile.telecom-node
+    container_name: giza-bts-01
+    networks:
+      telecom_net:
+        ipv4_address: 172.25.0.21
+    volumes:
+      - ./nodes/giza-bts-01/hardware_specs.cfg:/etc/node/hardware_specs.cfg:ro
+    environment:
+      - NMS_SERVER_IP=172.25.0.1
+      - NODE_NAME=Giza_BTS_01
+      - NODE_TYPE=BTS
+
+  giza-bts-02:
+    build: 
+      context: .
+      dockerfile: Dockerfile.telecom-node
+    container_name: giza-bts-02
+    networks:
+      telecom_net:
+        ipv4_address: 172.25.0.22
+    volumes:
+      - ./nodes/giza-bts-02/hardware_specs.cfg:/etc/node/hardware_specs.cfg:ro
+    environment:
+      - NMS_SERVER_IP=172.25.0.1
+      - NODE_NAME=Giza_BTS_02
+      - NODE_TYPE=BTS
+
+  giza-msc-01:
+    build: 
+      context: .
+      dockerfile: Dockerfile.telecom-node
+    container_name: giza-msc-01
+    networks:
+      telecom_net:
+        ipv4_address: 172.25.0.23
+    volumes:
+      - ./nodes/giza-msc-01/hardware_specs.cfg:/etc/node/hardware_specs.cfg:ro
+    environment:
+      - NMS_SERVER_IP=172.25.0.1
+      - NODE_NAME=Giza_MSC_01
+      - NODE_TYPE=MSC
+
+  # ==========================================
+  # 4. ALEX REGION (172.25.0.30 -> 172.25.0.39)
+  # ==========================================
+  alex-msc: # (Old Node - Kept as is)
     build: 
       context: .
       dockerfile: Dockerfile.telecom-node
@@ -54,7 +186,55 @@ services:
       - NODE_NAME=Alex_MSC
       - NODE_TYPE=MSC
 
-  tanta-bsc-01:
+  alex-bsc-01:
+    build: 
+      context: .
+      dockerfile: Dockerfile.telecom-node
+    container_name: alex-bsc-01
+    networks:
+      telecom_net:
+        ipv4_address: 172.25.0.31
+    volumes:
+      - ./nodes/alex-bsc-01/hardware_specs.cfg:/etc/node/hardware_specs.cfg:ro
+    environment:
+      - NMS_SERVER_IP=172.25.0.1
+      - NODE_NAME=Alex_BSC_01
+      - NODE_TYPE=BSC
+
+  alex-bts-01:
+    build: 
+      context: .
+      dockerfile: Dockerfile.telecom-node
+    container_name: alex-bts-01
+    networks:
+      telecom_net:
+        ipv4_address: 172.25.0.32
+    volumes:
+      - ./nodes/alex-bts-01/hardware_specs.cfg:/etc/node/hardware_specs.cfg:ro
+    environment:
+      - NMS_SERVER_IP=172.25.0.1
+      - NODE_NAME=Alex_BTS_01
+      - NODE_TYPE=BTS
+
+  alex-bts-02:
+    build: 
+      context: .
+      dockerfile: Dockerfile.telecom-node
+    container_name: alex-bts-02
+    networks:
+      telecom_net:
+        ipv4_address: 172.25.0.33
+    volumes:
+      - ./nodes/alex-bts-02/hardware_specs.cfg:/etc/node/hardware_specs.cfg:ro
+    environment:
+      - NMS_SERVER_IP=172.25.0.1
+      - NODE_NAME=Alex_BTS_02
+      - NODE_TYPE=BTS
+
+  # ==========================================
+  # 5. TANTA REGION (172.25.0.40 -> 172.25.0.49)
+  # ==========================================
+  tanta-bsc-01: # (Old Node - Kept as is)
     build: 
       context: .
       dockerfile: Dockerfile.telecom-node
@@ -68,3 +248,48 @@ services:
       - NMS_SERVER_IP=172.25.0.1
       - NODE_NAME=Tanta_BSC_01
       - NODE_TYPE=BSC
+
+  tanta-bts-01:
+    build: 
+      context: .
+      dockerfile: Dockerfile.telecom-node
+    container_name: tanta-bts-01
+    networks:
+      telecom_net:
+        ipv4_address: 172.25.0.41
+    volumes:
+      - ./nodes/tanta-bts-01/hardware_specs.cfg:/etc/node/hardware_specs.cfg:ro
+    environment:
+      - NMS_SERVER_IP=172.25.0.1
+      - NODE_NAME=Tanta_BTS_01
+      - NODE_TYPE=BTS
+
+  tanta-bts-02:
+    build: 
+      context: .
+      dockerfile: Dockerfile.telecom-node
+    container_name: tanta-bts-02
+    networks:
+      telecom_net:
+        ipv4_address: 172.25.0.42
+    volumes:
+      - ./nodes/tanta-bts-02/hardware_specs.cfg:/etc/node/hardware_specs.cfg:ro
+    environment:
+      - NMS_SERVER_IP=172.25.0.1
+      - NODE_NAME=Tanta_BTS_02
+      - NODE_TYPE=BTS
+
+  tanta-msc-01:
+    build: 
+      context: .
+      dockerfile: Dockerfile.telecom-node
+    container_name: tanta-msc-01
+    networks:
+      telecom_net:
+        ipv4_address: 172.25.0.43
+    volumes:
+      - ./nodes/tanta-msc-01/hardware_specs.cfg:/etc/node/hardware_specs.cfg:ro
+    environment:
+      - NMS_SERVER_IP=172.25.0.1
+      - NODE_NAME=Tanta_MSC_01
+      - NODE_TYPE=MSC
