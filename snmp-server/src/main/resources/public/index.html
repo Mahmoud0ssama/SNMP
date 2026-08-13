@@ -1925,6 +1925,35 @@
         </div>
     </div>
 
+    <!-- Confirm Register Node Modal -->
+    <div id="confirmRegisterNodeModal" class="modal">
+        <div class="modal-content" style="max-width: 450px;">
+            <div class="modal-header">
+                <h3>Confirm Node Registration</h3><span class="close-btn" onclick="closeModal('confirmRegisterNodeModal')">&times;</span>
+            </div>
+            <div class="modal-body" style="padding: 20px 0;">
+                <p style="margin-bottom: 20px; color: var(--text-secondary);">An unknown node has been detected. Please confirm the auto-discovered details below to register it to the network.</p>
+                
+                <div style="margin-bottom: 15px;">
+                    <div style="font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 4px;">IP Address</div>
+                    <div id="confirmNodeIp" style="font-size: 16px; color: var(--primary-blue); font-weight: 600;"></div>
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <div style="font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 4px;">Discovered Name</div>
+                    <div id="confirmNodeName" style="font-size: 16px; color: var(--text-primary); font-weight: 500;"></div>
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <div style="font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 4px;">Node Type</div>
+                    <div id="confirmNodeType" style="font-size: 16px; color: var(--text-primary); font-weight: 500;"></div>
+                </div>
+            </div>
+            <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 15px;">
+                <button class="action-btn" onclick="closeModal('confirmRegisterNodeModal')">Cancel</button>
+                <button class="success-btn" onclick="submitConfirmRegister()">Confirm & Register</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Edit Node Modal -->
     <div id="editNodeModal" class="modal">
         <div class="modal-content modal-large">
@@ -2156,6 +2185,7 @@
                     let data = await res.json();
                     jwtToken = data.token;
                     localStorage.setItem('snmp_token', jwtToken);
+                    localStorage.setItem('snmp_role', data.role);
                     document.getElementById('loginError').style.display = 'none';
                     document.getElementById('password').value = '';
                     showDashboard();
@@ -2420,8 +2450,12 @@
                     let safeCleanMsg = escapeHtml(cleanMsg);
                     let alarmRowClass = 'alarm-row sev-' + sevLevel;
 
+                    let isUnknownNode = (t.nodeId == null);
+                    let isAdmin = localStorage.getItem('snmp_role') === 'ADMIN';
+                    let addNodeBtnHtml = (isUnknownNode && isAdmin) ? `<button class="action-btn" style="padding:3px 8px; font-size:11px; margin-left:8px;" onclick="event.stopPropagation(); promptAddNode('${escapeHtml(t.sourceIp)}')"><i class="fa-solid fa-plus"></i> Add Node</button>` : '';
+
                     tBody.innerHTML += `<tr class="${rowClass} ${alarmRowClass}" onclick="showTrapDetails(${t.id}, '${escapeHtml(name)}', '${escapeHtml(t.sourceIp)}', '${safeCleanMsg}', '${t.status}', '${time}', '${escapeHtml(resName)}', '${resTime}', '${safeAiReason}', ${isAiOverridden}, '${sevLevel}')">
-                        <td><div class="source-name">${escapeHtml(name)}</div><div class="source-ip">${escapeHtml(t.sourceIp)}</div></td>
+                        <td><div class="source-name" style="display:flex; align-items:center;">${escapeHtml(name)}${addNodeBtnHtml}</div><div class="source-ip">${escapeHtml(t.sourceIp)}</div></td>
                         <td><div class="msg-title">${displayMsg}</div><div class="msg-time">${time}</div></td>
                         <td>${sevPillHtml}</td>
                         <td onclick="event.stopPropagation();">${btn}</td></tr>`;
@@ -3145,6 +3179,74 @@
             }
             bd.innerHTML = h;
             openModal('trapDetailsModal');
+        }
+
+        async function promptAddNode(ipAddress) {
+            showLoader("Discovering Node Details...");
+            let defaultName = "";
+            let defaultType = "";
+            
+            try {
+                let probeRes = await fetch('/api/nodes/probe?ip=' + ipAddress, {
+                    headers: { 'Authorization': 'Bearer ' + localStorage.getItem('snmp_token') }
+                });
+                if (probeRes.ok) {
+                    let data = await probeRes.json();
+                    defaultName = data.sysName || "";
+                    defaultType = data.nodeType || "";
+                }
+            } catch (e) {
+                console.error("Probe failed", e);
+            } finally {
+                hideLoader();
+            }
+
+            document.getElementById('confirmNodeIp').innerText = ipAddress;
+            document.getElementById('confirmNodeName').innerText = defaultName;
+            document.getElementById('confirmNodeType').innerText = defaultType;
+
+            openModal('confirmRegisterNodeModal');
+        }
+
+        async function submitConfirmRegister() {
+            let ipAddress = document.getElementById('confirmNodeIp').innerText;
+            let name = document.getElementById('confirmNodeName').innerText;
+            let type = document.getElementById('confirmNodeType').innerText;
+            
+            if (!name) {
+                alert("Please enter a valid node name.");
+                return;
+            }
+
+            showLoader("Registering...");
+            try {
+                let res = await fetch('/api/nodes', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + localStorage.getItem('snmp_token')
+                    },
+                    body: JSON.stringify({ name: name, ipAddress: ipAddress, nodeType: type })
+                });
+                if (res.ok) {
+                    closeModal('confirmRegisterNodeModal');
+                    await syncAll(); // Refresh nodesMap and dashboard to hide button
+                } else {
+                    let errStr;
+                    try {
+                        let err = await res.json();
+                        errStr = err.error || 'Unknown error';
+                    } catch(jsonErr) {
+                        errStr = await res.text();
+                    }
+                    alert('Failed to register node: ' + errStr);
+                }
+            } catch(e) {
+                console.error(e);
+                alert("Error connecting to server.");
+            } finally {
+                hideLoader();
+            }
         }
 
         async function forceExecute(id, event) {

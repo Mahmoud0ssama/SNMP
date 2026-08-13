@@ -60,27 +60,27 @@ public class TrapService {
 
         Optional<Node> nodeOpt = nodeDAO.findByIp(nodeIp);
 
-        Node node;
+        Node node = null;
+        TrapAction action = null;
         if (nodeOpt.isPresent()) {
             node = nodeOpt.get();
+            Optional<TrapAction> actionOpt = trapActionDAO.findByNodeAndOid(node.getId(), event.getTrapOid());
+            action = actionOpt.orElse(null);
         } else {
-            node = nodeService.registerNode(event.getNodeName(), nodeIp, event.getNodeType());
-            System.out.println("Auto-registered new node: " + node.getName()
-                    + " (" + node.getNodeType() + ") at " + nodeIp);
+            System.out.println("Received trap from unknown node at " + nodeIp);
         }
 
-        Optional<TrapAction> actionOpt = trapActionDAO.findByNodeAndOid(node.getId(), event.getTrapOid());
-        TrapAction action = actionOpt.orElse(null);
-
-        TrapHistory history = buildHistory(event, node, action);
+        TrapHistory history = buildHistory(event, node, action, nodeIp);
         trapHistoryDAO.save(history); // Save method sets the auto-generated ID inside the history object
 
-        NodeStatus newStatus = resolveStatus(action);
-        
-        if (node.getStatus() != NodeStatus.UNKNOWN) {
-            nodeService.updateStatus(node, newStatus);
-            if (heartbeatService != null) {
-                heartbeatService.syncStatus(node.getId(), newStatus);
+        if (node != null) {
+            NodeStatus newStatus = resolveStatus(action);
+            
+            if (node.getStatus() != NodeStatus.UNKNOWN) {
+                nodeService.updateStatus(node, newStatus);
+                if (heartbeatService != null) {
+                    heartbeatService.syncStatus(node.getId(), newStatus);
+                }
             }
         }
 
@@ -187,11 +187,16 @@ public class TrapService {
         }
     }
 
-    private TrapHistory buildHistory(TrapEvent event, Node node, TrapAction action) {
+    private TrapHistory buildHistory(TrapEvent event, Node node, TrapAction action, String fallbackIp) {
         TrapHistory history = new TrapHistory();
-        history.setNodeId(node.getId());
+        if (node != null) {
+            history.setNodeId(node.getId());
+            history.setSourceIp(node.getIpAddress());
+        } else {
+            history.setNodeId(null);
+            history.setSourceIp(fallbackIp);
+        }
         history.setTrapOid(event.getTrapOid());
-        history.setSourceIp(node.getIpAddress());
         history.setStatus(TrapStatus.OPEN);
 
         if (action != null) {

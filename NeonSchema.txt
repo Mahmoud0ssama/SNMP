@@ -29,7 +29,7 @@ CREATE TABLE "trap_actions" (
 );
 CREATE TABLE "trap_history" (
 	"id" bigserial PRIMARY KEY,
-	"node_id" bigint NOT NULL,
+	"node_id" bigint,
 	"trap_action_id" bigint,
 	"trap_oid" varchar(150) NOT NULL,
 	"source_ip" varchar(45) NOT NULL,

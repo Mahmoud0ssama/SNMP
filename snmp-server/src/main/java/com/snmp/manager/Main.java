@@ -169,6 +169,42 @@ public class Main {
             ctx.json(trapHistoryDAO.findAll());
         });
 
+        app.get("/api/nodes/probe", ctx -> {
+            String ip = ctx.queryParam("ip");
+            if (ip == null) {
+                ctx.status(400).json(Map.of("error", "ip query parameter is required"));
+                return;
+            }
+            com.snmp.manager.snmp.poller.SnmpGetResult result = snmpPoller.poll(ip, 161, "public");
+            if (!result.reachable()) {
+                ctx.status(404).json(Map.of("error", "Node unreachable"));
+                return;
+            }
+            
+            String sysName = result.sysName();
+            String nodeType = null;
+            
+            if (result.nodeInfo() != null) {
+                String[] lines = result.nodeInfo().split("\n");
+                for (String line : lines) {
+                    if (line.startsWith("NODE_NAME=")) {
+                        sysName = line.substring("NODE_NAME=".length()).trim();
+                    } else if (line.startsWith("NODE_TYPE=")) {
+                        nodeType = line.substring("NODE_TYPE=".length()).trim();
+                    }
+                }
+            }
+            
+            if (sysName == null || sysName.isBlank()) {
+                sysName = "Unknown_Node_" + ip;
+            }
+            if (nodeType == null || nodeType.isBlank()) {
+                nodeType = "UNKNOWN";
+            }
+            
+            ctx.json(Map.of("sysName", sysName, "nodeType", nodeType));
+        });
+
         app.put("/api/traps/{id}/resolve", ctx -> {
             DecodedJWT jwt = ctx.attribute("jwt");
             Long trapId = Long.parseLong(ctx.pathParam("id"));
@@ -378,8 +414,14 @@ public class Main {
                     actions.add(a);
                 }
             }
-            nodeService.registerNode(req.name, req.ipAddress, req.nodeType, actions);
-            ctx.json(Map.of("status", "success"));
+            try {
+                Node newNode = nodeService.registerNode(req.name, req.ipAddress, req.nodeType, actions);
+                trapHistoryDAO.linkOrphanedTraps(req.ipAddress, newNode.getId());
+                trapService.recalculateNodeStatus(newNode.getId());
+                ctx.json(newNode);
+            } catch (Exception e) {
+                ctx.status(400).json(Map.of("error", e.getMessage() != null ? e.getMessage() : "Registration failed"));
+            }
         });
 
         app.put("/api/nodes/{id}", ctx -> {
