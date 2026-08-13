@@ -1703,7 +1703,7 @@
                             <th>IP Address</th>
                             <th>Status</th>
                             <th>Last Update</th>
-                            <th class="admin-node-col" style="display:none;">Action</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody id="nodesListBody"></tbody>
@@ -1999,6 +1999,28 @@
             { oid: '1.3.6.1.4.1.99999.0.6', name: 'Memory Exhaustion' },
             { oid: '1.3.6.1.4.1.99999.0.7', name: 'Configuration Error' }
         ];
+        // Dynamic array that merges standard traps with unique database traps
+        let dynamicTraps = [...EMULATOR_TRAPS];
+
+        // Fetches unique trap templates from the database
+        async function loadTrapTemplates() {
+            try {
+                let res = await fetchWithAuth('/api/trap-templates');
+                if (res.ok) {
+                    let dbTraps = await res.json();
+                    dynamicTraps = [...EMULATOR_TRAPS]; // Reset to defaults
+                    
+                    dbTraps.forEach(dbTrap => {
+                        // If OID is not in the list, add it to avoid duplicates
+                        if (!dynamicTraps.find(t => t.oid === dbTrap.trapOid)) {
+                            dynamicTraps.push({ oid: dbTrap.trapOid, name: dbTrap.trapName });
+                        }
+                    });
+                }
+            } catch (e) {
+                console.error("Failed to load dynamic traps", e);
+            }
+        }
 
         if (jwtToken)
             showDashboard();
@@ -2100,18 +2122,16 @@
                         el.style.display = isAdmin ? 'block' : 'none';
                     }
                 });
-
-                let adminNodeCol = document.querySelector('.admin-node-col');
-                if (adminNodeCol)
-                    adminNodeCol.style.display = isAdmin ? 'table-cell' : 'none';
             }
+
+            // Load custom traps from DB first to populate dropdowns
+            loadTrapTemplates();
 
             // Clean up old interval before assigning new one
             if (refreshInterval) clearInterval(refreshInterval);
             syncAll();
             refreshInterval = setInterval(syncAll, 3000);
         }
-
         async function fetchWithAuth(url, options = {}) {
             let headers = options.headers || {};
             headers['Authorization'] = 'Bearer ' + jwtToken;
@@ -2149,13 +2169,16 @@
                 nodes.forEach(n => {
                     if (n.status === 'UP') nodesOnlineCount++;
                     nodesMap[n.ipAddress] = n.name;
-                    let actionBtns = '';
+                    // Always show AI Report button, show Edit only for Admins
+                    let actionBtns = `<td onclick="event.stopPropagation();" style="white-space: nowrap;">
+                        <button class="icon-btn" style="color:var(--blue); margin-right: 8px;" title="AI Node Report" onclick="generateNodeAiReport('${escapeHtml(n.name)}', '${escapeHtml(n.ipAddress)}')">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> AI
+                        </button>`;
+                        
                     if (currentUser && currentUser.role === 'ADMIN') {
-                        // Keep Edit action isolated from row click propagation
-                        actionBtns = `<td onclick="event.stopPropagation();">
-                            <button class="icon-btn" style="color:var(--primary-blue);" title="Edit Node" onclick="openEditNode(${n.id}, '${escapeHtml(n.name)}', '${escapeHtml(n.ipAddress)}', '${escapeHtml(n.nodeType)}')"><i class="fa-solid fa-pen"></i> Edit</button>
-                        </td>`;
+                        actionBtns += `<button class="icon-btn" style="color:var(--primary-blue);" title="Edit Node" onclick="openEditNode(${n.id}, '${escapeHtml(n.name)}', '${escapeHtml(n.ipAddress)}', '${escapeHtml(n.nodeType)}')"><i class="fa-solid fa-pen"></i> Edit</button>`;
                     }
+                    actionBtns += `</td>`;
                     let formattedDate = new Date(n.createdAt).toLocaleString();
 
                     let badgeClass = 'status-in';
@@ -2225,10 +2248,26 @@
                         unknownCount++;
                         rowClass += " unknown-trap-row";
 
-                        let extractedOid = cleanMsg.replace('Unrecognized trap:', '').trim();
+                        let rawExtracted = cleanMsg.replace('Unrecognized trap:', '').trim();
+                        let extractedOid = rawExtracted;
+                        let trapDetails = "";
 
-                        let knownTrap = EMULATOR_TRAPS.find(t => t.oid === extractedOid);
+                        // Separate OID from details if appended by backend
+                        if (rawExtracted.includes(' - ')) {
+                            let parts = rawExtracted.split(' - ');
+                            extractedOid = parts[0].trim();
+                            // Rejoin the rest of the parts in case the details contained hyphens
+                            trapDetails = parts.slice(1).join(' - ').trim();
+                        }
+
+                        // Search in dynamicTraps instead of static EMULATOR_TRAPS
+                        let knownTrap = dynamicTraps.find(t => t.oid === extractedOid);
                         let niceName = knownTrap ? knownTrap.name : "System Alarm (" + extractedOid + ")";
+
+                        // Append details back if they exist for context
+                        if (trapDetails) {
+                            niceName += " - " + trapDetails;
+                        }
 
                         displayMsg = `<span style="color: var(--text-primary); font-size: 14px;">${niceName}</span> <span class="unknown-tag"><i class="fa-solid fa-circle-question"></i> UNKNOWN</span>`;
                     }
@@ -2342,30 +2381,34 @@
             let container = document.getElementById(containerId);
             let row = document.createElement('div');
             row.className = 'trap-action-row';
-            row.style.cssText = 'display: flex; flex-direction: column; gap: 15px; border: 1px solid var(--border-color); padding: 15px; background: var(--bg-body); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);'; let oid = data ? data.trapOid : '';
+            row.style.cssText = 'display: flex; flex-direction: column; gap: 15px; border: 1px solid var(--border-color); padding: 15px; background: var(--bg-body); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);'; 
+            let oid = data ? data.trapOid : '';
             let name = data ? data.trapName : '';
             let severity = data ? data.severity : 'INFO';
-            let actionType = data ? data.actionType : ''; let payload = data ? (data.targetPayload || '') : '';
+            let actionType = data ? data.actionType : ''; 
+            let payload = data ? (data.targetPayload || '') : '';
             let autoResolve = data ? data.autoResolve : false;
-            // Determine if it's a known Emulator Trap or Custom
+            
+            // Determine if it's a known Trap or Custom
             let isCustom = true;
             let trapSelectValue = 'CUSTOM';
             if (oid) {
-                let found = EMULATOR_TRAPS.find(t => t.oid === oid);
+                let found = dynamicTraps.find(t => t.oid === oid);
                 if (found) {
                     isCustom = false;
                     trapSelectValue = oid + '|' + name;
                 }
             }
 
-            // Build Options
+            // Build Options using the dynamic array
             let trapOptions = `<option value="">-- Select Hardware Alarm --</option>`;
-            EMULATOR_TRAPS.forEach(t => {
+            dynamicTraps.forEach(t => {
                 let val = t.oid + '|' + t.name;
                 let selected = (trapSelectValue === val) ? 'selected' : '';
                 trapOptions += `<option value="${val}" ${selected}>${t.name}</option>`;
             });
             trapOptions += `<option value="CUSTOM" ${trapSelectValue === 'CUSTOM' ? 'selected' : ''}><i class="fa-solid fa-plus"></i> Add Custom Hardware Trap</option>`;
+            
             row.innerHTML = `
                     <div style="display: flex; justify-content: space-between; font-weight: bold; color: var(--primary-blue); font-size: 14px;">
                         <span><i class="fa-solid fa-gear"></i> Alarm Rule Definition</span>
@@ -3118,6 +3161,27 @@
                 document.getElementById('typingIndicator').style.display = 'none';
                 appendMessage('bot', 'Network error. Please try again later.');
             }
+        }
+
+        async function generateNodeAiReport(nodeName, nodeIp) {
+            // 1. Open the chat panel if it is closed
+            let chatPanel = document.getElementById('chatPanel');
+            if (!chatPanel.classList.contains('active')) {
+                toggleChat();
+            }
+            
+            // 2. Formulate a smart, prioritized prompt based on your idea
+            let msg = `Generate a brief and smart diagnostic report for node "${nodeName}" (IP: ${nodeIp}). 
+Please structure it as follows:
+1. Quick status overview.
+2. Focus ONLY on the most frequently recurring alarm: analyze it and provide a specific, actionable solution.
+3. For any other minor or non-recurring alarms, just list them briefly without deep details.
+Keep the overall report concise and straight to the point.`;
+            
+            // 3. Inject the prompt into the chat input and trigger send
+            let input = document.getElementById('chatInput');
+            input.value = msg;
+            await sendChatMessage();
         }
 
         function streamBotMessage(fullText) {
