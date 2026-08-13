@@ -14,6 +14,7 @@ import com.snmp.manager.util.ScriptExecutor;
 import com.snmp.manager.util.SmsNotifier;
 import com.snmp.manager.util.EmailNotifier;
 import com.snmp.manager.config.DatabaseConnection;
+import com.snmp.manager.heartbeat.service.HeartbeatService;
 
 import java.sql.SQLException;
 import java.util.Optional;
@@ -33,17 +34,20 @@ public class TrapService {
     private final TrapHistoryDAO trapHistoryDAO;
     private final NodeService nodeService;
     private final DatabaseConnection databaseConnection;
+    private final HeartbeatService heartbeatService;
 
     public TrapService(NodeDAO nodeDAO,
                        TrapActionDAO trapActionDAO,
                        TrapHistoryDAO trapHistoryDAO,
                        NodeService nodeService,
-                       DatabaseConnection databaseConnection) {
+                       DatabaseConnection databaseConnection,
+                       HeartbeatService heartbeatService) {
         this.nodeDAO = nodeDAO;
         this.trapActionDAO = trapActionDAO;
         this.trapHistoryDAO = trapHistoryDAO;
         this.nodeService = nodeService;
         this.databaseConnection = databaseConnection;
+        this.heartbeatService = heartbeatService;
     }
 
     public void process(TrapEvent event) throws SQLException {
@@ -75,6 +79,9 @@ public class TrapService {
         
         if (node.getStatus() != NodeStatus.UNKNOWN) {
             nodeService.updateStatus(node, newStatus);
+            if (heartbeatService != null) {
+                heartbeatService.syncStatus(node.getId(), newStatus);
+            }
         }
 
         executeAction(action, event, history, node);
@@ -128,6 +135,7 @@ public class TrapService {
                 // Pass null for user ID since the SYSTEM resolved the issue automatically
                 trapHistoryDAO.resolveTrap(history.getId(), null);
                 System.out.println("System Auto-Resolved trap history ID: " + history.getId());
+                recalculateNodeStatus(node.getId());
             } catch (SQLException e) {
                 System.err.println("Failed to auto-resolve trap: " + e.getMessage());
             }
@@ -221,5 +229,38 @@ public class TrapService {
         }
         int slash = peerAddress.indexOf('/');
         return slash >= 0 ? peerAddress.substring(0, slash) : peerAddress;
+    }
+
+    public void recalculateNodeStatus(long nodeId) {
+        try {
+            Optional<Node> nodeOpt = nodeDAO.findById(nodeId);
+            if (nodeOpt.isEmpty()) return;
+            Node node = nodeOpt.get();
+
+            List<TrapHistory> openTraps = trapHistoryDAO.findOpenTrapsForNode(nodeId);
+            
+            NodeStatus worstStatus = NodeStatus.UP;
+            for (TrapHistory trap : openTraps) {
+                Optional<TrapAction> actionOpt = trapActionDAO.findByNodeAndOid(nodeId, trap.getTrapOid());
+                NodeStatus trapStatus = resolveStatus(actionOpt.orElse(null));
+                
+                if (trapStatus == NodeStatus.DOWN) {
+                    worstStatus = NodeStatus.DOWN;
+                    break;
+                } else if (trapStatus == NodeStatus.WARNING) {
+                    worstStatus = NodeStatus.WARNING;
+                }
+            }
+
+            if (node.getStatus() != worstStatus) {
+                nodeService.updateStatus(node, worstStatus);
+                if (heartbeatService != null) {
+                    heartbeatService.syncStatus(nodeId, worstStatus);
+                }
+                System.out.println("Recalculated Node " + node.getName() + " status to " + worstStatus);
+            }
+        } catch (SQLException e) {
+            System.err.println("Error recalculating node status: " + e.getMessage());
+        }
     }
 }

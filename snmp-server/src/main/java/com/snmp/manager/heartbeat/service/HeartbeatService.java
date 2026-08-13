@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
 public class HeartbeatService {
 
@@ -25,10 +26,19 @@ public class HeartbeatService {
         return cachedMetrics.get(nodeId);
     }
 
+    public void syncStatus(long nodeId, NodeStatus status) {
+        cachedStatus.put(nodeId, status);
+    }
+
     private final NodeDAO nodeDAO;
+    private Consumer<Long> onNodeRecovered;
 
     public HeartbeatService(NodeDAO nodeDAO) {
         this.nodeDAO = nodeDAO;
+    }
+
+    public void setOnNodeRecovered(Consumer<Long> onNodeRecovered) {
+        this.onNodeRecovered = onNodeRecovered;
     }
 
     public boolean onNodeSeen(long nodeId, Instant timestamp) {
@@ -52,14 +62,18 @@ public class HeartbeatService {
             cachedStatus.put(nodeId, previous);
         }
 
-        if (previous != NodeStatus.UP) {
-            try {
-                nodeDAO.updateStatus(nodeId, NodeStatus.UP);
-                cachedStatus.put(nodeId, NodeStatus.UP);
-                System.out.println("Node " + nodeId + " (" + node.getName() + ") marked UP via heartbeat.");
-            } catch (SQLException e) {
-                System.err.println("Failed to update status for node " + nodeId + ": " + e.getMessage());
-                return false;
+        if (previous == NodeStatus.DOWN || previous == NodeStatus.UNKNOWN) {
+            if (onNodeRecovered != null) {
+                onNodeRecovered.accept(nodeId);
+            } else {
+                try {
+                    nodeDAO.updateStatus(nodeId, NodeStatus.UP);
+                    cachedStatus.put(nodeId, NodeStatus.UP);
+                    System.out.println("Node " + nodeId + " (" + node.getName() + ") marked UP via heartbeat.");
+                } catch (SQLException e) {
+                    System.err.println("Failed to update status for node " + nodeId + ": " + e.getMessage());
+                    return false;
+                }
             }
         }
         return true;
