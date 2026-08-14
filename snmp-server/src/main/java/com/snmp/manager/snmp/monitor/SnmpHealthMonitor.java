@@ -6,6 +6,8 @@ import com.snmp.manager.model.Node;
 import com.snmp.manager.model.NodeStatus;
 import com.snmp.manager.snmp.poller.SnmpGetResult;
 import com.snmp.manager.snmp.poller.SnmpPoller;
+import com.snmp.manager.snmp.model.TrapEvent;
+import com.snmp.manager.service.TrapService;
 
 import java.sql.SQLException;
 import java.time.Instant;
@@ -25,6 +27,7 @@ public class SnmpHealthMonitor implements AutoCloseable {
     private final SnmpPoller snmpPoller;
     private final NodeDAO nodeDAO;
     private final HeartbeatService heartbeatService;
+    private final TrapService trapService; 
 
     private final ScheduledExecutorService heartbeatScheduler;
     private final ScheduledExecutorService metricsScheduler;
@@ -33,10 +36,11 @@ public class SnmpHealthMonitor implements AutoCloseable {
     private volatile boolean running;
     private final Map<Long, AtomicInteger> failureCounts = new ConcurrentHashMap<>();
 
-    public SnmpHealthMonitor(SnmpPoller snmpPoller, NodeDAO nodeDAO, HeartbeatService heartbeatService) {
+    public SnmpHealthMonitor(SnmpPoller snmpPoller, NodeDAO nodeDAO, HeartbeatService heartbeatService, TrapService trapService) {
         this.snmpPoller = snmpPoller;
         this.nodeDAO = nodeDAO;
         this.heartbeatService = heartbeatService;
+        this.trapService = trapService;
 
         this.heartbeatScheduler = Executors.newSingleThreadScheduledExecutor(r -> {
             Thread t = new Thread(r, "heartbeat-scheduler");
@@ -67,9 +71,6 @@ public class SnmpHealthMonitor implements AutoCloseable {
         System.out.println("========================================");
         System.out.println("  ENTERPRISE SNMP MONITOR STARTED       ");
         System.out.println("========================================");
-        System.out.println("- Reachability Ping: Every " + HEARTBEAT_INTERVAL_SECONDS + "s");
-        System.out.println("- Performance Poll : Every " + METRICS_INTERVAL_SECONDS + "s");
-        System.out.println("- Worker Threads   : 50 Parallel Workers");
     }
 
     private void doHeartbeatSweep() {
@@ -105,15 +106,30 @@ public class SnmpHealthMonitor implements AutoCloseable {
                 failureCounts.remove(node.getId());
                 heartbeatService.onNodeSeen(node.getId(), Instant.now());
                 
-                if (node.getStatus() != NodeStatus.UP) {
-                    System.out.println("[HEARTBEAT] Node " + node.getName() + " is UP. Uptime: " + result.uptime());
-                }
-            } else {
+            }else {
                 int failures = failureCounts.computeIfAbsent(node.getId(), k -> new AtomicInteger(0)).incrementAndGet();
-                if (failures >= FAILURE_THRESHOLD && node.getStatus() != NodeStatus.DOWN) {
+                if (failures == FAILURE_THRESHOLD && node.getStatus() != NodeStatus.DOWN) {
                     nodeDAO.updateStatus(node.getId(), NodeStatus.DOWN);
                     heartbeatService.notifyNodeDown(node.getId());
                     System.out.println("[HEARTBEAT] Node " + node.getName() + " marked DOWN (Timeout).");
+                    TrapEvent internalTrap = new TrapEvent(
+                            node.getIpAddress(),
+                            "1.3.6.1.4.1.99999.0.0", 
+                            Instant.now(),
+                            "Internal",
+                            "System",
+                            null,
+                            node.getName(),
+                            node.getNodeType(),
+                            node.getIpAddress(),
+                            "Critical: Loss of Communication. Heartbeat timeout."
+                    );
+                    
+                    try {
+                        trapService.process(internalTrap);
+                    } catch (Exception ex) {
+                        System.err.println("Failed to process internal unreachable trap: " + ex.getMessage());
+                    }
                 }
             }
         } catch (Exception e) {
@@ -126,12 +142,11 @@ public class SnmpHealthMonitor implements AutoCloseable {
             SnmpGetResult result = snmpPoller.pollMetrics(node.getIpAddress(), SNMP_PORT, COMMUNITY_STRING);
             if (result.reachable()) {
                 heartbeatService.updateMetrics(node.getId(), result);
+                
                 System.out.printf("[METRICS] %s - CPU: %d%%, Mem: %d MB, Disk: %d MB, Temp: %d°C%n",
                         node.getName(), result.cpuLoad(), (result.memAvail()/1024), result.diskUsage(), result.temperature());
             }
-        } catch (Exception e) {
-            System.err.println("Metrics error on " + node.getName() + ": " + e.getMessage());
-        }
+        } catch (Exception e) {}
     }
 
     @Override
@@ -140,6 +155,5 @@ public class SnmpHealthMonitor implements AutoCloseable {
         heartbeatScheduler.shutdownNow();
         metricsScheduler.shutdownNow();
         workerPool.shutdownNow();
-        System.out.println("SNMP Health Monitor stopped.");
     }
 }
