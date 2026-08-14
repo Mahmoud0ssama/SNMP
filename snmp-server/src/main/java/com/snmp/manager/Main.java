@@ -114,7 +114,10 @@ public class Main {
         com.snmp.manager.snmp.poller.SnmpPoller snmpPoller = new com.snmp.manager.snmp.poller.SnmpPoller();
         com.snmp.manager.service.DiscoveryService discoveryService = new com.snmp.manager.service.DiscoveryService(nodeDAO, snmpPoller);
 
-        heartbeatService.setOnNodeRecovered(nodeId -> trapService.recalculateNodeStatus(nodeId));
+        heartbeatService.setOnNodeRecovered(nodeId -> {
+            trapService.clearUnreachableTraps(nodeId);
+            trapService.recalculateNodeStatus(nodeId);
+        });
 
         // Make sure pool is closed on shutdown
         Runtime.getRuntime().addShutdownHook(new Thread(db::close));
@@ -373,6 +376,11 @@ public class Main {
         });
 
         // --- NODE MANAGEMENT APIs ---
+        app.get("/api/node-types", ctx -> {
+            DecodedJWT jwt = ctx.attribute("jwt");
+            ctx.json(nodeService.getDistinctNodeTypes());
+        });
+        
         app.post("/api/discovery", ctx -> {
             DecodedJWT jwt = ctx.attribute("jwt");
             if (!"ADMIN".equals(jwt.getClaim("role").asString())) {
@@ -555,7 +563,7 @@ public class Main {
         }
 
         com.snmp.manager.snmp.monitor.SnmpHealthMonitor snmpHealthMonitor =
-                new com.snmp.manager.snmp.monitor.SnmpHealthMonitor(snmpPoller, nodeDAO, heartbeatService);
+                new com.snmp.manager.snmp.monitor.SnmpHealthMonitor(snmpPoller, nodeDAO, heartbeatService, trapService);
         snmpHealthMonitor.start();
         System.out.println("[HEARTBEAT] SNMP health monitor started OK.");
 
