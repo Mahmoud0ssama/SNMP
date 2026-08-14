@@ -57,7 +57,7 @@ public class TrapActionDAO {
     }
 
     public List<TrapAction> getDistinctTrapTemplates() throws SQLException {
-        String sql = "SELECT DISTINCT ON (trap_oid) id, node_id, trap_oid, trap_name, severity, "
+        String sql = "SELECT DISTINCT ON (trap_oid) id, node_id, trap_oid, trap_name, severity, description, "
                 + "auto_resolve, action_type, target_payload, created_at, updated_at "
                 + "FROM trap_actions ORDER BY trap_oid, created_at DESC";
         List<TrapAction> templates = new ArrayList<>();

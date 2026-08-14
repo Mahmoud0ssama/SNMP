@@ -159,4 +159,17 @@ public class NodeDAO {
             ps.setString(index, value);
         }
     }
+
+    public java.util.List<String> getDistinctNodeTypes() throws SQLException {
+        String sql = "SELECT DISTINCT node_type FROM nodes WHERE node_type IS NOT NULL AND node_type != '' ORDER BY node_type";
+        java.util.List<String> types = new java.util.ArrayList<>();
+        try (Connection conn = databaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                types.add(rs.getString(1));
+            }
+        }
+        return types;
+    }
 }
