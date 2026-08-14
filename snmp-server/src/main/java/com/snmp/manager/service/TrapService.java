@@ -74,8 +74,7 @@ public class TrapService {
         trapHistoryDAO.save(history); // Save method sets the auto-generated ID inside the history object
 
         if (node != null) {
-            NodeStatus newStatus = resolveStatus(action);
-            
+            NodeStatus newStatus = resolveStatus(action, event.getTrapOid());
             if (node.getStatus() != NodeStatus.UNKNOWN) {
                 nodeService.updateStatus(node, newStatus);
                 if (heartbeatService != null) {
@@ -216,7 +215,10 @@ public class TrapService {
         return history;
     }
 
-    private NodeStatus resolveStatus(TrapAction action) {
+    private NodeStatus resolveStatus(TrapAction action, String trapOid) {
+        if ("1.3.6.1.4.1.99999.0.0".equals(trapOid)) {
+            return NodeStatus.DOWN;
+        }
         if (action == null) {
             return NodeStatus.WARNING;
         }
@@ -247,7 +249,7 @@ public class TrapService {
             NodeStatus worstStatus = NodeStatus.UP;
             for (TrapHistory trap : openTraps) {
                 Optional<TrapAction> actionOpt = trapActionDAO.findByNodeAndOid(nodeId, trap.getTrapOid());
-                NodeStatus trapStatus = resolveStatus(actionOpt.orElse(null));
+                NodeStatus trapStatus = resolveStatus(actionOpt.orElse(null), trap.getTrapOid());
                 
                 if (trapStatus == NodeStatus.DOWN) {
                     worstStatus = NodeStatus.DOWN;
@@ -266,6 +268,18 @@ public class TrapService {
             }
         } catch (SQLException e) {
             System.err.println("Error recalculating node status: " + e.getMessage());
+        }
+    }
+    public void clearUnreachableTraps(long nodeId) {
+        try {
+            List<TrapHistory> openTraps = trapHistoryDAO.findOpenTrapsForNode(nodeId);
+            for (TrapHistory trap : openTraps) {
+                if ("1.3.6.1.4.1.99999.0.0".equals(trap.getTrapOid())) {
+                    trapHistoryDAO.resolveTrap(trap.getId(), null); // System Auto-Resolve
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error clearing unreachable traps: " + e.getMessage());
         }
     }
 }

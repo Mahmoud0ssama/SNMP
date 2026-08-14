@@ -42,6 +42,10 @@ public class NodeService {
         return nodeDAO.findByIp(ipAddress);
     }
 
+    public List<String> getDistinctNodeTypes() throws SQLException {
+        return nodeDAO.getDistinctNodeTypes();
+    }
+
     // Updates the operational status of an existing node.
 
     public int updateStatus(Node node, NodeStatus status) throws SQLException {

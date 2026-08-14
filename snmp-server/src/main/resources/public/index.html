@@ -1541,7 +1541,7 @@
 </head>
 
 <body>
-
+<datalist id="nodeTypeList"></datalist>
     <!-- Login Screen -->
     <div id="loginScreen" class="login-wrapper">
         <div class="login-card">
@@ -1902,12 +1902,7 @@
                             placeholder="e.g. 10.0.0.5" required></div>
                     <div class="form-group">
                         <label>Node Type</label>
-                        <select id="newNodeType" required>
-                            <option value="BTS">BTS</option>
-                            <option value="MSC">MSC</option>
-                            <option value="BSC">BSC</option>
-                            <option value="SGSN">SGSN</option>
-                        </select>
+                        <input type="text" id="newNodeType" list="nodeTypeList" placeholder="e.g. BTS, HLR, SGW..." required autocomplete="off">
                     </div>
                 </div>
 
@@ -1967,12 +1962,7 @@
                     <div class="form-group"><label>IP Address</label><input type="text" id="editNodeIp" required></div>
                     <div class="form-group">
                         <label>Node Type</label>
-                        <select id="editNodeType" required>
-                            <option value="BTS">BTS</option>
-                            <option value="MSC">MSC</option>
-                            <option value="BSC">BSC</option>
-                            <option value="SGSN">SGSN</option>
-                        </select>
+                        <input type="text" id="editNodeType" list="nodeTypeList" required autocomplete="off">
                     </div>
                 </div>
 
@@ -2111,9 +2101,9 @@
 
         // Hardcoded standard Emulator Traps so admin doesn't memorize OIDs
         const EMULATOR_TRAPS = [
+            { oid: '1.3.6.1.4.1.99999.0.0', name: 'Node Unreachable' },
             { oid: '1.3.6.1.4.1.99999.0.1', name: 'Disk Full' },
             { oid: '1.3.6.1.4.1.99999.0.2', name: 'Power Failure' },
-            { oid: '1.3.6.1.4.1.99999.0.3', name: 'Link Down' },
             { oid: '1.3.6.1.4.1.99999.0.4', name: 'Congestion' },
             { oid: '1.3.6.1.4.1.99999.0.5', name: 'High Temperature' },
             { oid: '1.3.6.1.4.1.99999.0.6', name: 'Memory Exhaustion' },
@@ -2139,6 +2129,31 @@
                 }
             } catch (e) {
                 console.error("Failed to load dynamic traps", e);
+            }
+        }
+
+        async function loadNodeTypes() {
+            try {
+                let res = await fetchWithAuth('/api/node-types');
+                if (res.ok) {
+                    let types = await res.json();
+                    let datalist = document.getElementById('nodeTypeList');
+                    if(datalist) {
+                        datalist.innerHTML = '';
+                        
+                        if(types.length === 0) {
+                            types = ['BTS', 'BSC', 'MSC', 'SGSN', 'GGSN', 'HLR', 'VLR'];
+                        }
+                        
+                        types.forEach(t => {
+                            let option = document.createElement('option');
+                            option.value = t;
+                            datalist.appendChild(option);
+                        });
+                    }
+                }
+            } catch (e) {
+                console.error("Failed to load node types", e);
             }
         }
 
@@ -2247,6 +2262,7 @@
 
             // Load custom traps from DB first to populate dropdowns
             loadTrapTemplates();
+            loadNodeTypes();
 
             // Clean up old interval before assigning new one
             if (refreshInterval) clearInterval(refreshInterval);
@@ -2288,7 +2304,7 @@
                 let nodesOnlineCount = 0;
 
                 nodes.forEach(n => {
-                    if (n.status === 'UP') nodesOnlineCount++;
+                    if (n.status === 'UP' || n.status === 'WARNING') nodesOnlineCount++;
                     nodesMap[n.ipAddress] = n.name;
                     // Always show AI Report button, show Edit only for Admins
                     let actionBtns = `<td onclick="event.stopPropagation();" style="white-space: nowrap;">
@@ -2334,7 +2350,7 @@
 
                 let openCount = 0;
                 let totalResolvedCount = 0;
-                let unknownCount = 0;
+                let unknownIps = new Set(); 
                 let today = new Date();
                 today.setHours(0, 0, 0, 0);
 
@@ -2344,6 +2360,10 @@
                     if (t.status === 'OPEN') openCount++;
                     if (t.status === 'RESOLVED') {
                         totalResolvedCount++;
+                    }
+
+                    if (t.nodeId == null) {
+                        unknownIps.add(t.sourceIp);
                     }
                     let btn = t.status === 'OPEN'
                         ? `<button class="action-btn resolve-btn" onclick="resolveTrap(${t.id}, event)">Resolve</button>`
@@ -2365,7 +2385,6 @@
                     let rowClass = "clickable-row";
 
                     if (isUnrecognized) {
-                        unknownCount++;
                         rowClass += " unknown-trap-row";
 
                         let rawExtracted = cleanMsg.replace('Unrecognized trap:', '').trim();
@@ -2389,7 +2408,9 @@
                             niceName += " - " + trapDetails;
                         }
 
-                        displayMsg = `<span style="color: var(--text-primary); font-size: 14px;">${niceName}</span> <span class="unknown-tag"><i class="fa-solid fa-circle-question"></i> UNKNOWN</span>`;
+                        cleanMsg = niceName; 
+
+                        displayMsg = `<span style="color: var(--text-primary); font-size: 14px;">${niceName}</span> <span class="unknown-tag" style="background: var(--bg-raised-2); border: 1px solid var(--border); color: var(--text-meta);"><i class="fa-solid fa-link-slash"></i> NO ACTION</span>`;
                     }
                     else if (isAiBlocked || isAiOverridden) {
                         let startIndex = rawMsg.indexOf('[AI BLOCKED:');
@@ -2447,14 +2468,15 @@
 
                     // Use proper escaping to prevent onclick execution failures
                     let safeAiReason = escapeHtml(aiReason);
-                    let safeCleanMsg = escapeHtml(cleanMsg);
+                    let safeModalMsg = escapeHtml(cleanMsg);
+
                     let alarmRowClass = 'alarm-row sev-' + sevLevel;
 
                     let isUnknownNode = (t.nodeId == null);
                     let isAdmin = localStorage.getItem('snmp_role') === 'ADMIN';
                     let addNodeBtnHtml = (isUnknownNode && isAdmin) ? `<button class="action-btn" style="padding:3px 8px; font-size:11px; margin-left:8px;" onclick="event.stopPropagation(); promptAddNode('${escapeHtml(t.sourceIp)}')"><i class="fa-solid fa-plus"></i> Add Node</button>` : '';
 
-                    tBody.innerHTML += `<tr class="${rowClass} ${alarmRowClass}" onclick="showTrapDetails(${t.id}, '${escapeHtml(name)}', '${escapeHtml(t.sourceIp)}', '${safeCleanMsg}', '${t.status}', '${time}', '${escapeHtml(resName)}', '${resTime}', '${safeAiReason}', ${isAiOverridden}, '${sevLevel}')">
+                    tBody.innerHTML += `<tr class="${rowClass} ${alarmRowClass}" onclick="showTrapDetails(${t.id}, '${escapeHtml(name)}', '${escapeHtml(t.sourceIp)}', '${safeModalMsg}', '${t.status}', '${time}', '${escapeHtml(resName)}', '${resTime}', '${safeAiReason}', ${isAiOverridden}, '${sevLevel}')">
                         <td><div class="source-name" style="display:flex; align-items:center;">${escapeHtml(name)}${addNodeBtnHtml}</div><div class="source-ip">${escapeHtml(t.sourceIp)}</div></td>
                         <td><div class="msg-title">${displayMsg}</div><div class="msg-time">${time}</div></td>
                         <td>${sevPillHtml}</td>
@@ -2467,7 +2489,7 @@
                 if (document.getElementById('statOpen')) {
                     document.getElementById('statOpen').innerText = openCount;
                     document.getElementById('statResolved').innerText = totalResolvedCount;
-                    document.getElementById('statUnknown').innerText = unknownCount;
+                    document.getElementById('statUnknown').innerText = unknownIps.size;
                     let statNodesEl = document.getElementById('statNodes');
                     statNodesEl.innerText = `${nodesOnlineCount} / ${nodes.length}`;
                     let ratio = nodes.length > 0 ? nodesOnlineCount / nodes.length : 0;
