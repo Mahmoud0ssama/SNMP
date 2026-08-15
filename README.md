@@ -36,26 +36,26 @@ The SNMP Network Management Platform is a full-stack monitoring system consistin
 ## 2. System Architecture
 
 ```
-┌─────────────────┐     SNMPv2c Trap (UDP)      ┌──────────────────────┐
+┌─────────────────┐     SNMPv2c Trap (UDP)       ┌──────────────────────┐
 │  Telecom Node   │ ────────────────────────────▶│  SNMP Manager Server │
 │    Emulator     │                              │  (Port 8080 + 162)   │
-│                 │◀────────────────────────────│                      │
+│                 │◀──────────────────────────── │                      │
 │  • GUI Mode     │      REST API (JWT)          │  • TrapReceiver      │
 │  • CLI Mode     │                              │  • TrapParser        │
 │  • SnmpService  │                              │  • TrapService       │
 └─────────────────┘                              │  • NodeService       │
-       ▲                                          │  • SnmpPoller        │
-       │ Docker Containers                        │  • HeartbeatService  │
-       │                                          │  • DiscoveryService  │
-       │                                          │  • AiAnalysisService │
-       │                                          └──────────┬───────────┘
-       │                                                     │ JDBC
-       │                                                     ▼
+       ▲                                         │  • SnmpPoller        │
+       │ Docker Containers                       │  • HeartbeatService  │
+       │                                         │  • DiscoveryService  │
+       │                                         │  • AiAnalysisService │
+       │                                         └──────────┬───────────┘
+       │                                                    │ JDBC
+       │                                                    ▼
 ┌─────────────────────────────────────────────────────────────────────┐
-│                         PostgreSQL                                   │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌────────────┐ │
-│  │    nodes    │  │ trap_actions│  │ trap_history│  │   users    │ │
-│  └─────────────┘  └─────────────┘  └─────────────┘  └────────────┘ │
+│                         PostgreSQL                                  │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌────────────┐  │
+│  │    nodes    │  │ trap_actions│  │ trap_history│  │   users    │  │
+│  └─────────────┘  └─────────────┘  └─────────────┘  └────────────┘  │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -250,37 +250,37 @@ TRAP_ACTIONS ||--o{ TRAP_HISTORY : "defines"
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                            Main                                  │
-│                   java -jar emulator.jar                         │
+│                            Main                                 │
+│                   java -jar emulator.jar                        │
 │   ├── --gui  ──▶ EmulatorGUI (JavaFX)                           │
 │   └── --cli  ──▶ EmulatorCLI                                    │
 └─────────────────────────────────────────────────────────────────┘
 
 ┌──────────────────┐     ┌──────────────────────────────────────┐
-│  EmulatorGUI     │────▶│      EmulatorController              │
-│  (JavaFX)        │     │  • nodeNameField : TextField          │
-└──────────────────┘     │  • nodeTypeDropdown : ComboBox        │
-                         │  • alarmTypeDropdown : ComboBox       │
-┌──────────────────┐     │  • detailsField : TextField           │
-│  EmulatorCLI     │────▶│  • ipField : TextField                │
-│  (Command Line)  │     │  • portField : TextField              │
-└──────────────────┘     │  + initialize()                       │
-                         │  + onSendButtonClicked()              │
+│  EmulatorGUI     │────▶│        EmulatorController            │
+│  (JavaFX)        │     │  • nodeNameField : TextField         │
+└──────────────────┘     │  • nodeTypeDropdown : ComboBox       │
+                         │  • alarmTypeDropdown : ComboBox      │
+┌──────────────────┐     │  • detailsField : TextField          │
+│  EmulatorCLI     │────▶│  • ipField : TextField               │
+│  (Command Line)  │     │  • portField : TextField             │
+└──────────────────┘     │  + initialize()                      │
+                         │  + onSendButtonClicked()             │
                          └──────────────────┬───────────────────┘
                                             │ sendTrap()
                          ┌──────────────────▼───────────────────┐
-                         │              SnmpService               │
-                         │  • sendTrap(nodeName, nodeType,       │
-                         │    alarmType, details, targetIp,       │
-                         │    targetPort)                         │
+                         │             SnmpService              │
+                         │  • sendTrap(nodeName, nodeType,      │
+                         │    alarmType, details, targetIp,     │
+                         │    targetPort)                       │
                          └──────────────────┬───────────────────┘
                                             │ uses
                          ┌──────────────────▼───────────────────┐
-                         │              AlarmType (Enum)          │
-                         │  DISK_FULL, POWER_FAILURE, LINK_DOWN, │
-                         │  CONGESTION, HIGH_TEMPERATURE,        │
-                         │  MEMORY_EXHAUSTION, CONFIG_ERROR      │
-                         └───────────────────────────────────────┘
+                         │            AlarmType (Enum)          │
+                         │ DISK_FULL, POWER_FAILURE, LINK_DOWN, │
+                         │ CONGESTION, HIGH_TEMPERATURE,        │
+                         │ MEMORY_EXHAUSTION, CONFIG_ERROR      │
+                         └──────────────────────────────────────┘
 ```
 
 ### Supported Node Types
