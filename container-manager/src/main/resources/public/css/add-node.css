@@ -1,0 +1,94 @@
+/* ---- ADD NODE FORM ---- */
+.form-container {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+.form-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text-primary);
+}
+.form-hint {
+    font-size: 12px;
+    color: var(--text-faint);
+    margin-left: 10px;
+}
+
+.form-control {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border-soft);
+    color: var(--text-primary);
+    padding: 12px 15px;
+    border-radius: 8px;
+    font-family: var(--sans);
+    font-size: 14px;
+    transition: border-color 0.2s;
+}
+.form-control:focus {
+    outline: none;
+    border-color: var(--blue);
+}
+.form-control.error {
+    border-color: var(--red);
+}
+
+select.form-control {
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23a1a1aa%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+    background-repeat: no-repeat;
+    background-position: right 15px top 50%;
+    background-size: 10px auto;
+}
+
+.radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background: var(--bg);
+    border: 1px solid var(--border-soft);
+    padding: 15px;
+    border-radius: 8px;
+}
+.radio-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+.radio-option input[type="radio"] {
+    margin-top: 3px;
+}
+.radio-content {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    width: 100%;
+}
+.radio-label {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.validation-msg {
+    font-size: 12px;
+    color: var(--red);
+    margin-top: 6px;
+    display: none;
+}
+.validation-msg.active {
+    display: block;
+}
+
+.submit-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 12px;
+    font-size: 15px;
+    margin-top: 20px;
+}
