@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Telecom Node</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/add-node.css">
+</head>
+<body>
+
+    <a href="index.html" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</a>
+
+    <div class="form-container panel">
+        <h1 class="panel-title" style="font-size: 20px; font-family: var(--mono); border: none;"><i class="fa-solid fa-plus"></i> Add New Telecom Node</h1>
+        
+        <form id="add-node-form">
+            <div class="form-group">
+                <label class="form-label">Service Name <span class="form-hint">(e.g., cairo-bts-03)</span></label>
+                <input type="text" id="serviceName" class="form-control" required pattern="[a-zA-Z0-9-]+" title="Only alphanumeric characters and hyphens allowed">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Node Name <span class="form-hint">(e.g., Cairo_BTS_03)</span></label>
+                <input type="text" id="nodeName" class="form-control" required>
+            </div>
+
+            <div class="layout-grid" style="grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="form-group">
+                    <label class="form-label">Node Type</label>
+                    <select id="nodeType" class="form-control">
+                        <option value="BTS">BTS</option>
+                        <option value="BSC">BSC</option>
+                        <option value="MSC">MSC</option>
+                        <option value="HLR">HLR</option>
+                        <option value="SGSN">SGSN</option>
+                        <option value="ROUTER">ROUTER</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Region</label>
+                    <select id="region" class="form-control">
+                        <option value="Core">Core</option>
+                        <option value="Cairo">Cairo</option>
+                        <option value="Alexandria">Alexandria</option>
+                        <option value="Giza">Giza</option>
+                        <option value="Tanta">Tanta</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Vendor <span class="form-hint">(e.g., Ericsson, Huawei)</span></label>
+                <input type="text" id="vendor" class="form-control" value="Generic">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">IP Address</label>
+                <div class="radio-group">
+                    <div class="radio-option">
+                        <input type="radio" id="ip-auto" name="ip-mode" value="auto" checked>
+                        <div class="radio-content">
+                            <label for="ip-auto" class="radio-label">Auto-assign IP Address</label>
+                            <span class="form-hint" id="auto-ip-hint" style="margin: 0; padding-top: 2px;">→ Loading next available...</span>
+                        </div>
+                    </div>
+                    
+                    <div class="radio-option" style="margin-top: 10px;">
+                        <input type="radio" id="ip-manual" name="ip-mode" value="manual">
+                        <div class="radio-content">
+                            <label for="ip-manual" class="radio-label">Manual IP Address</label>
+                            <input type="text" id="manual-ip-input" class="form-control" placeholder="172.25.0.x" disabled style="margin-top: 8px;">
+                            <div id="ip-error" class="validation-msg">IP must be in 172.25.0.0/24 subnet</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="action-btn submit-btn" id="submit-btn">Create Node</button>
+        </form>
+    </div>
+
+    <!-- JS -->
+    <script type="module" src="js/add-node.js"></script>
+</body>
+</html>

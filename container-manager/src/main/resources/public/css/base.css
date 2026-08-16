@@ -1,0 +1,45 @@
+/* ---- Custom Dark Scrollbars ---- */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--text-faint);
+}
+
+html {
+    scrollbar-color: var(--border) var(--bg);
+    scrollbar-width: thin;
+}
+
+body {
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: var(--sans);
+    padding: 24px;
+    min-height: 100vh;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+a {
+    color: var(--blue);
+    text-decoration: none;
+}
+a:hover {
+    text-decoration: underline;
+}

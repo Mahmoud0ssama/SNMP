@@ -1,0 +1,97 @@
+/* ---- DETAIL LAYOUT ---- */
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-meta);
+    font-size: 14px;
+    margin-bottom: 20px;
+    transition: color 0.15s;
+}
+.back-link:hover { color: var(--blue); }
+
+.detail-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+.detail-title {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0;
+    font-family: var(--mono);
+}
+
+.layout-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+    align-items: start;
+}
+
+.panel {
+    background: var(--bg-raised);
+    border: 1px solid var(--border-soft);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+.panel-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0 0 15px 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-soft);
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 10px 20px;
+    font-size: 14px;
+}
+.info-label { color: var(--text-meta); }
+.info-val { font-family: var(--mono); }
+
+.actions-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+.actions-grid .action-btn { width: 100%; justify-content: center; }
+
+/* ---- TERMINAL / LOGS ---- */
+.terminal-window {
+    background: var(--bg);
+    border: 1px solid var(--border-soft);
+    border-radius: 8px;
+    padding: 15px;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text-primary);
+    overflow-x: auto;
+    white-space: pre-wrap;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.exec-input-group {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+.exec-input-group input {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border-soft);
+    color: var(--text-primary);
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-family: var(--mono);
+    font-size: 14px;
+}
+.exec-input-group input:focus {
+    outline: none;
+    border-color: var(--blue);
+}

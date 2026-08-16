@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Container Manager</title>
+    <!-- Fonts and Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+
+    <header class="header">
+        <div class="logo"><i class="fa-brands fa-docker"></i> Container Manager</div>
+        <div style="flex: 1;"></div>
+        <a href="http://localhost:8080" target="_blank" class="header-action-btn" title="SNMP Dashboard">
+            <i class="fa-solid fa-chart-line"></i>
+        </a>
+        <button id="theme-toggle" class="header-action-btn" title="Toggle Theme">
+            <i class="fa-solid fa-moon"></i>
+        </button>
+    </header>
+
+    <div class="stats">
+        <div class="stat-card">
+            <div class="stat-label">Total Containers</div>
+            <div class="stat-value" id="stat-total">-</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Running</div>
+            <div class="stat-value ok" id="stat-running">-</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Stopped</div>
+            <div class="stat-value err" id="stat-stopped">-</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Error / Other</div>
+            <div class="stat-value err" id="stat-error">-</div>
+        </div>
+    </div>
+
+    <div class="container-table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Container Name</th>
+                    <th>Image</th>
+                    <th>State</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="container-list">
+                <!-- Rows injected by JS -->
+            </tbody>
+        </table>
+    </div>
+
+    <div style="margin-top: 20px;">
+        <a href="add-node.html" class="action-btn">
+            <i class="fa-solid fa-plus"></i> Add New Node
+        </a>
+    </div>
+
+    <!-- JS -->
+    <script type="module" src="js/dashboard.js"></script>
+</body>
+</html>

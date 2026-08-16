@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Container Detail</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/detail.css">
+</head>
+<body>
+
+    <a href="index.html" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</a>
+
+    <div class="detail-header">
+        <h1 class="detail-title" id="c-title">Loading...</h1>
+        <span id="c-status" class="sev-pill">...</span>
+        <div style="flex: 1;"></div>
+        <button id="theme-toggle" class="header-action-btn" title="Toggle Theme">
+            <i class="fa-solid fa-moon"></i>
+        </button>
+    </div>
+
+    <div class="layout-grid">
+        <!-- Left Column -->
+        <div>
+            <div class="panel">
+                <h2 class="panel-title">Container Info</h2>
+                <div class="info-grid">
+                    <span class="info-label">IP Address:</span> <span class="info-val" id="info-ip">-</span>
+                    <span class="info-label">Image:</span> <span class="info-val" id="info-image">-</span>
+                    <span class="info-label">Uptime:</span> <span class="info-val" id="info-uptime">-</span>
+                    <span class="info-label">CPU Usage:</span> <span class="info-val" id="info-cpu">-</span>
+                    <span class="info-label">Memory:</span> <span class="info-val" id="info-mem">-</span>
+                </div>
+                <h3 class="panel-title" style="margin-top: 20px; font-size: 14px;">Environment Variables</h3>
+                <div id="info-env" style="display: flex; flex-direction: column; gap: 8px;"></div>
+            </div>
+
+            <div class="panel">
+                <h2 class="panel-title"><i class="fa-solid fa-clipboard-list"></i> Container Logs
+                    <button class="action-btn" id="btn-refresh-logs" style="float: right; padding: 4px 8px;"><i class="fa-solid fa-rotate-right"></i></button>
+                </h2>
+                <div class="terminal-window" id="log-viewer">Loading logs...</div>
+            </div>
+            
+            <div class="panel">
+                <h2 class="panel-title" style="display: flex; justify-content: space-between; align-items: center;">
+                    <span><i class="fa-solid fa-microchip"></i> Simulation Mode</span>
+                    <span id="current-mode-badge" style="font-size: 12px; padding: 4px 8px; border-radius: 4px; background: rgba(255,255,255,0.1);">Loading...</span>
+                </h2>
+                <div class="actions-grid" style="grid-template-columns: 1fr 1fr;">
+                    <button class="action-btn success" id="btn-mode-sensor"><i class="fa-solid fa-temperature-half"></i> Set to Sensor Mode</button>
+                    <button class="action-btn" id="btn-mode-file"><i class="fa-solid fa-file-lines"></i> Set to File Mode</button>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h2 class="panel-title"><i class="fa-solid fa-terminal"></i> Execute Command</h2>
+                <div class="exec-input-group">
+                    <input type="text" id="exec-input" placeholder="e.g., cat /var/snmp/temperature.txt">
+                    <button class="action-btn" id="btn-run">Run</button>
+                </div>
+                <div class="terminal-window" id="exec-output" style="max-height: 200px;">$</div>
+            </div>
+        </div>
+
+        <!-- Right Column -->
+        <div>
+            <div class="panel">
+                <h2 class="panel-title"><i class="fa-solid fa-bolt"></i> Quick Actions</h2>
+                <div class="actions-grid">
+                    <button class="action-btn" id="btn-start"><i class="fa-solid fa-play"></i> Start</button>
+                    <button class="action-btn warning" id="btn-stop"><i class="fa-solid fa-stop"></i> Stop</button>
+                    <button class="action-btn" id="btn-restart"><i class="fa-solid fa-rotate-right"></i> Restart</button>
+                    <button class="action-btn danger" id="btn-remove"><i class="fa-solid fa-trash"></i> Remove</button>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h2 class="panel-title"><i class="fa-solid fa-bomb"></i> Chaos Scripts</h2>
+                <div class="actions-grid" style="grid-template-columns: 1fr;">
+                    <button class="action-btn danger" id="btn-disk"><i class="fa-solid fa-hard-drive"></i> Trigger Disk Full</button>
+                    <button class="action-btn warning" id="btn-temp"><i class="fa-solid fa-temperature-arrow-up"></i> Trigger High Temp</button>
+                    <button class="action-btn warning" id="btn-cong"><i class="fa-solid fa-microchip"></i> Trigger Congestion</button>
+                    <button class="action-btn danger" id="btn-linkdown"><i class="fa-solid fa-network-wired"></i> Trigger Link Down</button>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h2 class="panel-title"><i class="fa-solid fa-wrench"></i> Fixing Scripts</h2>
+                <div class="actions-grid" style="grid-template-columns: 1fr;">
+                    <button class="action-btn success" id="btn-fix-disk"><i class="fa-solid fa-hard-drive"></i> Fix Disk Full</button>
+                    <button class="action-btn success" id="btn-fix-temp"><i class="fa-solid fa-temperature-arrow-down"></i> Fix High Temp</button>
+                    <button class="action-btn success" id="btn-fix-cong"><i class="fa-solid fa-microchip"></i> Fix Congestion</button>
+                    <button class="action-btn" id="btn-linkup"><i class="fa-solid fa-plug-circle-check"></i> Recover Link</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JS -->
+    <script type="module" src="js/detail.js"></script>
+</body>
+</html>

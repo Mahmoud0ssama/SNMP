@@ -1,0 +1,87 @@
+/* ---- STAT CARDS ---- */
+.stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 26px;
+}
+
+.stat-card {
+    background: var(--bg-raised);
+    border: 1px solid var(--border-soft);
+    border-radius: 12px;
+    padding: 18px 16px;
+    text-align: center;
+}
+
+.stat-label {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-meta);
+    margin-bottom: 10px;
+}
+
+.stat-value {
+    font-family: var(--mono);
+    font-size: 30px;
+    font-weight: 700;
+    line-height: 1;
+}
+.stat-value.ok { color: var(--green); }
+.stat-value.err { color: var(--red); }
+
+/* ---- CONTAINER TABLE ---- */
+.container-table-wrapper {
+    background: var(--bg-raised);
+    border: 1px solid var(--border-soft);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+th {
+    padding: 14px 20px;
+    font-size: 11.5px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-meta);
+    border-bottom: 1px solid var(--border-soft);
+}
+
+td {
+    padding: 14px 20px;
+    font-size: 13px;
+    border-bottom: 1px solid var(--border-soft);
+}
+
+.container-row {
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+.container-row:hover {
+    background-color: var(--hover-bg);
+}
+
+.status-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 8px;
+}
+.status-dot.running { background: var(--green); }
+.status-dot.stopped { background: var(--red); }
+
+.container-name {
+    font-family: var(--mono);
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--blue);
+}
