@@ -1769,6 +1769,28 @@
         </div>
     </div>
 
+    <!-- AI Fix Suggestion Modal -->
+    <div id="aiFixModal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-wand-magic-sparkles"></i> AI Remediation Plan</h3>
+                <span class="close-btn" onclick="closeModal('aiFixModal')">&times;</span>
+            </div>
+            <div id="aiFixBody" style="font-size: 14px; line-height: 1.6; color: var(--text-primary);"></div>
+        </div>
+    </div>
+
+    <!-- Trap History Modal -->
+    <div id="trapHistoryModal" class="modal">
+        <div class="modal-content" style="max-width: 400px; text-align: center;">
+            <div class="modal-header">
+                <h3 style="margin: 0 auto;"><i class="fa-solid fa-clock-rotate-left"></i> Trap History</h3>
+                <span class="close-btn" onclick="closeModal('trapHistoryModal')" style="position: absolute; right: 25px;">&times;</span>
+            </div>
+            <div id="trapHistoryBody" style="font-size: 15px; padding: 10px 0;"></div>
+        </div>
+    </div>
+
     <!-- Nodes Screen -->
     <div id="nodesScreen" class="dashboard-container" style="display:none;">
         <div class="header card-panel">
@@ -1862,7 +1884,7 @@
 
     <!-- Discover Network Modal -->
     <div id="discoverModal" class="modal">
-        <div class="modal-content" style="max-width: 500px;">
+        <div class="modal-content modal-large">
             <div class="modal-header">
                 <h3>Discover Network</h3><span class="close-btn" onclick="closeModal('discoverModal')">&times;</span>
             </div>
@@ -2345,6 +2367,7 @@
                 // 2. Fetch and render Traps
                 let tRes = await fetchWithAuth('/api/traps');
                 let traps = await tRes.json();
+                window.allTrapsData = traps; 
                 let tBody = document.getElementById('trapsTableBody');
                 tBody.innerHTML = '';
 
@@ -2475,12 +2498,16 @@
                     let isUnknownNode = (t.nodeId == null);
                     let isAdmin = localStorage.getItem('snmp_role') === 'ADMIN';
                     let addNodeBtnHtml = (isUnknownNode && isAdmin) ? `<button class="action-btn" style="padding:3px 8px; font-size:11px; margin-left:8px;" onclick="event.stopPropagation(); promptAddNode('${escapeHtml(t.sourceIp)}')"><i class="fa-solid fa-plus"></i> Add Node</button>` : '';
+                    let fixBtn = `<button class="icon-btn" style="color: var(--blue);" title="How to fix this error?" onclick="event.stopPropagation(); requestAiFix('${escapeHtml(cleanMsg)}', '${escapeHtml(name)}')"><i class="fa-solid fa-wand-magic-sparkles"></i></button>`;
+                    let histBtn = `<button class="icon-btn" style="color: var(--amber);" title="Did this trap occur before?" onclick="event.stopPropagation(); showTrapOccurrences('${escapeHtml(t.trapOid)}', '${escapeHtml(t.sourceIp)}', '${escapeHtml(name)}')"><i class="fa-solid fa-clock-rotate-left"></i></button>`;
+                    
+                    let actionColumnHtml = `<div style="display: flex; gap: 12px; align-items: center;">${btn} ${fixBtn} ${histBtn}</div>`;
 
                     tBody.innerHTML += `<tr class="${rowClass} ${alarmRowClass}" onclick="showTrapDetails(${t.id}, '${escapeHtml(name)}', '${escapeHtml(t.sourceIp)}', '${safeModalMsg}', '${t.status}', '${time}', '${escapeHtml(resName)}', '${resTime}', '${safeAiReason}', ${isAiOverridden}, '${sevLevel}')">
                         <td><div class="source-name" style="display:flex; align-items:center;">${escapeHtml(name)}${addNodeBtnHtml}</div><div class="source-ip">${escapeHtml(t.sourceIp)}</div></td>
                         <td><div class="msg-title">${displayMsg}</div><div class="msg-time">${time}</div></td>
                         <td>${sevPillHtml}</td>
-                        <td onclick="event.stopPropagation();">${btn}</td></tr>`;
+                        <td onclick="event.stopPropagation();">${actionColumnHtml}</td></tr>`;
                 });
 
                 filterTraps();
@@ -3133,6 +3160,53 @@
                 clearInterval(liveMetricsInterval);
                 liveMetricsInterval = null;
             }
+        }
+
+        async function requestAiFix(trapMsg, nodeName) {
+            openModal('aiFixModal');
+            document.getElementById('aiFixBody').innerHTML = '<div style="text-align:center; color:var(--blue); padding: 20px;"><i class="fa-solid fa-spinner fa-spin" style="font-size:24px; margin-bottom:10px;"></i><br>AI is analyzing the root cause...</div>';
+            
+            try {
+                let prompt = `I received this alarm: "${trapMsg}" on node "${nodeName}". 
+First, start with a clear Markdown heading (###) stating the Remediation Plan for this specific alarm on this node. 
+Then, provide a very short, direct bulleted action plan to fix it permanently (maximum 3 to 4 short steps). 
+Do not include long explanations or conversational filler.`;
+
+                let res = await fetchWithAuth('/api/ai/chat', {
+                    method: 'POST',
+                    body: JSON.stringify({ message: prompt, history: [] })
+                });
+                
+                if (res.ok) {
+                    let data = await res.json();
+                    document.getElementById('aiFixBody').innerHTML = marked.parse(data.response);
+                } else {
+                    document.getElementById('aiFixBody').innerHTML = '<span style="color:var(--red);"><i class="fa-solid fa-triangle-exclamation"></i> Error connecting to AI service.</span>';
+                }
+            } catch (e) {
+                document.getElementById('aiFixBody').innerHTML = '<span style="color:var(--red);"><i class="fa-solid fa-wifi"></i> Network error while contacting AI.</span>';
+            }
+        }
+
+        function showTrapOccurrences(oid, ip, nodeName) {
+            if (!window.allTrapsData) return;
+            
+            let occurrences = window.allTrapsData.filter(t => t.trapOid === oid && t.sourceIp === ip);
+            let count = occurrences.length;
+            
+            let html = '';
+            if (count <= 1) {
+                html += `<div style="font-size: 50px; color: var(--green); margin-bottom: 15px;"><i class="fa-solid fa-circle-check"></i></div>`;
+                html += `<h4 style="margin: 0 0 10px 0; color: var(--text-primary); font-size: 18px;">First Time Occurrence</h4>`;
+                html += `<p style="color: var(--text-meta); margin: 0; line-height: 1.5;">Good news! This specific trap has <b>not</b> occurred before on <strong>${escapeHtml(nodeName)}</strong>.</p>`;
+            } else {
+                html += `<div style="font-size: 50px; color: var(--amber); margin-bottom: 15px;"><i class="fa-solid fa-triangle-exclamation"></i></div>`;
+                html += `<h4 style="margin: 0 0 10px 0; color: var(--text-primary); font-size: 18px;">Recurring Alarm</h4>`;
+                html += `<p style="color: var(--text-meta); margin: 0; line-height: 1.5;">Attention: This exact trap has occurred <strong>${count} times</strong> historically on <strong>${escapeHtml(nodeName)}</strong>.</p>`;
+            }
+            
+            document.getElementById('trapHistoryBody').innerHTML = html;
+            openModal('trapHistoryModal');
         }
 
         function filterTraps() {
