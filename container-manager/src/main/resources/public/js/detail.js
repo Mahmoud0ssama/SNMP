@@ -114,15 +114,7 @@ async function handleChaos(type) {
     }
 }
 
-async function loadLogs() {
-    try {
-        const res = await API.getContainerLogs(containerName);
-        if (res.success) {
-            document.getElementById('log-viewer').textContent = res.data;
-            document.getElementById('log-viewer').scrollTop = document.getElementById('log-viewer').scrollHeight;
-        }
-    } catch(e) {}
-}
+
 
 async function runCommand() {
     const input = document.getElementById('exec-input');
@@ -158,8 +150,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     loadDetail();
-    loadLogs();
-    setInterval(loadLogs, 10000); // refresh logs every 10s
 
     // Bind action buttons
     document.getElementById('btn-start').onclick = () => handleAction('start');
@@ -196,6 +186,4 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('exec-input').addEventListener('keypress', (e) => {
         if (e.key === 'Enter') runCommand();
     });
-    
-    document.getElementById('btn-refresh-logs').onclick = loadLogs;
 });
