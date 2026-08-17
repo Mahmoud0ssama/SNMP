@@ -218,6 +218,14 @@ public class ComposeService {
                 yaml.dump(data, writer);
             }
 
+            // Remove config directory
+            Path nodeDir = Paths.get(dockerDir, "nodes", serviceName);
+            if (Files.exists(nodeDir)) {
+                ProcessBuilder pbRm = new ProcessBuilder("rm", "-rf", nodeDir.toString());
+                Process pRm = pbRm.start();
+                pRm.waitFor(5, TimeUnit.SECONDS);
+            }
+
             return new ComposeResult(true, "Node removed from compose file", null);
         } catch (Exception e) {
             return new ComposeResult(false, "Error removing node: " + e.getMessage(), null);
