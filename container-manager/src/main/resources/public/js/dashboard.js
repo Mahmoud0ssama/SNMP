@@ -2,11 +2,13 @@ import { API } from './api.js';
 import { initTheme, toggleTheme, showToast } from './utils.js';
 
 let refreshInterval;
+let currentContainers = [];
 
 async function loadContainers() {
     try {
         const result = await API.getContainers();
         if (result.success && Array.isArray(result.data)) {
+            currentContainers = result.data;
             renderTable(result.data);
             updateStats(result.data);
         } else {
@@ -80,6 +82,36 @@ document.addEventListener('DOMContentLoaded', () => {
         themeBtn.addEventListener('click', toggleTheme);
     }
     
+    document.getElementById('btn-start-all').onclick = async () => {
+        const btn = document.getElementById('btn-start-all');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Starting...';
+        for (const c of currentContainers) {
+            if (c.State !== 'running') {
+                await API.startContainer(c.Names);
+            }
+        }
+        showToast('All containers started', 'success');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-play"></i> Start All';
+        loadContainers();
+    };
+
+    document.getElementById('btn-stop-all').onclick = async () => {
+        const btn = document.getElementById('btn-stop-all');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Stopping...';
+        for (const c of currentContainers) {
+            if (c.State === 'running') {
+                await API.stopContainer(c.Names);
+            }
+        }
+        showToast('All containers stopped', 'success');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-stop"></i> Stop All';
+        loadContainers();
+    };
+
     loadContainers();
     refreshInterval = setInterval(loadContainers, 5000);
 });
